@@ -38,6 +38,7 @@ type BudgetFormData = {
   centro_producao: string;
   pagamento: string;
   frete: string;
+  approved?: boolean;
 };
 
 function Navbar() {
@@ -312,6 +313,20 @@ export default function EditBudgetForm({ specifications }: { specifications: any
 
             <Label htmlFor="frete">Frete</Label>
             <Input id="frete" {...register('frete')} />
+
+            <div className="flex items-center space-x-2 mt-4 pt-4 border-t">
+              <Controller
+                name="approved"
+                control={control}
+                render={({ field }) => (
+                  <input type="checkbox" id="approved" {...field} checked={field.value} disabled className="h-4 w-4" />
+                )}
+              />
+              <Label htmlFor="approved">Aprovado</Label>
+            </div>
+
+            <Label htmlFor="orderId">ID da Ordem</Label>
+            <Input id="orderId" {...register('orderId')} readOnly />
 
             <div className="flex gap-2">
               <Button type="button" variant="outline" onClick={() => router.push('/budgets')}>Cancelar</Button>

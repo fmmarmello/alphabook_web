@@ -49,6 +49,7 @@ export const OrderSchema = z.object({
   shrink: z.string().optional(),
   pagamento: z.string().optional(),
   frete: z.string().optional(),
+  status: z.string().optional(),
 });
 
 export const BudgetSchema = z.object({

@@ -64,6 +64,7 @@ model Order {
   shrink              String?
   pagamento           String?
   frete               String?
+  status              String    @default("Pendente")
   budgets             Budget[]
 }
 

@@ -10,19 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatCurrencyBRL, parseCurrencyBRL } from "@/lib/utils";
 
-type OrderFormData = {
-  clientId: number;
-  centerId: number;
-  title: string;
-  tiragem: number;
-  formato: string;
-  numPaginasTotal: number;
-  numPaginasColoridas: number;
-  valorUnitario: number;
-  valorTotal: number;
-  prazoEntrega: string;
-  obs: string;
-};
+import { OrderInput } from "@/lib/validation";
+
+type OrderFormData = OrderInput;
 
 function Navbar() {
   return (
@@ -69,17 +59,26 @@ export default function EditOrderPage() {
         setClients(listC.map((c: any) => ({ id: c.id, name: c.name })));
         setCenters(listZ.map((c: any) => ({ id: c.id, name: c.name })));
         reset({
-          clientId: order.clientId,
-          centerId: order.centerId,
-          title: order.title,
-          tiragem: order.tiragem,
-          formato: order.formato,
-          numPaginasTotal: order.numPaginasTotal,
-          numPaginasColoridas: order.numPaginasColoridas,
-          valorUnitario: order.valorUnitario,
-          valorTotal: order.valorTotal,
-          prazoEntrega: order.prazoEntrega,
+          ...order,
+          prazoEntrega: order.prazoEntrega ? new Date(order.prazoEntrega).toISOString().split('T')[0] : '',
+          data_pedido: order.data_pedido ? new Date(order.data_pedido).toISOString().split('T')[0] : '',
+          data_entrega: order.data_entrega ? new Date(order.data_entrega).toISOString().split('T')[0] : '',
           obs: order.obs ?? "",
+          numero_pedido: order.numero_pedido ?? "",
+          solicitante: order.solicitante ?? "",
+          documento: order.documento ?? "",
+          editorial: order.editorial ?? "",
+          tipo_produto: order.tipo_produto ?? "",
+          cor_miolo: order.cor_miolo ?? "",
+          papel_miolo: order.papel_miolo ?? "",
+          papel_capa: order.papel_capa ?? "",
+          cor_capa: order.cor_capa ?? "",
+          laminacao: order.laminacao ?? "",
+          acabamento: order.acabamento ?? "",
+          shrink: order.shrink ?? "",
+          pagamento: order.pagamento ?? "",
+          frete: order.frete ?? "",
+          status: order.status ?? "Pendente",
         });
       } catch {}
     };
@@ -207,6 +206,82 @@ export default function EditOrderPage() {
 
             <Label htmlFor="obs">Observações</Label>
             <Input id="obs" {...register('obs')} />
+
+            <h3 className="text-lg font-semibold mt-4 pt-4 border-t">Detalhes Adicionais</h3>
+
+            <Label htmlFor="status">Status</Label>
+            <select id="status" {...register('status')} className="border rounded px-2 py-1">
+              <option value="Pendente">Pendente</option>
+              <option value="Em produção">Em produção</option>
+              <option value="Finalizado">Finalizado</option>
+              <option value="Entregue">Entregue</option>
+              <option value="Cancelado">Cancelado</option>
+            </select>
+            {errors.status?.message && <p className="text-sm text-red-600">{String(errors.status.message)}</p>}
+
+            <Label htmlFor="numero_pedido">Número do Pedido</Label>
+            <Input id="numero_pedido" {...register('numero_pedido')} />
+            {errors.numero_pedido?.message && <p className="text-sm text-red-600">{String(errors.numero_pedido.message)}</p>}
+
+            <Label htmlFor="data_pedido">Data do Pedido</Label>
+            <Input id="data_pedido" type="date" {...register('data_pedido')} />
+            {errors.data_pedido?.message && <p className="text-sm text-red-600">{String(errors.data_pedido.message)}</p>}
+
+            <Label htmlFor="data_entrega">Data de Entrega</Label>
+            <Input id="data_entrega" type="date" {...register('data_entrega')} />
+            {errors.data_entrega?.message && <p className="text-sm text-red-600">{String(errors.data_entrega.message)}</p>}
+
+            <Label htmlFor="solicitante">Solicitante</Label>
+            <Input id="solicitante" {...register('solicitante')} />
+            {errors.solicitante?.message && <p className="text-sm text-red-600">{String(errors.solicitante.message)}</p>}
+
+            <Label htmlFor="documento">Documento</Label>
+            <Input id="documento" {...register('documento')} />
+            {errors.documento?.message && <p className="text-sm text-red-600">{String(errors.documento.message)}</p>}
+
+            <Label htmlFor="editorial">Grupo Editorial</Label>
+            <Input id="editorial" {...register('editorial')} />
+            {errors.editorial?.message && <p className="text-sm text-red-600">{String(errors.editorial.message)}</p>}
+
+            <Label htmlFor="tipo_produto">Tipo de Produto</Label>
+            <Input id="tipo_produto" {...register('tipo_produto')} />
+            {errors.tipo_produto?.message && <p className="text-sm text-red-600">{String(errors.tipo_produto.message)}</p>}
+
+            <Label htmlFor="cor_miolo">Cor do Miolo</Label>
+            <Input id="cor_miolo" {...register('cor_miolo')} />
+            {errors.cor_miolo?.message && <p className="text-sm text-red-600">{String(errors.cor_miolo.message)}</p>}
+
+            <Label htmlFor="papel_miolo">Papel do Miolo</Label>
+            <Input id="papel_miolo" {...register('papel_miolo')} />
+            {errors.papel_miolo?.message && <p className="text-sm text-red-600">{String(errors.papel_miolo.message)}</p>}
+
+            <Label htmlFor="papel_capa">Papel da Capa</Label>
+            <Input id="papel_capa" {...register('papel_capa')} />
+            {errors.papel_capa?.message && <p className="text-sm text-red-600">{String(errors.papel_capa.message)}</p>}
+
+            <Label htmlFor="cor_capa">Cor da Capa</Label>
+            <Input id="cor_capa" {...register('cor_capa')} />
+            {errors.cor_capa?.message && <p className="text-sm text-red-600">{String(errors.cor_capa.message)}</p>}
+
+            <Label htmlFor="laminacao">Laminação</Label>
+            <Input id="laminacao" {...register('laminacao')} />
+            {errors.laminacao?.message && <p className="text-sm text-red-600">{String(errors.laminacao.message)}</p>}
+
+            <Label htmlFor="acabamento">Acabamento</Label>
+            <Input id="acabamento" {...register('acabamento')} />
+            {errors.acabamento?.message && <p className="text-sm text-red-600">{String(errors.acabamento.message)}</p>}
+
+            <Label htmlFor="shrink">Shrink</Label>
+            <Input id="shrink" {...register('shrink')} />
+            {errors.shrink?.message && <p className="text-sm text-red-600">{String(errors.shrink.message)}</p>}
+
+            <Label htmlFor="pagamento">Pagamento</Label>
+            <Input id="pagamento" {...register('pagamento')} />
+            {errors.pagamento?.message && <p className="text-sm text-red-600">{String(errors.pagamento.message)}</p>}
+
+            <Label htmlFor="frete">Frete</Label>
+            <Input id="frete" {...register('frete')} />
+            {errors.frete?.message && <p className="text-sm text-red-600">{String(errors.frete.message)}</p>}
 
             <div className="flex gap-2">
               <Button type="button" variant="outline" onClick={() => router.push('/orders')}>Cancelar</Button>
