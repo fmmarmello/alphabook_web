@@ -1,0 +1,97 @@
+{
+  "Tipo de produto": [
+    "Livro",
+    "Apostila",
+    "Box",
+    "Livreto",
+    "Relatórios",
+    "Cartaz",
+    "Folheto",
+    "Baner"
+  ],
+  "Formato Fechado": [
+    "Pocket 10 x 15 cm",
+    "Pocket 12 x 18 cm",
+    "14 x 21 cm",
+    "14 x 23 cm",
+    "15 x 21 cm",
+    "16 x 23 cm",
+    "15,5 x 22,5 cm",
+    "17 x 23 cm",
+    "18 x 24 cm",
+    "20,5 x 29,50",
+    "A4",
+    "20 x 20 cm",
+    "21 x 21 cm",
+    "A3",
+    "24 x 28 cm"
+  ],
+  "Tipo de Papel miolo": [
+    "offset 75g",
+    "offset 90g",
+    "pólen Soft Nat 80g",
+    "pólen Bold 90g",
+    "pólen Bold 70g",
+    "couchê 90g",
+    "couchê 115g",
+    "couchê 150g",
+    "Avena 70g",
+    "Avena 80g",
+    "off set 120g"
+  ],
+  "Tipo de Papel de Capa": [
+    "Cartão Sup. Triplex 250g",
+    "Cartão Sup. Triplex 300g",
+    "Couchê 150g",
+    "Couchê 170g",
+    "Cartão DuoDesing 300g"
+  ],
+  "Cor do miolo": [
+    "4/0",
+    "4/4",
+    "1/0",
+    "1/1"
+  ],
+  "Cor da capa": [
+    "4/0",
+    "4/4",
+    "Sem capa",
+    "Fichário"
+  ],
+  "Tipo de laminação": [
+    "Brilho",
+    "Fosca",
+    "Verniz Localizado"
+  ],
+  "Tipo de acabamento": [
+    "Lombada colada",
+    "Grampo e dobra",
+    "wire-o",
+    "espiral",
+    "espiral + Acetato",
+    "Costurado e colado",
+    "Capa Dura",
+    "corte reto",
+    "sem acabamento"
+  ],
+  "Shrink": [
+    "sim",
+    "não"
+  ],
+  "Forma de pagamento": [
+    "à vista",
+    "boleto 28d/56d",
+    "50% antec + 50% entrega",
+    "50% ent + boleto 28d",
+    "50% ent + boleto 28d/56d",
+    "50% sinal + Cartão 1x",
+    "50% sinal + Cartão 2x",
+    "50% sinal + Cartão 3x",
+    "Cartão 2x"
+  ],
+  "Centro de Produção": [
+    "2Print",
+    "Dataprint BR One",
+    "JMV"
+  ]
+}

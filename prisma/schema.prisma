@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id      Int    @id @default(autoincrement())
+  name    String
+  cnpjCpf String
+  phone   String
+  email   String
+  address String
+  orders  Order[]
+}
+
+model Center {
+  id    Int    @id @default(autoincrement())
+  name  String
+  type  String
+  obs   String
+  orders Order[]
+}
+
+model Order {
+  id                  Int      @id @default(autoincrement())
+  clientId            Int
+  centerId            Int
+  title               String
+  tiragem             Int
+  formato             String
+  numPaginasTotal     Int
+  numPaginasColoridas Int
+  valorUnitario       Float
+  valorTotal          Float
+  prazoEntrega        String
+  obs                 String
+  date                DateTime @default(now())
+  client              Client   @relation(fields: [clientId], references: [id])
+  center              Center   @relation(fields: [centerId], references: [id])
+  numero_pedido       String?
+  data_pedido         DateTime?
+  data_entrega        DateTime?
+  solicitante         String?
+  documento           String?
+  editorial           String?
+  tipo_produto        String?
+  cor_miolo           String?
+  papel_miolo         String?
+  papel_capa          String?
+  cor_capa            String?
+  laminacao           String?
+  acabamento          String?
+  shrink              String?
+  pagamento           String?
+  frete               String?
+  budgets             Budget[]
+}
+
+model Budget {
+  id                  Int       @id @default(autoincrement())
+  numero_pedido       String?
+  data_pedido         DateTime  @default(now())
+  data_entrega        DateTime?
+  solicitante         String?
+  documento           String?
+  editorial           String?
+  tipo_produto        String?
+  titulo              String
+  tiragem             Int
+  formato             String
+  total_pgs           Int
+  pgs_colors          Int
+  cor_miolo           String?
+  papel_miolo         String?
+  papel_capa          String?
+  cor_capa            String?
+  laminacao           String?
+  acabamento          String?
+  shrink              String?
+  centro_producao     String?
+  observacoes         String?
+  preco_unitario      Float
+  preco_total         Float
+  prazo_producao      String?
+  pagamento           String?
+  frete               String?
+  approved            Boolean   @default(false)
+  orderId             Int?      @unique
+  order               Order?    @relation(fields: [orderId], references: [id])
+}
