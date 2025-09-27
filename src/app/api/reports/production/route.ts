@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { ApiResponse } from '@/lib/api-response';
+import { ok, badRequest, serverError } from '@/lib/api-response';
 
 const FilterSchema = z.object({
   dateFrom: z.string().optional(),
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
     const validation = FilterSchema.safeParse(query);
     if (!validation.success) {
-      return ApiResponse.badRequest('Invalid query parameters');
+      return badRequest('Invalid query parameters');
     }
 
     const { dateFrom, dateTo, editorial, centerId } = validation.data;
@@ -30,10 +30,10 @@ export async function GET(req: NextRequest) {
     if (dateTo) {
       where.date = { ...where.date, lte: new Date(dateTo) };
     }
-    if (editorial) {
+    if (editorial && editorial !== 'all') {
       where.editorial = { contains: editorial, mode: 'insensitive' };
     }
-    if (centerId) {
+    if (centerId && centerId !== 'all') {
       where.centerId = parseInt(centerId, 10);
     }
 
@@ -52,11 +52,11 @@ export async function GET(req: NextRequest) {
 
     const totalTiragem = orders.reduce((acc, order) => acc + order.tiragem, 0);
 
-    return ApiResponse.success({
+    return ok({
       orders,
       totalTiragem,
     });
   } catch (error) {
-    return ApiResponse.serverError('An error occurred while fetching the production report.');
+    return serverError('An error occurred while fetching the production report.');
   }
 }

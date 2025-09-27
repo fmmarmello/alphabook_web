@@ -7,6 +7,7 @@ export const ClientSchema = z.object({
   phone: z.string().refine(isBrazilPhone, "Telefone inválido"),
   email: z.string().refine(isEmail, "Email inválido"),
   address: z.string().min(1, "Endereço é obrigatório"),
+  force: z.boolean().optional(),
 });
 
 export type ClientInput = z.infer<typeof ClientSchema>;

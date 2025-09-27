@@ -29,12 +29,16 @@ The project follows a standard Next.js App Router structure:
 ├── src/
 │   ├── app/
 │   │   ├── api/
+│   │   │   ├── budgets/
 │   │   │   ├── centers/
 │   │   │   ├── clients/
-│   │   │   └── orders/
+│   │   │   ├── orders/
+│   │   │   └── reports/
+│   │   ├── budgets/
 │   │   ├── centers/
 │   │   ├── clients/
-│   │   └── orders/
+│   │   ├── orders/
+│   │   └── reports/
 │   ├── components/
 │   │   └── ui/
 │   ├── lib/
@@ -43,7 +47,7 @@ The project follows a standard Next.js App Router structure:
 ```
 
 *   `prisma/`: Contains the Prisma schema and the SQLite database file.
-*   `src/app/api/`: Contains the API routes for the different resources (clients, centers, orders).
+*   `src/app/api/`: Contains the API routes for the different resources (clients, centers, orders, budgets, reports).
 *   `src/app/(pages)/`: Contains the frontend pages for the application.
 *   `src/components/ui/`: Contains the reusable UI components built with `shadcn/ui`.
 *   `src/lib/`: Contains utility functions, validation schemas, and the Prisma client instance.
@@ -86,13 +90,30 @@ The application exposes the following API routes:
     *   Request Body: `OrderSchema`
 *   `DELETE /api/orders/[id]`: Deletes an order.
 
+### Budgets
+
+*   `GET /api/budgets`: Returns a paginated list of budgets.
+*   `POST /api/budgets`: Creates a new budget.
+*   `GET /api/budgets/[id]`: Returns a single budget by ID.
+*   `PUT /api/budgets/[id]`: Updates a budget.
+*   `DELETE /api/budgets/[id]`: Deletes a budget.
+*   `POST /api/budgets/[id]/approve`: Approves a budget and creates an order.
+
+### Reports
+
+*   `GET /api/reports/financial`: Returns a financial report.
+*   `GET /api/reports/orders-by-client`: Returns a report of orders by client.
+*   `GET /api/reports/orders-summary`: Returns a summary of orders.
+*   `GET /api/reports/production`: Returns a production report.
+
 ## Database Schema
 
-The database schema is defined in `prisma/schema.prisma` and consists of three models:
+The database schema is defined in `prisma/schema.prisma` and consists of four models:
 
 *   **Client:** Represents a client of the printing business.
 *   **Center:** Represents a production center.
 *   **Order:** Represents a production order, with relationships to a `Client` and a `Center`.
+*   **Budget:** Represents a budget proposal that can be approved and converted into an order.
 
 ```prisma
 model Client {
@@ -114,21 +135,72 @@ model Center {
 }
 
 model Order {
-  id                 Int     @id @default(autoincrement())
-  clientId           Int
-  centerId           Int
-  title              String
-  tiragem            Int
-  formato            String
-  numPaginasTotal    Int
+  id                  Int      @id @default(autoincrement())
+  clientId            Int
+  centerId            Int
+  title               String
+  tiragem             Int
+  formato             String
+  numPaginasTotal     Int
   numPaginasColoridas Int
-  valorUnitario      Float
-  valorTotal         Float
-  prazoEntrega       String
-  obs                String
-  date               DateTime @default(now())
-  client             Client   @relation(fields: [clientId], references: [id])
-  center             Center   @relation(fields: [centerId], references: [id])
+  valorUnitario       Float
+  valorTotal          Float
+  prazoEntrega        String
+  obs                 String
+  date                DateTime @default(now())
+  client              Client   @relation(fields: [clientId], references: [id])
+  center              Center   @relation(fields: [centerId], references: [id])
+  numero_pedido       String?
+  data_pedido         DateTime?
+  data_entrega        DateTime?
+  solicitante         String?
+  documento           String?
+  editorial           String?
+  tipo_produto        String?
+  cor_miolo           String?
+  papel_miolo         String?
+  papel_capa          String?
+  cor_capa            String?
+  laminacao           String?
+  acabamento          String?
+  shrink              String?
+  pagamento           String?
+  frete               String?
+  status              String    @default("Pendente")
+  budgets             Budget[]
+}
+
+model Budget {
+  id                  Int       @id @default(autoincrement())
+  numero_pedido       String?
+  data_pedido         DateTime  @default(now())
+  data_entrega        DateTime?
+  solicitante         String?
+  documento           String?
+  editorial           String?
+  tipo_produto        String?
+  titulo              String
+  tiragem             Int
+  formato             String
+  total_pgs           Int
+  pgs_colors          Int
+  cor_miolo           String?
+  papel_miolo         String?
+  papel_capa          String?
+  cor_capa            String?
+  laminacao           String?
+  acabamento          String?
+  shrink              String?
+  centro_producao     String?
+  observacoes         String?
+  preco_unitario      Float
+  preco_total         Float
+  prazo_producao      String?
+  pagamento           String?
+  frete               String?
+  approved            Boolean   @default(false)
+  orderId             Int?      @unique
+  order               Order?    @relation(fields: [orderId], references: [id])
 }
 ```
 

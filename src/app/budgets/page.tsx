@@ -10,20 +10,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatCurrencyBRL } from "@/lib/utils";
 
-function Navbar() {
-  return (
-    <nav className="w-full bg-white shadow flex justify-center py-4 mb-8">
-      <div className="flex gap-8">
-        <Button asChild variant="ghost"><a href="/">Dashboard</a></Button>
-        <Button asChild variant="ghost"><a href="/clients">Clientes</a></Button>
-        <Button asChild variant="ghost"><a href="/centers">Centros</a></Button>
-        <Button asChild variant="ghost"><a href="/orders">Ordens</a></Button>
-        <Button asChild variant="ghost"><a href="/budgets">Orçamentos</a></Button>
-        <Button asChild variant="ghost"><a href="/reports">Relatórios</a></Button>
-      </div>
-    </nav>
-  );
-}
+
 
 export default function BudgetsPage() {
   const [budgets, setBudgets] = useState<any[]>([]);
@@ -107,7 +94,7 @@ export default function BudgetsPage() {
 
   return (
     <main className="flex flex-col items-center min-h-screen bg-gray-50">
-      <Navbar />
+      
       <Card className="max-w-6xl w-full mt-8">
         <CardHeader>
           <CardTitle>Cadastro de Orçamentos</CardTitle>
@@ -160,7 +147,7 @@ export default function BudgetsPage() {
                 <TableHead>Valor Total</TableHead>
                 <TableHead>Prazo de produção</TableHead>
                 <TableHead>Observações</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead className="sticky right-0 bg-white">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -175,7 +162,7 @@ export default function BudgetsPage() {
                   <TableCell>{formatCurrencyBRL(Number(budget.preco_total) || 0)}</TableCell>
                   <TableCell>{budget.prazo_producao}</TableCell>
                   <TableCell>{budget.observacoes}</TableCell>
-                  <TableCell>
+                  <TableCell className="sticky right-0 bg-white">
                     <div className="flex gap-2">
                       <Button asChild variant="outline"><a href={`/budgets/${budget.id}/edit`}>Editar</a></Button>
                       <ConfirmDialog

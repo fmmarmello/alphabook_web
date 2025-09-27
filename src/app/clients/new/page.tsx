@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ClientSchema } from "@/lib/validation";
@@ -16,21 +16,10 @@ type ClientFormData = {
   phone: string;
   email: string;
   address: string;
+  force?: boolean;
 };
 
-function Navbar() {
-  return (
-    <nav className="w-full bg-white shadow flex justify-center py-4 mb-8">
-      <div className="flex gap-8">
-        <Button asChild variant="ghost"><a href="/">Dashboard</a></Button>
-        <Button asChild variant="ghost"><a href="/clients">Clientes</a></Button>
-        <Button asChild variant="ghost"><a href="/centers">Centros</a></Button>
-        <Button asChild variant="ghost"><a href="/orders">Ordens</a></Button>
-        <Button asChild variant="ghost"><a href="/reports">Relatórios</a></Button>
-      </div>
-    </nav>
-  );
-}
+import { Navbar } from "@/components/layout/Navbar";
 
 function formatCpfCnpj(value: string): string {
   const d = onlyDigits(value);
@@ -73,20 +62,57 @@ function formatPhone(value: string): string {
 export default function NewClientPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
-  const { register, handleSubmit, setValue, formState: { errors, isValid, isSubmitting } } = useForm<ClientFormData>({
+  const [duplicationError, setDuplicationError] = useState("");
+
+  const { register, handleSubmit, setValue, watch, formState: { errors, isValid, isSubmitting } } = useForm<ClientFormData>({
     resolver: zodResolver(ClientSchema),
     mode: "onChange",
     reValidateMode: "onChange",
   });
 
+  const cnpjCpf = watch('cnpjCpf');
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (cnpjCpf && (onlyDigits(cnpjCpf).length === 11 || onlyDigits(cnpjCpf).length === 14)) {
+        try {
+          const res = await fetch(`/api/clients/check-cnpj-cpf?value=${encodeURIComponent(cnpjCpf)}`);
+          if (res.status === 409) {
+            const err = await res.json();
+            setDuplicationError(err.message || "CNPJ/CPF já existe.");
+          } else {
+            setDuplicationError("");
+          }
+        } catch (error) {
+          setDuplicationError(""); // Clear error on network failure
+        }
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [cnpjCpf]);
+
   const onSubmit = async (data: ClientFormData) => {
     setServerError("");
+
+    if (duplicationError) {
+      const proceed = window.confirm(`${duplicationError} Deseja cadastrar mesmo assim?`);
+      if (!proceed) {
+        return;
+      }
+      data.force = true;
+    }
+
     try {
       const res = await fetch('/api/clients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
       if (!res.ok) {
         try {
           const err = await res.json();
           const msg = err?.error?.message || 'Erro ao criar cliente.';
+          if (res.status === 409) {
+            setDuplicationError(msg);
+            return;
+          }
           const details = err?.error?.details;
           const fieldErrors = details?.fieldErrors;
           const formErrors = Array.isArray(details?.formErrors) ? details.formErrors : [];
@@ -123,11 +149,12 @@ export default function NewClientPage() {
             {(() => {
               const reg = register('cnpjCpf');
               return (
-                <Input id="cnpjCpf" placeholder="000.000.000-00 ou 00.000.000/0000-00" maxLength={18} aria-invalid={!!errors.cnpjCpf} {...reg}
+                <Input id="cnpjCpf" placeholder="000.000.000-00 ou 00.000.000/0000-00" maxLength={18} aria-invalid={!!errors.cnpjCpf || !!duplicationError} {...reg}
                   onChange={(e) => { e.target.value = formatCpfCnpj(e.target.value); reg.onChange(e); setValue('cnpjCpf', e.target.value, { shouldValidate: true }); }} />
               );
             })()}
             {errors.cnpjCpf?.message && <p className="text-sm text-red-600">{String(errors.cnpjCpf.message)}</p>}
+            {duplicationError && <p className="text-sm text-yellow-600">{duplicationError}</p>}
 
             <Label htmlFor="phone">Telefone</Label>
             {(() => {

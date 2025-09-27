@@ -9,19 +9,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatCurrencyBRL } from "@/lib/utils";
 
-function Navbar() {
-  return (
-    <nav className="w-full bg-white shadow flex justify-center py-4 mb-8">
-      <div className="flex gap-8">
-        <Button asChild variant="ghost"><a href="/">Dashboard</a></Button>
-        <Button asChild variant="ghost"><a href="/clients">Clientes</a></Button>
-        <Button asChild variant="ghost"><a href="/centers">Centros</a></Button>
-        <Button asChild variant="ghost"><a href="/orders">Ordens</a></Button>
-        <Button asChild variant="ghost"><a href="/reports">Relatórios</a></Button>
-      </div>
-    </nav>
-  );
-}
+
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -162,7 +150,7 @@ export default function OrdersPage() {
 
   return (
     <main className="flex flex-col items-center min-h-screen bg-gray-50">
-      <Navbar />
+
       <Card className="max-w-6xl w-full mt-8">
         <CardHeader>
           <CardTitle>Cadastro de Ordens de Produção</CardTitle>
@@ -182,11 +170,17 @@ export default function OrdersPage() {
                 <option value="">Centro</option>
                 {centers.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
               </select>
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">De:</label>
+                <Input type="date" value={dateFrom} onChange={(e) => { setPage(1); setDateFrom(e.target.value); }} />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">Até:</label>
+                <Input type="date" value={dateTo} onChange={(e) => { setPage(1); setDateTo(e.target.value); }} />
+              </div>
             </ToolbarSection>
             <ToolbarSpacer />
             <ToolbarSection>
-              <Input type="date" value={dateFrom} onChange={(e) => { setPage(1); setDateFrom(e.target.value); }} />
-              <Input type="date" value={dateTo} onChange={(e) => { setPage(1); setDateTo(e.target.value); }} />
               <select value={sortBy} onChange={(e) => { setPage(1); setSortBy(e.target.value); }} className="border rounded px-2 py-1">
                 <option value="id">ID</option>
                 <option value="title">Título</option>
@@ -225,7 +219,7 @@ export default function OrdersPage() {
                 <TableHead>Valor Total</TableHead>
                 <TableHead>Prazo de entrega</TableHead>
                 <TableHead>Observações</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead className="sticky right-0 bg-white">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -242,7 +236,7 @@ export default function OrdersPage() {
                   <TableCell>{formatCurrencyBRL(Number(order.valorTotal) || 0)}</TableCell>
                   <TableCell>{order.prazoEntrega}</TableCell>
                   <TableCell>{order.obs}</TableCell>
-                  <TableCell>
+                  <TableCell className="sticky right-0 bg-white">
                     <div className="flex gap-2">
                       <Button asChild variant="outline"><a href={`/orders/${order.id}/edit`}>Editar</a></Button>
                       <ConfirmDialog

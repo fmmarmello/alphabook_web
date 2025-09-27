@@ -9,19 +9,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type { ClientInput } from "@/lib/validation";
 
-function Navbar() {
-  return (
-    <nav className="w-full bg-white shadow flex justify-center py-4 mb-8">
-      <div className="flex gap-8">
-        <Button asChild variant="ghost"><a href="/">Dashboard</a></Button>
-        <Button asChild variant="ghost"><a href="/clients">Clientes</a></Button>
-        <Button asChild variant="ghost"><a href="/centers">Centros</a></Button>
-        <Button asChild variant="ghost"><a href="/orders">Ordens</a></Button>
-        <Button asChild variant="ghost"><a href="/reports">Relatórios</a></Button>
-      </div>
-    </nav>
-  );
-}
+
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<ClientInput[]>([]);
@@ -104,7 +92,7 @@ export default function ClientsPage() {
 
   return (
     <main className="flex flex-col items-center min-h-screen bg-gray-50">
-      <Navbar />
+      
       <Card className="max-w-4xl w-full mt-8">
         <CardHeader>
           <CardTitle>Cadastro de Clientes</CardTitle>
@@ -146,7 +134,7 @@ export default function ClientsPage() {
                 <TableHead>Telefone</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Endereço</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead className="sticky right-0 bg-white">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -157,7 +145,7 @@ export default function ClientsPage() {
                   <TableCell>{client.phone}</TableCell>
                   <TableCell>{client.email}</TableCell>
                   <TableCell>{client.address}</TableCell>
-                  <TableCell>
+                  <TableCell className="sticky right-0 bg-white">
                     <div className="flex gap-2">
                       <Button asChild variant="outline"><a href={`/clients/${client.id}/edit`}>Editar</a></Button>
                       <ConfirmDialog

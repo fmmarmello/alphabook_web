@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { ApiResponse } from '@/lib/api-response';
+import { ok, serverError } from '@/lib/api-response';
 
 export async function GET() {
   try {
@@ -19,8 +19,8 @@ export async function GET() {
 
     const editorialList = editorials.map((e) => e.editorial).filter(Boolean) as string[];
 
-    return ApiResponse.success(editorialList);
+    return ok(editorialList);
   } catch (error) {
-    return ApiResponse.serverError('An error occurred while fetching editorials.');
+    return serverError('An error occurred while fetching editorials.');
   }
 }

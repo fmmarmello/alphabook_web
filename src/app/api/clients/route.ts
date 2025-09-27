@@ -55,7 +55,20 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return badRequest("Dados inválidos", parsed.error.flatten());
     }
-    const client = await prisma.client.create({ data: parsed.data });
+
+    const { cnpjCpf, force, ...clientData } = parsed.data;
+
+    if (!force) {
+      const existingClient = await prisma.client.findFirst({
+        where: { cnpjCpf },
+      });
+
+      if (existingClient) {
+        return new Response(JSON.stringify({ error: { message: "Cliente com este CNPJ/CPF já existe." } }), { status: 409 });
+      }
+    }
+
+    const client = await prisma.client.create({ data: { ...clientData, cnpjCpf } });
     return created(client);
   } catch (error) {
     return serverError((error as Error).message);

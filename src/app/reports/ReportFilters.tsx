@@ -75,7 +75,7 @@ export function ReportFilters({ onGenerate, loading }: ReportFiltersProps) {
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               {editorials.map((e) => (
                 <SelectItem key={e} value={e}>
                   {e}
@@ -91,7 +91,7 @@ export function ReportFilters({ onGenerate, loading }: ReportFiltersProps) {
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               {centers.map((center) => (
                 <SelectItem key={center.id} value={String(center.id)}>
                   {center.name}

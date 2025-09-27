@@ -9,19 +9,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type { CenterInput } from "@/lib/validation";
 
-function Navbar() {
-  return (
-    <nav className="w-full bg-white shadow flex justify-center py-4 mb-8">
-      <div className="flex gap-8">
-        <Button asChild variant="ghost"><a href="/">Dashboard</a></Button>
-        <Button asChild variant="ghost"><a href="/clients">Clientes</a></Button>
-        <Button asChild variant="ghost"><a href="/centers">Centros</a></Button>
-        <Button asChild variant="ghost"><a href="/orders">Ordens</a></Button>
-        <Button asChild variant="ghost"><a href="/reports">Relatórios</a></Button>
-      </div>
-    </nav>
-  );
-}
+
 
 export default function CentersPage() {
   const [centers, setCenters] = useState<CenterInput[]>([]);
@@ -102,7 +90,7 @@ export default function CentersPage() {
 
   return (
     <main className="flex flex-col items-center min-h-screen bg-gray-50">
-      <Navbar />
+      
       <Card className="max-w-4xl w-full mt-8">
         <CardHeader>
           <CardTitle>Cadastro de Centros de Produção</CardTitle>
@@ -149,7 +137,7 @@ export default function CentersPage() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Observações</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead className="sticky right-0 bg-white">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -158,7 +146,7 @@ export default function CentersPage() {
                   <TableCell>{center.name}</TableCell>
                   <TableCell>{center.type}</TableCell>
                   <TableCell>{center.obs}</TableCell>
-                  <TableCell>
+                  <TableCell className="sticky right-0 bg-white">
                     <div className="flex gap-2">
                       <Button asChild variant="outline"><a href={`/centers/${center.id}/edit`}>Editar</a></Button>
                       <ConfirmDialog
