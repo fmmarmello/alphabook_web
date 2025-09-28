@@ -94,7 +94,7 @@ export default function BudgetsPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-900">
+    <main className="flex flex-col items-center min-h-screen">
       
       <Card className="max-w-6xl w-full mt-8">
         <CardHeader>

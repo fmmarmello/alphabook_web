@@ -7,8 +7,6 @@ import { ReportFilters } from "./ReportFilters";
 import { ProductionReport } from "./ProductionReport";
 import { FinancialReport } from "./FinancialReport";
 
-
-
 type ReportType = "production" | "financial";
 
 export default function ReportsPage() {
@@ -45,8 +43,8 @@ export default function ReportsPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-900">
-      <Card className="max-w-6xl w-full mt-8">
+    <main>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>Relatórios</CardTitle>
         </CardHeader>
@@ -68,7 +66,7 @@ export default function ReportsPage() {
 
           <ReportFilters onGenerate={handleGenerateReport} loading={loading} />
 
-          <div className="mt-8">
+          <div className="mt-6">
             {loading && <div className="text-blue-600">Carregando...</div>}
             {error && <div className="text-red-600">{error}</div>}
 
@@ -80,3 +78,4 @@ export default function ReportsPage() {
     </main>
   );
 }
+

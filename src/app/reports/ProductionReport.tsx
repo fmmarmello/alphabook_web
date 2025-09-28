@@ -11,27 +11,20 @@ interface ProductionReportProps {
 }
 
 function downloadCSV(data: any[], fileName: string) {
-  const csvRows = [];
+  if (!data?.length) return;
   const headers = Object.keys(data[0]);
-  csvRows.push(headers.join(','));
-
+  const rows = [headers.join(",")];
   for (const row of data) {
-    const values = headers.map(header => {
-      const escaped = ('' + row[header]).replace(/"/g, '"');
-      return `"${escaped}"`;
-    });
-    csvRows.push(values.join(','));
+    const values = headers.map((h) => `"${String(row[h] ?? "").replace(/"/g, '"')}"`);
+    rows.push(values.join(","));
   }
-
-  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.setAttribute('hidden', '');
-  a.setAttribute('href', url);
-  a.setAttribute('download', fileName);
-  document.body.appendChild(a);
+  const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
   a.click();
-  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 export function ProductionReport({ data }: ProductionReportProps) {
@@ -61,7 +54,7 @@ export function ProductionReport({ data }: ProductionReportProps) {
           {data.orders.map((order, idx) => (
             <TableRow key={idx}>
               <TableCell>{order.numero_pedido}</TableCell>
-              <TableCell>{new Date(order.data_entrega).toLocaleDateString()}</TableCell>
+              <TableCell>{order.data_entrega ? new Date(order.data_entrega).toLocaleDateString() : ""}</TableCell>
               <TableCell>{order.titulo}</TableCell>
               <TableCell>{order.tiragem}</TableCell>
             </TableRow>
@@ -74,3 +67,4 @@ export function ProductionReport({ data }: ProductionReportProps) {
     </div>
   );
 }
+

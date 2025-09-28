@@ -1,21 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { OrderSchema } from "@/lib/validation";
+import { OrderSchema, type OrderInput } from "@/lib/validation";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { formatCurrencyBRL, parseCurrencyBRL } from "@/lib/utils";
-
-import { OrderInput } from "@/lib/validation";
 
 type OrderFormData = OrderInput;
-
-
 
 export default function EditOrderPage() {
   const router = useRouter();
@@ -25,7 +20,7 @@ export default function EditOrderPage() {
   const [clients, setClients] = useState<{ id: number; name: string }[]>([]);
   const [centers, setCenters] = useState<{ id: number; name: string }[]>([]);
 
-  const { register, handleSubmit, reset, watch, setValue, control, formState: { errors, isValid, isSubmitting } } = useForm<OrderFormData>({
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors, isValid, isSubmitting } } = useForm<OrderFormData>({
     resolver: zodResolver(OrderSchema),
     mode: "onChange",
     reValidateMode: "onChange",
@@ -106,7 +101,7 @@ export default function EditOrderPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-900"> 
+    <main className="flex flex-col items-center min-h-screen">
       <Card className="max-w-3xl w-full mt-8">
         <CardHeader>
           <CardTitle>Editar OP</CardTitle>
@@ -120,7 +115,6 @@ export default function EditOrderPage() {
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Selecione...</SelectItem>
                 {clients.map((c) => (
                   <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
                 ))}
@@ -134,78 +128,12 @@ export default function EditOrderPage() {
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Selecione...</SelectItem>
                 {centers.map((c) => (
                   <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {errors.centerId?.message && <p className="text-sm text-red-600">{String(errors.centerId.message)}</p>}
-
-            <Label htmlFor="title">Título</Label>
-            <Input id="title" aria-invalid={!!errors.title} {...register('title')} />
-            {errors.title?.message && <p className="text-sm text-red-600">{String(errors.title.message)}</p>}
-
-            <Label htmlFor="tiragem">Tiragem</Label>
-            <Input id="tiragem" type="number" min={0} aria-invalid={!!errors.tiragem} {...register('tiragem', { valueAsNumber: true })} />
-            {errors.tiragem?.message && <p className="text-sm text-red-600">{String(errors.tiragem.message)}</p>}
-
-            <Label htmlFor="formato">Formato</Label>
-            <Input id="formato" aria-invalid={!!errors.formato} {...register('formato')} />
-            {errors.formato?.message && <p className="text-sm text-red-600">{String(errors.formato.message)}</p>}
-
-            <Label htmlFor="numPaginasTotal">Nº de páginas total</Label>
-            <Input id="numPaginasTotal" type="number" min={0} aria-invalid={!!errors.numPaginasTotal} {...register('numPaginasTotal', { valueAsNumber: true })} />
-            {errors.numPaginasTotal?.message && <p className="text-sm text-red-600">{String(errors.numPaginasTotal.message)}</p>}
-
-            <Label htmlFor="numPaginasColoridas">Nº de páginas coloridas</Label>
-            <Input id="numPaginasColoridas" type="number" min={0} aria-invalid={!!errors.numPaginasColoridas} {...register('numPaginasColoridas', { valueAsNumber: true })} />
-            {errors.numPaginasColoridas?.message && <p className="text-sm text-red-600">{String(errors.numPaginasColoridas.message)}</p>}
-
-            <Label htmlFor="valorUnitario">Valor Unitário</Label>
-            <Controller
-              name="valorUnitario"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  id="valorUnitario"
-                  type="text"
-                  inputMode="decimal"
-                  aria-invalid={!!errors.valorUnitario}
-                  value={formatCurrencyBRL(Number(field.value) || 0)}
-                  onChange={(e) => {
-                    const num = parseCurrencyBRL(e.target.value);
-                    field.onChange(num);
-                  }}
-                />
-              )}
-            />
-            {errors.valorUnitario?.message && <p className="text-sm text-red-600">{String(errors.valorUnitario.message)}</p>}
-
-            <Label htmlFor="valorTotal">Valor Total</Label>
-            <Controller
-              name="valorTotal"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  id="valorTotal"
-                  type="text"
-                  readOnly
-                  aria-invalid={!!errors.valorTotal}
-                  value={formatCurrencyBRL(Number(field.value) || 0)}
-                />
-              )}
-            />
-            {errors.valorTotal?.message && <p className="text-sm text-red-600">{String(errors.valorTotal.message)}</p>}
-
-            <Label htmlFor="prazoEntrega">Prazo de entrega</Label>
-            <Input id="prazoEntrega" type="date" aria-invalid={!!errors.prazoEntrega} {...register('prazoEntrega')} />
-            {errors.prazoEntrega?.message && <p className="text-sm text-red-600">{String(errors.prazoEntrega.message)}</p>}
-
-            <Label htmlFor="obs">Observações</Label>
-            <Input id="obs" {...register('obs')} />
-
-            <h3 className="text-lg font-semibold mt-4 pt-4 border-t">Detalhes Adicionais</h3>
+            {errors.centerId?.message && <p className="text-sm text-red-600">{String(errors.centerId?.message)}</p>}
 
             <Label htmlFor="status">Status</Label>
             <Select onValueChange={(value) => setValue('status', value)} {...register('status')}>

@@ -109,7 +109,7 @@ export default function EditClientPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-900"> 
+    <main className="flex flex-col items-center min-h-screen"> 
       <Card className="max-w-4xl w-full mt-8">
         <CardHeader>
           <CardTitle>Editar Cliente</CardTitle>
@@ -159,4 +159,3 @@ export default function EditClientPage() {
     </main>
   );
 }
-

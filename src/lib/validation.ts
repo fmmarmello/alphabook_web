@@ -94,6 +94,6 @@ export function parseNumber(value: string | null, fallback: number): number {
 }
 
 export function parseSort(order: string | null) {
-  return order === "desc" ? "desc" : "asc" as const;
+  return order === "desc" ? "desc" : ("asc" as const);
 }
 

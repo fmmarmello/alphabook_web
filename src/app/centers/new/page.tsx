@@ -57,7 +57,7 @@ export default function NewCenterPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-900">
+    <main className="flex flex-col items-center min-h-screen">
       <Navbar />
       <Card className="max-w-4xl w-full mt-8">
         <CardHeader>
@@ -96,4 +96,3 @@ export default function NewCenterPage() {
     </main>
   );
 }
-

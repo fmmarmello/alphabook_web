@@ -12,37 +12,36 @@ interface FinancialReportProps {
 }
 
 function downloadCSV(data: any[], fileName: string) {
-  const csvRows = [];
-  // Format headers for better readability
+  if (!data?.length) return;
   const headers = [
-    "Numero OP", "Tipo Produto", "Data Entrega", "Titulo", 
-    "Tiragem", "Valor Unitario", "Valor Total"
+    "Numero OP",
+    "Tipo Produto",
+    "Data Entrega",
+    "Titulo",
+    "Tiragem",
+    "Valor Unitario",
+    "Valor Total",
   ];
-  csvRows.push(headers.join(','));
-
-  // Map data to match headers
+  const rows = [headers.join(",")];
   for (const row of data) {
     const values = [
       row.numero_pedido,
       row.tipo_produto,
-      new Date(row.data_entrega).toLocaleDateString(),
+      row.data_entrega ? new Date(row.data_entrega).toLocaleDateString() : "",
       row.titulo,
       row.tiragem,
       row.valorUnitario,
-      row.valorTotal
-    ].map(value => `"${('' + value).replace(/"/g, '"')}"`);
-    csvRows.push(values.join(','));
+      row.valorTotal,
+    ].map((v) => `"${String(v ?? "").replace(/"/g, '"')}"`);
+    rows.push(values.join(","));
   }
-
-  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.setAttribute('hidden', '');
-  a.setAttribute('href', url);
-  a.setAttribute('download', fileName);
-  document.body.appendChild(a);
+  const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
   a.click();
-  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 export function FinancialReport({ data }: FinancialReportProps) {
@@ -76,7 +75,7 @@ export function FinancialReport({ data }: FinancialReportProps) {
             <TableRow key={idx}>
               <TableCell>{order.numero_pedido}</TableCell>
               <TableCell>{order.tipo_produto}</TableCell>
-              <TableCell>{new Date(order.data_entrega).toLocaleDateString()}</TableCell>
+              <TableCell>{order.data_entrega ? new Date(order.data_entrega).toLocaleDateString() : ""}</TableCell>
               <TableCell>{order.titulo}</TableCell>
               <TableCell>{order.tiragem}</TableCell>
               <TableCell>{formatCurrencyBRL(order.valorUnitario)}</TableCell>
@@ -91,3 +90,4 @@ export function FinancialReport({ data }: FinancialReportProps) {
     </div>
   );
 }
+

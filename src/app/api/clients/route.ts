@@ -1,6 +1,6 @@
 // Use Request for broad compatibility with Next route handlers
 import prisma from "@/lib/prisma";
-import { ok, created, badRequest, serverError } from "@/lib/api-response";
+import { ok, created, badRequest, serverError, conflict } from "@/lib/api-response";
 import { ClientSchema } from "@/lib/validation";
 
 export async function GET(req: Request) {
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       });
 
       if (existingClient) {
-        return new Response(JSON.stringify({ error: { message: "Cliente com este CNPJ/CPF já existe." } }), { status: 409 });
+        return conflict("Cliente com este CNPJ/CPF já existe.");
       }
     }
 
@@ -74,3 +74,4 @@ export async function POST(req: Request) {
     return serverError((error as Error).message);
   }
 }
+

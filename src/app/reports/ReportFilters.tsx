@@ -1,34 +1,45 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Toolbar, ToolbarSection, ToolbarSpacer } from "@/components/ui/toolbar";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
+import type { DateRange } from "react-day-picker";
+import { cn } from "@/lib/utils";
 import { Center } from "@prisma/client";
 
+type FiltersForm = {
+  dateFrom: string;
+  dateTo: string;
+  editorial: string;
+  centerId: string;
+};
+
 interface ReportFiltersProps {
-  onGenerate: (filters: any) => void;
+  onGenerate: (filters: FiltersForm) => void;
   loading: boolean;
 }
 
 export function ReportFilters({ onGenerate, loading }: ReportFiltersProps) {
-  const [filters, setFilters] = useState({
-    dateFrom: "",
-    dateTo: "",
-    editorial: "",
-    centerId: "",
+  const form = useForm<FiltersForm>({
+    defaultValues: { dateFrom: "", dateTo: "", editorial: "all", centerId: "all" },
   });
+
   const [centers, setCenters] = useState<Center[]>([]);
   const [editorials, setEditorials] = useState<string[]>([]);
+  const [range, setRange] = useState<DateRange | undefined>(undefined);
 
   useEffect(() => {
     async function fetchFiltersData() {
       try {
         const [centersRes, editorialsRes] = await Promise.all([
           fetch("/api/centers"),
-          fetch("/api/orders/editorials"), // Assuming an endpoint to get unique editorials
+          fetch("/api/orders/editorials"),
         ]);
         const centersData = await centersRes.json();
         const editorialsData = await editorialsRes.json();
@@ -42,71 +53,126 @@ export function ReportFilters({ onGenerate, loading }: ReportFiltersProps) {
   }, []);
 
   const handleGenerate = () => {
-    onGenerate(filters);
+    onGenerate(form.getValues());
   };
 
-  const handleFilterChange = (name: string, value: string) => {
-    setFilters((prev) => ({ ...prev, [name]: value }));
+  const handleReset = () => {
+    form.reset({ dateFrom: "", dateTo: "", editorial: "all", centerId: "all" });
+    setRange(undefined);
+  };
+
+  const formatDate = (d?: Date) => (d ? new Date(d).toLocaleDateString("pt-BR") : "");
+  const applyRange = (r?: DateRange) => {
+    setRange(r);
+    const from = r?.from ? new Date(r.from) : undefined;
+    const to = r?.to ? new Date(r.to) : undefined;
+    const fmt = (x?: Date) => (x ? x.toISOString().slice(0, 10) : "");
+    form.setValue("dateFrom", fmt(from));
+    form.setValue("dateTo", fmt(to));
   };
 
   return (
-    <Toolbar>
-      <ToolbarSection>
-        <div>
-          <label className="text-sm">De</label>
-          <Input
-            type="date"
-            value={filters.dateFrom}
-            onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
+    <Form {...form}>
+      <Toolbar>
+        <ToolbarSection className="gap-3">
+          <FormItem className="w-[260px]">
+            <FormLabel>Período</FormLabel>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-[260px] justify-start text-left font-normal",
+                    !range && "text-muted-foreground"
+                  )}
+                  type="button"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {range?.from ? (
+                    range.to ? (
+                      <span>
+                        {formatDate(range.from)} – {formatDate(range.to)}
+                      </span>
+                    ) : (
+                      <span>{formatDate(range.from)}</span>
+                    )
+                  ) : (
+                    <span>Selecionar datas</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="range"
+                  numberOfMonths={2}
+                  selected={range}
+                  onSelect={applyRange}
+                />
+              </PopoverContent>
+            </Popover>
+          </FormItem>
+
+          <FormField
+            control={form.control}
+            name="editorial"
+            render={({ field }) => (
+              <FormItem className="min-w-[200px]">
+                <FormLabel>Grupo Editorial</FormLabel>
+                <FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {editorials.map((e) => (
+                        <SelectItem key={e} value={e}>
+                          {e}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+              </FormItem>
+            )}
           />
-        </div>
-        <div>
-          <label className="text-sm">Até</label>
-          <Input
-            type="date"
-            value={filters.dateTo}
-            onChange={(e) => handleFilterChange("dateTo", e.target.value)}
+
+          <FormField
+            control={form.control}
+            name="centerId"
+            render={({ field }) => (
+              <FormItem className="min-w-[200px]">
+                <FormLabel>Centro de Produção</FormLabel>
+                <FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {centers.map((center) => (
+                        <SelectItem key={center.id} value={String(center.id)}>
+                          {center.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+              </FormItem>
+            )}
           />
-        </div>
-        <div>
-          <label className="text-sm">Grupo Editorial</label>
-          <Select onValueChange={(value) => handleFilterChange("editorial", value)} value={filters.editorial}>
-            <SelectTrigger>
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {editorials.map((e) => (
-                <SelectItem key={e} value={e}>
-                  {e}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="text-sm">Centro de Produção</label>
-          <Select onValueChange={(value) => handleFilterChange("centerId", value)} value={filters.centerId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {centers.map((center) => (
-                <SelectItem key={center.id} value={String(center.id)}>
-                  {center.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </ToolbarSection>
-      <ToolbarSpacer />
-      <ToolbarSection>
-        <Button onClick={handleGenerate} disabled={loading}>
-          {loading ? "Gerando..." : "Gerar Relatório"}
-        </Button>
-      </ToolbarSection>
-    </Toolbar>
+        </ToolbarSection>
+        <ToolbarSpacer />
+        <ToolbarSection className="gap-2">
+          <Button variant="outline" type="button" onClick={handleReset} disabled={loading}>
+            Limpar
+          </Button>
+          <Button type="button" onClick={handleGenerate} disabled={loading}>
+            {loading ? "Gerando..." : "Gerar Relatório"}
+          </Button>
+        </ToolbarSection>
+      </Toolbar>
+    </Form>
   );
 }
+

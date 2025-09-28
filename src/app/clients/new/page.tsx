@@ -79,7 +79,7 @@ export default function NewClientPage() {
           const res = await fetch(`/api/clients/check-cnpj-cpf?value=${encodeURIComponent(cnpjCpf)}`);
           if (res.status === 409) {
             const err = await res.json();
-            setDuplicationError(err.message || "CNPJ/CPF já existe.");
+            setDuplicationError(err?.error?.message || err?.message || "CNPJ/CPF já existe.");
           } else {
             setDuplicationError("");
           }
@@ -132,7 +132,7 @@ export default function NewClientPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-900"> 
+    <main>
       <Navbar />
       <Card className="max-w-4xl w-full mt-8">
         <CardHeader>
