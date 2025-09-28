@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
 type CenterFormData = { name: string; type: string; obs: string };
@@ -29,7 +30,7 @@ function Navbar() {
 export default function NewCenterPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
-  const { register, handleSubmit, formState: { errors, isValid, isSubmitting } } = useForm<CenterFormData>({
+  const { register, handleSubmit, setValue, formState: { errors, isValid, isSubmitting } } = useForm<CenterFormData>({
     resolver: zodResolver(CenterSchema),
     mode: "onChange",
     reValidateMode: "onChange",
@@ -56,9 +57,9 @@ export default function NewCenterPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-50">
+    <main className="flex flex-col items-center min-h-screen bg-gray-900">
       <Navbar />
-      <Card className="max-w-2xl w-full mt-8">
+      <Card className="max-w-4xl w-full mt-8">
         <CardHeader>
           <CardTitle>Novo Centro</CardTitle>
         </CardHeader>
@@ -70,11 +71,16 @@ export default function NewCenterPage() {
             {errors.name?.message && <p className="text-sm text-red-600">{String(errors.name.message)}</p>}
 
             <Label htmlFor="type">Tipo</Label>
-            <select id="type" aria-invalid={!!errors.type} {...register('type')} className="border rounded px-2 py-1">
-              {centerTypes.map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
+            <Select onValueChange={(value) => setValue('type', value)} {...register('type')}>
+              <SelectTrigger aria-invalid={!!errors.type}>
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                {centerTypes.map((type) => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.type?.message && <p className="text-sm text-red-600">{String(errors.type.message)}</p>}
 
             <Label htmlFor="obs">Observações</Label>

@@ -7,6 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { formatCurrencyBRL, parseCurrencyBRL } from "@/lib/utils";
 
@@ -14,7 +15,7 @@ import { OrderInput } from "@/lib/validation";
 
 type OrderFormData = OrderInput;
 
-import { Navbar } from "@/components/layout/Navbar";
+
 
 export default function EditOrderPage() {
   const router = useRouter();
@@ -105,8 +106,7 @@ export default function EditOrderPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-50"> 
-      <Navbar />
+    <main className="flex flex-col items-center min-h-screen bg-gray-900"> 
       <Card className="max-w-3xl w-full mt-8">
         <CardHeader>
           <CardTitle>Editar OP</CardTitle>
@@ -115,21 +115,31 @@ export default function EditOrderPage() {
           {serverError && <div className="text-red-600 mb-2">{serverError}</div>}
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <Label htmlFor="clientId">Cliente</Label>
-            <select id="clientId" aria-invalid={!!errors.clientId} {...register('clientId', { valueAsNumber: true })} className="border rounded px-2 py-1">
-              <option value="">Selecione...</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+            <Select onValueChange={(value) => setValue('clientId', Number(value))} {...register('clientId')}>
+              <SelectTrigger aria-invalid={!!errors.clientId}>
+                <SelectValue placeholder="Selecione..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Selecione...</SelectItem>
+                {clients.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.clientId?.message && <p className="text-sm text-red-600">{String(errors.clientId.message)}</p>}
 
             <Label htmlFor="centerId">Centro de Produção</Label>
-            <select id="centerId" aria-invalid={!!errors.centerId} {...register('centerId', { valueAsNumber: true })} className="border rounded px-2 py-1">
-              <option value="">Selecione...</option>
-              {centers.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+            <Select onValueChange={(value) => setValue('centerId', Number(value))} {...register('centerId')}>
+              <SelectTrigger aria-invalid={!!errors.centerId}>
+                <SelectValue placeholder="Selecione..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Selecione...</SelectItem>
+                {centers.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.centerId?.message && <p className="text-sm text-red-600">{String(errors.centerId.message)}</p>}
 
             <Label htmlFor="title">Título</Label>
@@ -198,13 +208,18 @@ export default function EditOrderPage() {
             <h3 className="text-lg font-semibold mt-4 pt-4 border-t">Detalhes Adicionais</h3>
 
             <Label htmlFor="status">Status</Label>
-            <select id="status" {...register('status')} className="border rounded px-2 py-1">
-              <option value="Pendente">Pendente</option>
-              <option value="Em produção">Em produção</option>
-              <option value="Finalizado">Finalizado</option>
-              <option value="Entregue">Entregue</option>
-              <option value="Cancelado">Cancelado</option>
-            </select>
+            <Select onValueChange={(value) => setValue('status', value)} {...register('status')}>
+              <SelectTrigger aria-invalid={!!errors.status}>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Pendente">Pendente</SelectItem>
+                <SelectItem value="Em produção">Em produção</SelectItem>
+                <SelectItem value="Finalizado">Finalizado</SelectItem>
+                <SelectItem value="Entregue">Entregue</SelectItem>
+                <SelectItem value="Cancelado">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
             {errors.status?.message && <p className="text-sm text-red-600">{String(errors.status.message)}</p>}
 
             <Label htmlFor="numero_pedido">Número do Pedido</Label>

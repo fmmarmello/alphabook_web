@@ -18,19 +18,7 @@ type ClientFormData = {
   address: string;
 };
 
-function Navbar() {
-  return (
-    <nav className="w-full bg-white shadow flex justify-center py-4 mb-8">
-      <div className="flex gap-8">
-        <Button asChild variant="ghost"><a href="/">Dashboard</a></Button>
-        <Button asChild variant="ghost"><a href="/clients">Clientes</a></Button>
-        <Button asChild variant="ghost"><a href="/centers">Centros</a></Button>
-        <Button asChild variant="ghost"><a href="/orders">Ordens</a></Button>
-        <Button asChild variant="ghost"><a href="/reports">Relatórios</a></Button>
-      </div>
-    </nav>
-  );
-}
+
 
 function formatCpfCnpj(value: string): string {
   const d = onlyDigits(value);
@@ -121,9 +109,8 @@ export default function EditClientPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-50"> 
-      <Navbar />
-      <Card className="max-w-2xl w-full mt-8">
+    <main className="flex flex-col items-center min-h-screen bg-gray-900"> 
+      <Card className="max-w-4xl w-full mt-8">
         <CardHeader>
           <CardTitle>Editar Cliente</CardTitle>
         </CardHeader>

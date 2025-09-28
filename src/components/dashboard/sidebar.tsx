@@ -18,8 +18,8 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-gray-100 p-4">
-      <nav className="flex flex-col gap-2">
+    <aside className="w-64 bg-gray-950 text-white">
+      <nav className="flex flex-col gap-2 p-4">
         {links.map((link) => (
           <Button
             key={link.href}

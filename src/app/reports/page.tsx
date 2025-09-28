@@ -7,7 +7,7 @@ import { ReportFilters } from "./ReportFilters";
 import { ProductionReport } from "./ProductionReport";
 import { FinancialReport } from "./FinancialReport";
 
-import { Navbar } from "@/components/layout/Navbar";
+
 
 type ReportType = "production" | "financial";
 
@@ -45,8 +45,7 @@ export default function ReportsPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-50">
-      <Navbar />
+    <main className="flex flex-col items-center min-h-screen bg-gray-900">
       <Card className="max-w-6xl w-full mt-8">
         <CardHeader>
           <CardTitle>Relatórios</CardTitle>

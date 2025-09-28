@@ -132,9 +132,9 @@ export default function NewClientPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-50"> 
+    <main className="flex flex-col items-center min-h-screen bg-gray-900"> 
       <Navbar />
-      <Card className="max-w-2xl w-full mt-8">
+      <Card className="max-w-4xl w-full mt-8">
         <CardHeader>
           <CardTitle>Novo Cliente</CardTitle>
         </CardHeader>

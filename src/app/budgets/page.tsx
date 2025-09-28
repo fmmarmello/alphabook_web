@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Toolbar, ToolbarSpacer, ToolbarSection } from "@/components/ui/toolbar";
 import { Pagination } from "@/components/ui/pagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrencyBRL } from "@/lib/utils";
 
 
@@ -93,7 +94,7 @@ export default function BudgetsPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gray-50">
+    <main className="flex flex-col items-center min-h-screen bg-gray-900">
       
       <Card className="max-w-6xl w-full mt-8">
         <CardHeader>
@@ -111,26 +112,41 @@ export default function BudgetsPage() {
             <ToolbarSection>
               <Input type="date" value={dateFrom} onChange={(e) => { setPage(1); setDateFrom(e.target.value); }} />
               <Input type="date" value={dateTo} onChange={(e) => { setPage(1); setDateTo(e.target.value); }} />
-              <select value={sortBy} onChange={(e) => { setPage(1); setSortBy(e.target.value); }} className="border rounded px-2 py-1">
-                <option value="id">ID</option>
-                <option value="titulo">Título</option>
-                <option value="tiragem">Tiragem</option>
-                <option value="preco_unitario">Valor Unitário</option>
-                <option value="preco_total">Valor Total</option>
-                <option value="total_pgs">Páginas Total</option>
-                <option value="pgs_colors">Páginas Coloridas</option>
-                <option value="prazo_producao">Prazo</option>
-                <option value="data_pedido">Data</option>
-              </select>
-              <select value={sortOrder} onChange={(e) => { setPage(1); setSortOrder(e.target.value as any); }} className="border rounded px-2 py-1">
-                <option value="asc">Asc</option>
-                <option value="desc">Desc</option>
-              </select>
-              <select value={pageSize} onChange={(e) => { setPage(1); setPageSize(Number(e.target.value)); }} className="border rounded px-2 py-1">
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
+              <Select value={sortBy} onValueChange={(value) => { setPage(1); setSortBy(value); }}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="id">ID</SelectItem>
+                  <SelectItem value="titulo">Título</SelectItem>
+                  <SelectItem value="tiragem">Tiragem</SelectItem>
+                  <SelectItem value="preco_unitario">Valor Unitário</SelectItem>
+                  <SelectItem value="preco_total">Valor Total</SelectItem>
+                  <SelectItem value="total_pgs">Páginas Total</SelectItem>
+                  <SelectItem value="pgs_colors">Páginas Coloridas</SelectItem>
+                  <SelectItem value="prazo_producao">Prazo</SelectItem>
+                  <SelectItem value="data_pedido">Data</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sortOrder} onValueChange={(value) => { setPage(1); setSortOrder(value as any); }}>
+                <SelectTrigger className="w-24">
+                  <SelectValue placeholder="Order" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asc">Asc</SelectItem>
+                  <SelectItem value="desc">Desc</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={String(pageSize)} onValueChange={(value) => { setPage(1); setPageSize(Number(value)); }}>
+                <SelectTrigger className="w-24">
+                  <SelectValue placeholder="Page size" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
             </ToolbarSection>
           </Toolbar>
           {loading && <div className="text-blue-600">Carregando...</div>}
@@ -147,7 +163,7 @@ export default function BudgetsPage() {
                 <TableHead>Valor Total</TableHead>
                 <TableHead>Prazo de produção</TableHead>
                 <TableHead>Observações</TableHead>
-                <TableHead className="sticky right-0 bg-white">Ações</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -162,7 +178,7 @@ export default function BudgetsPage() {
                   <TableCell>{formatCurrencyBRL(Number(budget.preco_total) || 0)}</TableCell>
                   <TableCell>{budget.prazo_producao}</TableCell>
                   <TableCell>{budget.observacoes}</TableCell>
-                  <TableCell className="sticky right-0 bg-white">
+                  <TableCell>
                     <div className="flex gap-2">
                       <Button asChild variant="outline"><a href={`/budgets/${budget.id}/edit`}>Editar</a></Button>
                       <ConfirmDialog
