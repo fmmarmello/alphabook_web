@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RevenueChart } from "./RevenueChart";
 import { cardVariants, cardHeaderVariants, cardContentVariants } from "./styles";
 
 interface DashboardSummary {
@@ -91,8 +92,8 @@ export function Dashboard() {
   }
 
   return (
-    <div className="p-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="flex flex-col gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className={cardVariants({ variant: "default" })}>
           <CardHeader className={cardHeaderVariants({ size: "default" })}>
             <CardTitle>Total de Clientes</CardTitle>
@@ -145,10 +146,48 @@ export function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <RevenueChart />
+        </div>
         <div>
-          <h2 className="text-2xl font-bold mb-4">Ordens Recentes</h2>
+          <h2 className="text-xl font-semibold mb-4">Clientes Recentes</h2>
           <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Email</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    recentClients.slice(0, 5).map((client) => (
+                      <TableRow key={client.id}>
+                        <TableCell className="font-medium">{client.name}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{client.email}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Ordens Recentes</h2>
+        <Card>
+          <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -171,50 +210,26 @@ export function Dashboard() {
                 ) : (
                   recentOrders.map((order) => (
                     <TableRow key={order.id}>
-                      <TableCell>{order.client.name}</TableCell>
+                      <TableCell className="font-medium">{order.client.name}</TableCell>
                       <TableCell>{order.title}</TableCell>
-                      <TableCell>R$ {order.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
-                      <TableCell>{order.status}</TableCell>
+                      <TableCell className="font-medium">R$ {order.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          order.status === 'Concluído' ? 'bg-green-100 text-green-800' :
+                          order.status === 'Pendente' ? 'bg-yellow-100 text-yellow-800' :
+                          order.status === 'Em Andamento' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {order.status}
+                        </span>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
               </TableBody>
             </Table>
-          </Card>
-        </div>
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Clientes Recentes</h2>
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Telefone</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  recentClients.map((client) => (
-                    <TableRow key={client.id}>
-                      <TableCell>{client.name}</TableCell>
-                      <TableCell>{client.email}</TableCell>
-                      <TableCell>{client.phone}</TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
