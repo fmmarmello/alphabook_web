@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { FormGrid, FormField } from "@/components/ui/form-grid";
 
 type CenterFormData = { name: string; type: string; obs: string };
 const centerTypes = ["Interno", "Terceirizado", "Digital", "Offset", "Outro"];
@@ -65,29 +66,37 @@ export default function NewCenterPage() {
           <CardTitle>Novo Centro</CardTitle>
         </CardHeader>
         <CardContent>
-          {serverError && <div className="text-red-600 mb-2">{serverError}</div>}
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-            <Label htmlFor="name">Nome</Label>
-            <Input id="name" placeholder="Nome do centro" aria-invalid={!!errors.name} {...register('name')} />
-            {errors.name?.message && <p className="text-sm text-red-600">{String(errors.name.message)}</p>}
+          {serverError && <div className="text-red-600 mb-4">{serverError}</div>}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <FormGrid columns={2} gap="md">
+              <FormField>
+                <Label htmlFor="name">Nome</Label>
+                <Input id="name" placeholder="Nome do centro" aria-invalid={!!errors.name} {...register('name')} />
+                {errors.name?.message && <p className="text-sm text-red-600">{String(errors.name.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="type">Tipo</Label>
-            <Select onValueChange={(value) => setValue('type', value)} {...register('type')}>
-              <SelectTrigger aria-invalid={!!errors.type}>
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                {centerTypes.map((type) => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.type?.message && <p className="text-sm text-red-600">{String(errors.type.message)}</p>}
+              <FormField>
+                <Label htmlFor="type">Tipo</Label>
+                <Select onValueChange={(value) => setValue('type', value)} {...register('type')}>
+                  <SelectTrigger aria-invalid={!!errors.type}>
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {centerTypes.map((type) => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.type?.message && <p className="text-sm text-red-600">{String(errors.type.message)}</p>}
+              </FormField>
+            </FormGrid>
 
-            <Label htmlFor="obs">Observações</Label>
-            <Input id="obs" placeholder="Opcional" {...register('obs')} />
+            <FormField>
+              <Label htmlFor="obs">Observações</Label>
+              <Input id="obs" placeholder="Opcional" {...register('obs')} />
+            </FormField>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => router.push('/centers')}>Cancelar</Button>
               <Button type="submit" disabled={!isValid || isSubmitting}>Salvar</Button>
             </div>

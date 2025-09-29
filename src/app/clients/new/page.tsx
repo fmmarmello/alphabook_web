@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { FormGrid, FormField } from "@/components/ui/form-grid";
 
 type ClientFormData = {
   name: string;
@@ -139,42 +140,56 @@ export default function NewClientPage() {
           <CardTitle>Novo Cliente</CardTitle>
         </CardHeader>
         <CardContent>
-          {serverError && <div className="text-red-600 mb-2">{serverError}</div>}
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-            <Label htmlFor="name">Nome</Label>
-            <Input id="name" placeholder="Nome completo" aria-invalid={!!errors.name} {...register('name')} />
-            {errors.name?.message && <p className="text-sm text-red-600">{String(errors.name.message)}</p>}
+          {serverError && <div className="text-red-600 mb-4">{serverError}</div>}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <FormGrid columns={2} gap="md">
+              <FormField>
+                <Label htmlFor="name">Nome</Label>
+                <Input id="name" placeholder="Nome completo" aria-invalid={!!errors.name} {...register('name')} />
+                {errors.name?.message && <p className="text-sm text-red-600">{String(errors.name.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="cnpjCpf">CNPJ/CPF</Label>
-            {(() => {
-              const reg = register('cnpjCpf');
-              return (
-                <Input id="cnpjCpf" placeholder="000.000.000-00 ou 00.000.000/0000-00" maxLength={18} aria-invalid={!!errors.cnpjCpf || !!duplicationError} {...reg}
-                  onChange={(e) => { e.target.value = formatCpfCnpj(e.target.value); reg.onChange(e); setValue('cnpjCpf', e.target.value, { shouldValidate: true }); }} />
-              );
-            })()}
-            {errors.cnpjCpf?.message && <p className="text-sm text-red-600">{String(errors.cnpjCpf.message)}</p>}
-            {duplicationError && <p className="text-sm text-yellow-600">{duplicationError}</p>}
+              <FormField>
+                <Label htmlFor="cnpjCpf">CNPJ/CPF</Label>
+                {(() => {
+                  const reg = register('cnpjCpf');
+                  return (
+                    <Input id="cnpjCpf" placeholder="000.000.000-00 ou 00.000.000/0000-00" maxLength={18} aria-invalid={!!errors.cnpjCpf || !!duplicationError} {...reg}
+                      onChange={(e) => { e.target.value = formatCpfCnpj(e.target.value); reg.onChange(e); setValue('cnpjCpf', e.target.value, { shouldValidate: true }); }} />
+                  );
+                })()}
+                {errors.cnpjCpf?.message && <p className="text-sm text-red-600">{String(errors.cnpjCpf.message)}</p>}
+                {duplicationError && <p className="text-sm text-yellow-600">{duplicationError}</p>}
+              </FormField>
+            </FormGrid>
 
-            <Label htmlFor="phone">Telefone</Label>
-            {(() => {
-              const reg = register('phone');
-              return (
-                <Input id="phone" type="tel" placeholder="(11) 98765-4321" maxLength={16} aria-invalid={!!errors.phone} {...reg}
-                  onChange={(e) => { e.target.value = formatPhone(e.target.value); reg.onChange(e); setValue('phone', e.target.value, { shouldValidate: true }); }} />
-              );
-            })()}
-            {errors.phone?.message && <p className="text-sm text-red-600">{String(errors.phone.message)}</p>}
+            <FormGrid columns={2} gap="md">
+              <FormField>
+                <Label htmlFor="phone">Telefone</Label>
+                {(() => {
+                  const reg = register('phone');
+                  return (
+                    <Input id="phone" type="tel" placeholder="(11) 98765-4321" maxLength={16} aria-invalid={!!errors.phone} {...reg}
+                      onChange={(e) => { e.target.value = formatPhone(e.target.value); reg.onChange(e); setValue('phone', e.target.value, { shouldValidate: true }); }} />
+                  );
+                })()}
+                {errors.phone?.message && <p className="text-sm text-red-600">{String(errors.phone.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="nome@exemplo.com" aria-invalid={!!errors.email} {...register('email')} />
-            {errors.email?.message && <p className="text-sm text-red-600">{String(errors.email.message)}</p>}
+              <FormField>
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" placeholder="nome@exemplo.com" aria-invalid={!!errors.email} {...register('email')} />
+                {errors.email?.message && <p className="text-sm text-red-600">{String(errors.email.message)}</p>}
+              </FormField>
+            </FormGrid>
 
-            <Label htmlFor="address">Endereço</Label>
-            <Input id="address" placeholder="Rua, número, bairro, cidade" aria-invalid={!!errors.address} {...register('address')} />
-            {errors.address?.message && <p className="text-sm text-red-600">{String(errors.address.message)}</p>}
+            <FormField>
+              <Label htmlFor="address">Endereço</Label>
+              <Input id="address" placeholder="Rua, número, bairro, cidade" aria-invalid={!!errors.address} {...register('address')} />
+              {errors.address?.message && <p className="text-sm text-red-600">{String(errors.address.message)}</p>}
+            </FormField>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => router.push('/clients')}>Cancelar</Button>
               <Button type="submit" disabled={!isValid || isSubmitting}>Salvar</Button>
             </div>

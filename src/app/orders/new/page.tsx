@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { FormGrid, FormRow, FormField } from "@/components/ui/form-grid";
 import { Navbar } from "@/components/layout/Navbar";
 
 type OrderFormData = OrderInput;
@@ -85,114 +86,166 @@ export default function NewOrderPage() {
           <CardTitle>Nova OP</CardTitle>
         </CardHeader>
         <CardContent>
-          {serverError && <div className="text-red-600 mb-2">{serverError}</div>}
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-            <Label htmlFor="clientId">Cliente</Label>
-            <Select onValueChange={(value) => setValue('clientId', Number(value))} {...register('clientId')}>
-              <SelectTrigger aria-invalid={!!errors.clientId}>
-                <SelectValue placeholder="Selecione..." />
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.clientId?.message && <p className="text-sm text-red-600">{String(errors.clientId.message)}</p>}
+          {serverError && <div className="text-red-600 mb-4">{serverError}</div>}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <FormGrid columns={3} gap="md">
+              <FormField>
+                <Label htmlFor="clientId">Cliente</Label>
+                <Select onValueChange={(value) => setValue('clientId', Number(value))} {...register('clientId')}>
+                  <SelectTrigger aria-invalid={!!errors.clientId}>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((c) => (
+                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.clientId?.message && <p className="text-sm text-red-600">{String(errors.clientId.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="centerId">Centro de Produção</Label>
-            <Select onValueChange={(value) => setValue('centerId', Number(value))} {...register('centerId')}>
-              <SelectTrigger aria-invalid={!!errors.centerId}>
-                <SelectValue placeholder="Selecione..." />
-              </SelectTrigger>
-              <SelectContent>
-                {centers.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.centerId?.message && <p className="text-sm text-red-600">{String(errors.centerId?.message)}</p>}
+              <FormField>
+                <Label htmlFor="centerId">Centro de Produção</Label>
+                <Select onValueChange={(value) => setValue('centerId', Number(value))} {...register('centerId')}>
+                  <SelectTrigger aria-invalid={!!errors.centerId}>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {centers.map((c) => (
+                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.centerId?.message && <p className="text-sm text-red-600">{String(errors.centerId?.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="status">Status</Label>
-            <Select onValueChange={(value) => setValue('status', value)} defaultValue="Pendente" {...register('status')}>
-              <SelectTrigger aria-invalid={!!errors.status}>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Pendente">Pendente</SelectItem>
-                <SelectItem value="Em produção">Em produção</SelectItem>
-                <SelectItem value="Finalizado">Finalizado</SelectItem>
-                <SelectItem value="Entregue">Entregue</SelectItem>
-                <SelectItem value="Cancelado">Cancelado</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.status?.message && <p className="text-sm text-red-600">{String(errors.status.message)}</p>}
+              <FormField>
+                <Label htmlFor="status">Status</Label>
+                <Select onValueChange={(value) => setValue('status', value)} defaultValue="Pendente" {...register('status')}>
+                  <SelectTrigger aria-invalid={!!errors.status}>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pendente">Pendente</SelectItem>
+                    <SelectItem value="Em produção">Em produção</SelectItem>
+                    <SelectItem value="Finalizado">Finalizado</SelectItem>
+                    <SelectItem value="Entregue">Entregue</SelectItem>
+                    <SelectItem value="Cancelado">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.status?.message && <p className="text-sm text-red-600">{String(errors.status.message)}</p>}
+              </FormField>
+            </FormGrid>
 
-            <Label htmlFor="numero_pedido">Número do Pedido</Label>
-            <Input id="numero_pedido" {...register('numero_pedido')} />
-            {errors.numero_pedido?.message && <p className="text-sm text-red-600">{String(errors.numero_pedido.message)}</p>}
+            <FormGrid columns={3} gap="md">
+              <FormField>
+                <Label htmlFor="numero_pedido">Número do Pedido</Label>
+                <Input id="numero_pedido" {...register('numero_pedido')} />
+                {errors.numero_pedido?.message && <p className="text-sm text-red-600">{String(errors.numero_pedido.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="data_pedido">Data do Pedido</Label>
-            <Input id="data_pedido" type="date" {...register('data_pedido')} />
-            {errors.data_pedido?.message && <p className="text-sm text-red-600">{String(errors.data_pedido.message)}</p>}
+              <FormField>
+                <Label htmlFor="data_pedido">Data do Pedido</Label>
+                <Input id="data_pedido" type="date" {...register('data_pedido')} />
+                {errors.data_pedido?.message && <p className="text-sm text-red-600">{String(errors.data_pedido.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="data_entrega">Data de Entrega</Label>
-            <Input id="data_entrega" type="date" {...register('data_entrega')} />
-            {errors.data_entrega?.message && <p className="text-sm text-red-600">{String(errors.data_entrega.message)}</p>}
+              <FormField>
+                <Label htmlFor="data_entrega">Data de Entrega</Label>
+                <Input id="data_entrega" type="date" {...register('data_entrega')} />
+                {errors.data_entrega?.message && <p className="text-sm text-red-600">{String(errors.data_entrega.message)}</p>}
+              </FormField>
+            </FormGrid>
 
-            <Label htmlFor="solicitante">Solicitante</Label>
-            <Input id="solicitante" {...register('solicitante')} />
-            {errors.solicitante?.message && <p className="text-sm text-red-600">{String(errors.solicitante.message)}</p>}
+            <FormGrid columns={2} gap="md">
+              <FormField>
+                <Label htmlFor="solicitante">Solicitante</Label>
+                <Input id="solicitante" {...register('solicitante')} />
+                {errors.solicitante?.message && <p className="text-sm text-red-600">{String(errors.solicitante.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="documento">Documento</Label>
-            <Input id="documento" {...register('documento')} />
-            {errors.documento?.message && <p className="text-sm text-red-600">{String(errors.documento.message)}</p>}
+              <FormField>
+                <Label htmlFor="documento">Documento</Label>
+                <Input id="documento" {...register('documento')} />
+                {errors.documento?.message && <p className="text-sm text-red-600">{String(errors.documento.message)}</p>}
+              </FormField>
+            </FormGrid>
 
-            <Label htmlFor="editorial">Grupo Editorial</Label>
-            <Input id="editorial" {...register('editorial')} />
-            {errors.editorial?.message && <p className="text-sm text-red-600">{String(errors.editorial.message)}</p>}
+            <FormGrid columns={2} gap="md">
+              <FormField>
+                <Label htmlFor="editorial">Grupo Editorial</Label>
+                <Input id="editorial" {...register('editorial')} />
+                {errors.editorial?.message && <p className="text-sm text-red-600">{String(errors.editorial.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="tipo_produto">Tipo de Produto</Label>
-            <Input id="tipo_produto" {...register('tipo_produto')} />
-            {errors.tipo_produto?.message && <p className="text-sm text-red-600">{String(errors.tipo_produto.message)}</p>}
+              <FormField>
+                <Label htmlFor="tipo_produto">Tipo de Produto</Label>
+                <Input id="tipo_produto" {...register('tipo_produto')} />
+                {errors.tipo_produto?.message && <p className="text-sm text-red-600">{String(errors.tipo_produto.message)}</p>}
+              </FormField>
+            </FormGrid>
 
-            <Label htmlFor="cor_miolo">Cor do Miolo</Label>
-            <Input id="cor_miolo" {...register('cor_miolo')} />
-            {errors.cor_miolo?.message && <p className="text-sm text-red-600">{String(errors.cor_miolo.message)}</p>}
+            <FormGrid columns={4} gap="md">
+              <FormField>
+                <Label htmlFor="cor_miolo">Cor do Miolo</Label>
+                <Input id="cor_miolo" {...register('cor_miolo')} />
+                {errors.cor_miolo?.message && <p className="text-sm text-red-600">{String(errors.cor_miolo.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="papel_miolo">Papel do Miolo</Label>
-            <Input id="papel_miolo" {...register('papel_miolo')} />
-            {errors.papel_miolo?.message && <p className="text-sm text-red-600">{String(errors.papel_miolo.message)}</p>}
+              <FormField>
+                <Label htmlFor="papel_miolo">Papel do Miolo</Label>
+                <Input id="papel_miolo" {...register('papel_miolo')} />
+                {errors.papel_miolo?.message && <p className="text-sm text-red-600">{String(errors.papel_miolo.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="papel_capa">Papel da Capa</Label>
-            <Input id="papel_capa" {...register('papel_capa')} />
-            {errors.papel_capa?.message && <p className="text-sm text-red-600">{String(errors.papel_capa.message)}</p>}
+              <FormField>
+                <Label htmlFor="papel_capa">Papel da Capa</Label>
+                <Input id="papel_capa" {...register('papel_capa')} />
+                {errors.papel_capa?.message && <p className="text-sm text-red-600">{String(errors.papel_capa.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="cor_capa">Cor da Capa</Label>
-            <Input id="cor_capa" {...register('cor_capa')} />
-            {errors.cor_capa?.message && <p className="text-sm text-red-600">{String(errors.cor_capa.message)}</p>}
+              <FormField>
+                <Label htmlFor="cor_capa">Cor da Capa</Label>
+                <Input id="cor_capa" {...register('cor_capa')} />
+                {errors.cor_capa?.message && <p className="text-sm text-red-600">{String(errors.cor_capa.message)}</p>}
+              </FormField>
+            </FormGrid>
 
-            <Label htmlFor="laminacao">Laminação</Label>
-            <Input id="laminacao" {...register('laminacao')} />
-            {errors.laminacao?.message && <p className="text-sm text-red-600">{String(errors.laminacao.message)}</p>}
+            <FormGrid columns={3} gap="md">
+              <FormField>
+                <Label htmlFor="laminacao">Laminação</Label>
+                <Input id="laminacao" {...register('laminacao')} />
+                {errors.laminacao?.message && <p className="text-sm text-red-600">{String(errors.laminacao.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="acabamento">Acabamento</Label>
-            <Input id="acabamento" {...register('acabamento')} />
-            {errors.acabamento?.message && <p className="text-sm text-red-600">{String(errors.acabamento.message)}</p>}
+              <FormField>
+                <Label htmlFor="acabamento">Acabamento</Label>
+                <Input id="acabamento" {...register('acabamento')} />
+                {errors.acabamento?.message && <p className="text-sm text-red-600">{String(errors.acabamento.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="shrink">Shrink</Label>
-            <Input id="shrink" {...register('shrink')} />
-            {errors.shrink?.message && <p className="text-sm text-red-600">{String(errors.shrink.message)}</p>}
+              <FormField>
+                <Label htmlFor="shrink">Shrink</Label>
+                <Input id="shrink" {...register('shrink')} />
+                {errors.shrink?.message && <p className="text-sm text-red-600">{String(errors.shrink.message)}</p>}
+              </FormField>
+            </FormGrid>
 
-            <Label htmlFor="pagamento">Pagamento</Label>
-            <Input id="pagamento" {...register('pagamento')} />
-            {errors.pagamento?.message && <p className="text-sm text-red-600">{String(errors.pagamento.message)}</p>}
+            <FormGrid columns={2} gap="md">
+              <FormField>
+                <Label htmlFor="pagamento">Pagamento</Label>
+                <Input id="pagamento" {...register('pagamento')} />
+                {errors.pagamento?.message && <p className="text-sm text-red-600">{String(errors.pagamento.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="frete">Frete</Label>
-            <Input id="frete" {...register('frete')} />
-            {errors.frete?.message && <p className="text-sm text-red-600">{String(errors.frete.message)}</p>}
+              <FormField>
+                <Label htmlFor="frete">Frete</Label>
+                <Input id="frete" {...register('frete')} />
+                {errors.frete?.message && <p className="text-sm text-red-600">{String(errors.frete.message)}</p>}
+              </FormField>
+            </FormGrid>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => router.push('/orders')}>Cancelar</Button>
               <Button type="submit" disabled={!isValid || isSubmitting}>Salvar</Button>
             </div>

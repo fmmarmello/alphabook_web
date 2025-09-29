@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { FormGrid, FormField } from "@/components/ui/form-grid";
 import { formatCurrencyBRL, parseCurrencyBRL } from "@/lib/utils";
 
 type BudgetFormData = {
@@ -129,99 +130,153 @@ export default function EditBudgetForm({ specifications }: { specifications: any
           <CardTitle>Editar Orçamento</CardTitle>
         </CardHeader>
         <CardContent>
-          {serverError && <div className="text-red-600 mb-2">{serverError}</div>}
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          {serverError && <div className="text-red-600 mb-4">{serverError}</div>}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <FormField>
+              <Label htmlFor="titulo">Título</Label>
+              <Input id="titulo" aria-invalid={!!errors.titulo} {...register('titulo')} />
+              {errors.titulo?.message && <p className="text-sm text-red-600">{String(errors.titulo.message)}</p>}
+            </FormField>
 
-            <Label htmlFor="titulo">Título</Label>
-            <Input id="titulo" aria-invalid={!!errors.titulo} {...register('titulo')} />
-            {errors.titulo?.message && <p className="text-sm text-red-600">{String(errors.titulo.message)}</p>}
+            <FormGrid columns={4} gap="md">
+              <FormField>
+                <Label htmlFor="tiragem">Tiragem</Label>
+                <Input id="tiragem" type="number" min={0} aria-invalid={!!errors.tiragem} {...register('tiragem', { valueAsNumber: true })} />
+                {errors.tiragem?.message && <p className="text-sm text-red-600">{String(errors.tiragem.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="tiragem">Tiragem</Label>
-            <Input id="tiragem" type="number" min={0} aria-invalid={!!errors.tiragem} {...register('tiragem', { valueAsNumber: true })} />
-            {errors.tiragem?.message && <p className="text-sm text-red-600">{String(errors.tiragem.message)}</p>}
+              <FormField>
+                <Label htmlFor="formato">Formato</Label>
+                <Select onValueChange={(value) => setValue('formato', value)} {...register('formato')}>
+                  <SelectTrigger aria-invalid={!!errors.formato}>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Selecione...</SelectItem>
+                    {specifications["Formato Fechado"].map((item: string) => (
+                      <SelectItem key={item} value={item}>{item}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.formato?.message && <p className="text-sm text-red-600">{String(errors.formato.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="formato">Formato</Label>
-            <Select onValueChange={(value) => setValue('formato', value)} {...register('formato')}>
-              <SelectTrigger aria-invalid={!!errors.formato}>
-                <SelectValue placeholder="Selecione..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Selecione...</SelectItem>
-                {specifications["Formato Fechado"].map((item: string) => (
-                  <SelectItem key={item} value={item}>{item}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.formato?.message && <p className="text-sm text-red-600">{String(errors.formato.message)}</p>}
+              <FormField>
+                <Label htmlFor="total_pgs">Nº de páginas total</Label>
+                <Input id="total_pgs" type="number" min={0} aria-invalid={!!errors.total_pgs} {...register('total_pgs', { valueAsNumber: true })} />
+                {errors.total_pgs?.message && <p className="text-sm text-red-600">{String(errors.total_pgs.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="total_pgs">Nº de páginas total</Label>
-            <Input id="total_pgs" type="number" min={0} aria-invalid={!!errors.total_pgs} {...register('total_pgs', { valueAsNumber: true })} />
-            {errors.total_pgs?.message && <p className="text-sm text-red-600">{String(errors.total_pgs.message)}</p>}
+              <FormField>
+                <Label htmlFor="pgs_colors">Nº de páginas coloridas</Label>
+                <Input id="pgs_colors" type="number" min={0} aria-invalid={!!errors.pgs_colors} {...register('pgs_colors', { valueAsNumber: true })} />
+                {errors.pgs_colors?.message && <p className="text-sm text-red-600">{String(errors.pgs_colors.message)}</p>}
+              </FormField>
+            </FormGrid>
 
-            <Label htmlFor="pgs_colors">Nº de páginas coloridas</Label>
-            <Input id="pgs_colors" type="number" min={0} aria-invalid={!!errors.pgs_colors} {...register('pgs_colors', { valueAsNumber: true })} />
-            {errors.pgs_colors?.message && <p className="text-sm text-red-600">{String(errors.pgs_colors.message)}</p>}
-
-            <Label htmlFor="preco_unitario">Valor Unitário</Label>
-            <Controller
-              name="preco_unitario"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  id="preco_unitario"
-                  type="text"
-                  inputMode="decimal"
-                  aria-invalid={!!errors.preco_unitario}
-                  value={formatCurrencyBRL(Number(field.value) || 0)}
-                  onChange={(e) => {
-                    const num = parseCurrencyBRL(e.target.value);
-                    field.onChange(num);
-                  }}
+            <FormGrid columns={3} gap="md">
+              <FormField>
+                <Label htmlFor="preco_unitario">Valor Unitário</Label>
+                <Controller
+                  name="preco_unitario"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      id="preco_unitario"
+                      type="text"
+                      inputMode="decimal"
+                      aria-invalid={!!errors.preco_unitario}
+                      value={formatCurrencyBRL(Number(field.value) || 0)}
+                      onChange={(e) => {
+                        const num = parseCurrencyBRL(e.target.value);
+                        field.onChange(num);
+                      }}
+                    />
+                  )}
                 />
-              )}
-            />
-            {errors.preco_unitario?.message && <p className="text-sm text-red-600">{String(errors.preco_unitario.message)}</p>}
+                {errors.preco_unitario?.message && <p className="text-sm text-red-600">{String(errors.preco_unitario.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="preco_total">Valor Total</Label>
-            <Controller
-              name="preco_total"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  id="preco_total"
-                  type="text"
-                  readOnly
-                  aria-invalid={!!errors.preco_total}
-                  value={formatCurrencyBRL(Number(field.value) || 0)}
+              <FormField>
+                <Label htmlFor="preco_total">Valor Total</Label>
+                <Controller
+                  name="preco_total"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      id="preco_total"
+                      type="text"
+                      readOnly
+                      aria-invalid={!!errors.preco_total}
+                      value={formatCurrencyBRL(Number(field.value) || 0)}
+                    />
+                  )}
                 />
-              )}
-            />
-            {errors.preco_total?.message && <p className="text-sm text-red-600">{String(errors.preco_total.message)}</p>}
+                {errors.preco_total?.message && <p className="text-sm text-red-600">{String(errors.preco_total.message)}</p>}
+              </FormField>
 
-            <Label htmlFor="prazo_producao">Prazo de produção</Label>
-            <Input id="prazo_producao" type="date" aria-invalid={!!errors.prazo_producao} {...register('prazo_producao')} />
-            {errors.prazo_producao?.message && <p className="text-sm text-red-600">{String(errors.prazo_producao.message)}</p>}
+              <FormField>
+                <Label htmlFor="prazo_producao">Prazo de produção</Label>
+                <Input id="prazo_producao" type="date" aria-invalid={!!errors.prazo_producao} {...register('prazo_producao')} />
+                {errors.prazo_producao?.message && <p className="text-sm text-red-600">{String(errors.prazo_producao.message)}</p>}
+              </FormField>
+            </FormGrid>
 
-            <Label htmlFor="observacoes">Observações</Label>
-            <Input id="observacoes" {...register('observacoes')} />
+            <FormField>
+              <Label htmlFor="observacoes">Observações</Label>
+              <Input id="observacoes" {...register('observacoes')} />
+            </FormField>
 
-            <Label htmlFor="numero_pedido">Número do Pedido</Label>
-            <Input id="numero_pedido" {...register('numero_pedido')} />
+            <FormGrid columns={3} gap="md">
+              <FormField>
+                <Label htmlFor="numero_pedido">Número do Pedido</Label>
+                <Input id="numero_pedido" {...register('numero_pedido')} />
+              </FormField>
 
-            <Label htmlFor="data_pedido">Data do Pedido</Label>
-            <Input id="data_pedido" type="date" {...register('data_pedido')} />
+              <FormField>
+                <Label htmlFor="data_pedido">Data do Pedido</Label>
+                <Input id="data_pedido" type="date" {...register('data_pedido')} />
+              </FormField>
 
-            <Label htmlFor="data_entrega">Data de Entrega</Label>
-            <Input id="data_entrega" type="date" {...register('data_entrega')} />
+              <FormField>
+                <Label htmlFor="data_entrega">Data de Entrega</Label>
+                <Input id="data_entrega" type="date" {...register('data_entrega')} />
+              </FormField>
+            </FormGrid>
 
-            <Label htmlFor="solicitante">Solicitante</Label>
-            <Input id="solicitante" {...register('solicitante')} />
+            <FormGrid columns={2} gap="md">
+              <FormField>
+                <Label htmlFor="solicitante">Solicitante</Label>
+                <Input id="solicitante" {...register('solicitante')} />
+              </FormField>
 
-            <Label htmlFor="documento">Documento</Label>
-            <Input id="documento" {...register('documento')} />
+              <FormField>
+                <Label htmlFor="documento">Documento</Label>
+                <Input id="documento" {...register('documento')} />
+              </FormField>
+            </FormGrid>
 
-            <Label htmlFor="editorial">Editorial</Label>
-            <Input id="editorial" {...register('editorial')} />
+            <FormGrid columns={2} gap="md">
+              <FormField>
+                <Label htmlFor="editorial">Editorial</Label>
+                <Input id="editorial" {...register('editorial')} />
+              </FormField>
+
+              <FormField>
+                <Label htmlFor="tipo_produto">Tipo de Produto</Label>
+                <Select onValueChange={(value) => setValue('tipo_produto', value)} {...register('tipo_produto')}>
+                  <SelectTrigger aria-invalid={!!errors.tipo_produto}>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Selecione...</SelectItem>
+                    {specifications["Tipo de produto"].map((item: string) => (
+                      <SelectItem key={item} value={item}>{item}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+            </FormGrid>
 
             <Label htmlFor="tipo_produto">Tipo de Produto</Label>
             <Select onValueChange={(value) => setValue('tipo_produto', value)} {...register('tipo_produto')}>
