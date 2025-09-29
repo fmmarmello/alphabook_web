@@ -1,7 +1,4 @@
 // D:\\dev\\alphabook_project\\alphabook_web\\src\\lib\\specifications.ts
-import fs from 'fs';
-import path from 'path';
-
 let specifications: any = null;
 
 export function getSpecifications() {
@@ -9,9 +6,20 @@ export function getSpecifications() {
     return specifications;
   }
 
-  const filePath = path.join(process.cwd(), 'src', 'lib', 'especificacoes.json');
-  const fileContent = fs.readFileSync(filePath, 'utf-8');
-  specifications = JSON.parse(fileContent);
+  // For client-side usage, we'll fetch from API
+  return null;
+}
 
-  return specifications;
+export async function fetchSpecifications() {
+  try {
+    const response = await fetch('/api/specifications');
+    if (!response.ok) {
+      throw new Error('Failed to fetch specifications');
+    }
+    specifications = await response.json();
+    return specifications;
+  } catch (error) {
+    console.error('Error fetching specifications:', error);
+    return null;
+  }
 }

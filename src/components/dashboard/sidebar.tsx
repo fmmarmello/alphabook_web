@@ -22,7 +22,7 @@ export function Sidebar() {
     <aside className="w-64 bg-background text-foreground border-r">
       <nav className="flex flex-col gap-2 p-4">
         {links.map((link) => {
-          const active = pathname === link.href;
+          const active = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href + "/"));
           return (
             <Button
               key={link.href}

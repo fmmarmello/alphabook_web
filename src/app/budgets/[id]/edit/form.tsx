@@ -173,7 +173,7 @@ export default function EditBudgetForm({ specifications }: { specifications: any
                 <FormField>
                   <Label htmlFor="formato">Formato *</Label>
                   <Select onValueChange={(value) => setValue('formato', value)} {...register('formato')}>
-                    <SelectTrigger aria-invalid={!!errors.formato}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.formato}>
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -203,7 +203,7 @@ export default function EditBudgetForm({ specifications }: { specifications: any
                 <FormField>
                   <Label htmlFor="tipo_produto">Tipo de Produto *</Label>
                   <Select onValueChange={(value) => setValue('tipo_produto', value)} {...register('tipo_produto')}>
-                    <SelectTrigger aria-invalid={!!errors.tipo_produto}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.tipo_produto}>
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -230,7 +230,7 @@ export default function EditBudgetForm({ specifications }: { specifications: any
                 <FormField>
                   <Label htmlFor="cor_miolo">Cor do Miolo *</Label>
                   <Select onValueChange={(value) => setValue('cor_miolo', value)} {...register('cor_miolo')}>
-                    <SelectTrigger aria-invalid={!!errors.cor_miolo}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.cor_miolo}>
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -246,7 +246,7 @@ export default function EditBudgetForm({ specifications }: { specifications: any
                 <FormField>
                   <Label htmlFor="papel_miolo">Papel do Miolo *</Label>
                   <Select onValueChange={(value) => setValue('papel_miolo', value)} {...register('papel_miolo')}>
-                    <SelectTrigger aria-invalid={!!errors.papel_miolo}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.papel_miolo}>
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -262,7 +262,7 @@ export default function EditBudgetForm({ specifications }: { specifications: any
                 <FormField>
                   <Label htmlFor="cor_capa">Cor da Capa *</Label>
                   <Select onValueChange={(value) => setValue('cor_capa', value)} {...register('cor_capa')}>
-                    <SelectTrigger aria-invalid={!!errors.cor_capa}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.cor_capa}>
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -278,7 +278,7 @@ export default function EditBudgetForm({ specifications }: { specifications: any
                 <FormField>
                   <Label htmlFor="papel_capa">Papel da Capa *</Label>
                   <Select onValueChange={(value) => setValue('papel_capa', value)} {...register('papel_capa')}>
-                    <SelectTrigger aria-invalid={!!errors.papel_capa}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.papel_capa}>
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -300,7 +300,7 @@ export default function EditBudgetForm({ specifications }: { specifications: any
                 <FormField>
                   <Label htmlFor="laminacao">Laminação</Label>
                   <Select onValueChange={(value) => setValue('laminacao', value)} {...register('laminacao')}>
-                    <SelectTrigger>
+                    <SelectTrigger className="min-w-0 w-full">
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -315,7 +315,7 @@ export default function EditBudgetForm({ specifications }: { specifications: any
                 <FormField>
                   <Label htmlFor="acabamento">Acabamento</Label>
                   <Select onValueChange={(value) => setValue('acabamento', value)} {...register('acabamento')}>
-                    <SelectTrigger>
+                    <SelectTrigger className="min-w-0 w-full">
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -330,7 +330,7 @@ export default function EditBudgetForm({ specifications }: { specifications: any
                 <FormField>
                   <Label htmlFor="shrink">Shrink</Label>
                   <Select onValueChange={(value) => setValue('shrink', value)} {...register('shrink')}>
-                    <SelectTrigger>
+                    <SelectTrigger className="min-w-0 w-full">
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -351,7 +351,7 @@ export default function EditBudgetForm({ specifications }: { specifications: any
                 <FormField>
                   <Label htmlFor="centro_producao">Centro de Produção *</Label>
                   <Select onValueChange={(value) => setValue('centro_producao', value)} {...register('centro_producao')}>
-                    <SelectTrigger aria-invalid={!!errors.centro_producao}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.centro_producao}>
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -425,7 +425,7 @@ export default function EditBudgetForm({ specifications }: { specifications: any
                 <FormField>
                   <Label htmlFor="pagamento">Forma de Pagamento *</Label>
                   <Select onValueChange={(value) => setValue('pagamento', value)} {...register('pagamento')}>
-                    <SelectTrigger aria-invalid={!!errors.pagamento}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.pagamento}>
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>

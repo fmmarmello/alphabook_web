@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { FormGrid, FormRow, FormField } from "@/components/ui/form-grid";
 import { Navbar } from "@/components/layout/Navbar";
+import { getSpecifications } from "@/lib/specifications";
 
 type OrderFormData = OrderInput;
 
@@ -19,6 +20,7 @@ export default function NewOrderPage() {
   const [serverError, setServerError] = useState("");
   const [clients, setClients] = useState<{ id: number; name: string }[]>([]);
   const [centers, setCenters] = useState<{ id: number; name: string }[]>([]);
+  const [specifications, setSpecifications] = useState<any>({});
 
   const { register, handleSubmit, watch, setValue, formState: { errors, isValid, isSubmitting } } = useForm<OrderFormData>({
     resolver: zodResolver(OrderSchema),
@@ -29,16 +31,19 @@ export default function NewOrderPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [rc, rz] = await Promise.all([
+        const [rc, rz, rs] = await Promise.all([
           fetch('/api/clients'),
-          fetch('/api/centers')
+          fetch('/api/centers'),
+          fetch('/api/specifications')
         ]);
         const jc = await rc.json();
         const jz = await rz.json();
+        const js = await rs.json();
         const listC = Array.isArray(jc) ? jc : Array.isArray(jc?.data) ? jc.data : [];
         const listZ = Array.isArray(jz) ? jz : Array.isArray(jz?.data) ? jz.data : [];
         setClients(listC.map((c: any) => ({ id: c.id, name: c.name })));
         setCenters(listZ.map((c: any) => ({ id: c.id, name: c.name })));
+        setSpecifications(js);
       } catch {
         setClients([]);
         setCenters([]);
@@ -91,7 +96,7 @@ export default function NewOrderPage() {
               <FormField>
                 <Label htmlFor="clientId">Cliente</Label>
                 <Select onValueChange={(value) => setValue('clientId', Number(value))} {...register('clientId')}>
-                  <SelectTrigger aria-invalid={!!errors.clientId}>
+                  <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.clientId}>
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -106,7 +111,7 @@ export default function NewOrderPage() {
               <FormField>
                 <Label htmlFor="centerId">Centro de Produção</Label>
                 <Select onValueChange={(value) => setValue('centerId', Number(value))} {...register('centerId')}>
-                  <SelectTrigger aria-invalid={!!errors.centerId}>
+                  <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.centerId}>
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -121,7 +126,7 @@ export default function NewOrderPage() {
               <FormField>
                 <Label htmlFor="status">Status</Label>
                 <Select onValueChange={(value) => setValue('status', value)} defaultValue="Pendente" {...register('status')}>
-                  <SelectTrigger aria-invalid={!!errors.status}>
+                  <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.status}>
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -187,25 +192,61 @@ export default function NewOrderPage() {
             <FormGrid columns={4} gap="md">
               <FormField>
                 <Label htmlFor="cor_miolo">Cor do Miolo</Label>
-                <Input id="cor_miolo" {...register('cor_miolo')} />
+                <Select onValueChange={(value) => setValue('cor_miolo', value)} {...register('cor_miolo')}>
+                  <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.cor_miolo}>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {specifications["Cor do miolo"]?.map((item: string) => (
+                      <SelectItem key={item} value={item}>{item}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.cor_miolo?.message && <p className="text-sm text-red-600">{String(errors.cor_miolo.message)}</p>}
               </FormField>
 
               <FormField>
                 <Label htmlFor="papel_miolo">Papel do Miolo</Label>
-                <Input id="papel_miolo" {...register('papel_miolo')} />
+                <Select onValueChange={(value) => setValue('papel_miolo', value)} {...register('papel_miolo')}>
+                  <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.papel_miolo}>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {specifications["Tipo de Papel miolo"]?.map((item: string) => (
+                      <SelectItem key={item} value={item}>{item}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.papel_miolo?.message && <p className="text-sm text-red-600">{String(errors.papel_miolo.message)}</p>}
               </FormField>
 
               <FormField>
                 <Label htmlFor="papel_capa">Papel da Capa</Label>
-                <Input id="papel_capa" {...register('papel_capa')} />
+                <Select onValueChange={(value) => setValue('papel_capa', value)} {...register('papel_capa')}>
+                  <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.papel_capa}>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {specifications["Tipo de Papel de Capa"]?.map((item: string) => (
+                      <SelectItem key={item} value={item}>{item}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.papel_capa?.message && <p className="text-sm text-red-600">{String(errors.papel_capa.message)}</p>}
               </FormField>
 
               <FormField>
                 <Label htmlFor="cor_capa">Cor da Capa</Label>
-                <Input id="cor_capa" {...register('cor_capa')} />
+                <Select onValueChange={(value) => setValue('cor_capa', value)} {...register('cor_capa')}>
+                  <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.cor_capa}>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {specifications["Cor da capa"]?.map((item: string) => (
+                      <SelectItem key={item} value={item}>{item}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.cor_capa?.message && <p className="text-sm text-red-600">{String(errors.cor_capa.message)}</p>}
               </FormField>
             </FormGrid>

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormGrid, FormField } from "@/components/ui/form-grid";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrencyBRL, parseCurrencyBRL } from "@/lib/utils";
 
 type BudgetFormData = {
@@ -133,12 +134,16 @@ export default function NewBudgetForm({ specifications }: { specifications: any 
 
                 <FormField>
                   <Label htmlFor="formato">Formato *</Label>
-                  <select id="formato" {...register('formato')} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                    <option value="">Selecione...</option>
-                    {specifications["Formato Fechado"].map((item: string) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
+                  <Select onValueChange={(value) => setValue('formato', value)} {...register('formato')}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.formato}>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {specifications["Formato Fechado"].map((item: string) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.formato?.message && <p className="text-sm text-red-600">{String(errors.formato.message)}</p>}
                 </FormField>
 
@@ -158,12 +163,16 @@ export default function NewBudgetForm({ specifications }: { specifications: any 
               <FormGrid columns={2} gap="md">
                 <FormField>
                   <Label htmlFor="tipo_produto">Tipo de Produto *</Label>
-                  <select id="tipo_produto" {...register('tipo_produto')} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                    <option value="">Selecione...</option>
-                    {specifications["Tipo de produto"].map((item: string) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
+                  <Select onValueChange={(value) => setValue('tipo_produto', value)} {...register('tipo_produto')}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.tipo_produto}>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {specifications["Tipo de produto"].map((item: string) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.tipo_produto?.message && <p className="text-sm text-red-600">{String(errors.tipo_produto.message)}</p>}
                 </FormField>
 
@@ -180,45 +189,61 @@ export default function NewBudgetForm({ specifications }: { specifications: any 
               <FormGrid columns={4} gap="md">
                 <FormField>
                   <Label htmlFor="cor_miolo">Cor do Miolo *</Label>
-                  <select id="cor_miolo" {...register('cor_miolo')} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                    <option value="">Selecione...</option>
-                    {specifications["Cor do miolo"].map((item: string) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
+                  <Select onValueChange={(value) => setValue('cor_miolo', value)} {...register('cor_miolo')}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.cor_miolo}>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {specifications["Cor do miolo"].map((item: string) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.cor_miolo?.message && <p className="text-sm text-red-600">{String(errors.cor_miolo.message)}</p>}
                 </FormField>
 
                 <FormField>
                   <Label htmlFor="papel_miolo">Papel do Miolo *</Label>
-                  <select id="papel_miolo" {...register('papel_miolo')} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                    <option value="">Selecione...</option>
-                    {specifications["Tipo de Papel miolo"].map((item: string) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
+                  <Select onValueChange={(value) => setValue('papel_miolo', value)} {...register('papel_miolo')}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.papel_miolo}>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {specifications["Tipo de Papel miolo"].map((item: string) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.papel_miolo?.message && <p className="text-sm text-red-600">{String(errors.papel_miolo.message)}</p>}
                 </FormField>
 
                 <FormField>
                   <Label htmlFor="cor_capa">Cor da Capa *</Label>
-                  <select id="cor_capa" {...register('cor_capa')} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                    <option value="">Selecione...</option>
-                    {specifications["Cor da capa"].map((item: string) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
+                  <Select onValueChange={(value) => setValue('cor_capa', value)} {...register('cor_capa')}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.cor_capa}>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {specifications["Cor da capa"].map((item: string) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.cor_capa?.message && <p className="text-sm text-red-600">{String(errors.cor_capa.message)}</p>}
                 </FormField>
 
                 <FormField>
                   <Label htmlFor="papel_capa">Papel da Capa *</Label>
-                  <select id="papel_capa" {...register('papel_capa')} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                    <option value="">Selecione...</option>
-                    {specifications["Tipo de Papel de Capa"].map((item: string) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
+                  <Select onValueChange={(value) => setValue('papel_capa', value)} {...register('papel_capa')}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.papel_capa}>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {specifications["Tipo de Papel de Capa"].map((item: string) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.papel_capa?.message && <p className="text-sm text-red-600">{String(errors.papel_capa.message)}</p>}
                 </FormField>
               </FormGrid>
@@ -230,32 +255,44 @@ export default function NewBudgetForm({ specifications }: { specifications: any 
               <FormGrid columns={3} gap="md">
                 <FormField>
                   <Label htmlFor="laminacao">Laminação</Label>
-                  <select id="laminacao" {...register('laminacao')} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                    <option value="">Selecione...</option>
-                    {specifications["Tipo de laminação"].map((item: string) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
+                  <Select onValueChange={(value) => setValue('laminacao', value)} {...register('laminacao')}>
+                    <SelectTrigger className="min-w-0 w-full">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {specifications["Tipo de laminação"].map((item: string) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FormField>
 
                 <FormField>
                   <Label htmlFor="acabamento">Acabamento</Label>
-                  <select id="acabamento" {...register('acabamento')} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                    <option value="">Selecione...</option>
-                    {specifications["Tipo de acabamento"].map((item: string) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
+                  <Select onValueChange={(value) => setValue('acabamento', value)} {...register('acabamento')}>
+                    <SelectTrigger className="min-w-0 w-full">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {specifications["Tipo de acabamento"].map((item: string) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FormField>
 
                 <FormField>
                   <Label htmlFor="shrink">Shrink</Label>
-                  <select id="shrink" {...register('shrink')} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                    <option value="">Selecione...</option>
-                    {specifications["Shrink"].map((item: string) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
+                  <Select onValueChange={(value) => setValue('shrink', value)} {...register('shrink')}>
+                    <SelectTrigger className="min-w-0 w-full">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {specifications["Shrink"].map((item: string) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FormField>
               </FormGrid>
             </div>
@@ -266,12 +303,16 @@ export default function NewBudgetForm({ specifications }: { specifications: any 
               <FormGrid columns={3} gap="md">
                 <FormField>
                   <Label htmlFor="centro_producao">Centro de Produção *</Label>
-                  <select id="centro_producao" {...register('centro_producao')} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                    <option value="">Selecione...</option>
-                    {specifications["Centro de Produção"].map((item: string) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
+                  <Select onValueChange={(value) => setValue('centro_producao', value)} {...register('centro_producao')}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.centro_producao}>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {specifications["Centro de Produção"].map((item: string) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.centro_producao?.message && <p className="text-sm text-red-600">{String(errors.centro_producao.message)}</p>}
                 </FormField>
 
@@ -335,12 +376,16 @@ export default function NewBudgetForm({ specifications }: { specifications: any 
 
                 <FormField>
                   <Label htmlFor="pagamento">Forma de Pagamento *</Label>
-                  <select id="pagamento" {...register('pagamento')} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                    <option value="">Selecione...</option>
-                    {specifications["Forma de pagamento"].map((item: string) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
+                  <Select onValueChange={(value) => setValue('pagamento', value)} {...register('pagamento')}>
+                    <SelectTrigger className="min-w-0 w-full" aria-invalid={!!errors.pagamento}>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {specifications["Forma de pagamento"].map((item: string) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.pagamento?.message && <p className="text-sm text-red-600">{String(errors.pagamento.message)}</p>}
                 </FormField>
               </FormGrid>
