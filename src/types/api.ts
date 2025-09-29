@@ -1,5 +1,5 @@
 /**
- * API response types and utilities for Alphabook application
+ * API response types and utilities
  */
 
 export interface ApiErrorDetails {
@@ -42,7 +42,7 @@ export function isApiError(response: unknown): response is ApiError {
 }
 
 /**
- * Extract and format error message from API response
+ * Extract error message from API response
  */
 export function getApiErrorMessage(error: unknown): string {
   if (isApiError(error)) {

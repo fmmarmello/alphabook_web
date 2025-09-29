@@ -1,8 +1,34 @@
-// D:\\dev\\alphabook_project\\alphabook_web\\src\\app\\budgets\[id]\\edit\\page.tsx
-import { getSpecifications } from "@/lib/specifications";
-import EditBudgetForm from "./form";
+import { BudgetForm } from "@/components/forms/budget-form";
+import { notFound } from "next/navigation";
+import type { Budget } from "@/types/models";
 
-export default function EditBudgetPage() {
-  const specifications = getSpecifications();
-  return <EditBudgetForm specifications={specifications} />;
+async function getBudget(id: string): Promise<Budget | null> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/budgets/${id}`, {
+      cache: 'no-store'
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data;
+  } catch {
+    return null;
+  }
+}
+
+export default async function EditBudgetPage({
+  params,
+}: {
+  params: { id: string }
+}) {
+  const budget = await getBudget(params.id);
+  
+  if (!budget) {
+    notFound();
+  }
+
+  return (
+    <div className="space-y-6">
+      <BudgetForm mode="edit" initialData={budget} />
+    </div>
+  );
 }

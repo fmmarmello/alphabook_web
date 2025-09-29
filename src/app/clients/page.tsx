@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link"; // ADD THIS
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,11 +9,17 @@ import { Toolbar, ToolbarSpacer, ToolbarSection } from "@/components/ui/toolbar"
 import { Pagination } from "@/components/ui/pagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-
+import { PageHeader } from "@/components/ui/page-header"; // ADD THIS
+import { EmptyState } from "@/components/ui/empty-state"; // ADD THIS
+import { ErrorAlert } from "@/components/ui/error-alert"; // ADD THIS
+import { Users } from "lucide-react"; // ADD THIS
+import type { Client } from "@/types/models"; // ADD THIS
+import type { PaginatedResponse } from "@/types/api"; // ADD THIS
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ClientsPage() {
-  const [clients, setClients] = useState<ClientInput[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [q, setQ] = useState("");
@@ -42,8 +49,8 @@ export default function ClientsPage() {
           throw new Error("Erro ao carregar clientes.");
         }
       }
-      const json = await res.json();
-      const list = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
+      const json: PaginatedResponse<Client> = await res.json();
+      const list = Array.isArray(json.data) ? json.data : [];
       setClients(list);
       const meta = json?.meta || {};
       setPageCount(Number(meta.pageCount) || 1);
@@ -61,7 +68,6 @@ export default function ClientsPage() {
   }, [q, sortBy, sortOrder, page, pageSize]);
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Confirmar exclusão do cliente?")) return;
     setLoading(true);
     setError("");
     try {
@@ -83,6 +89,7 @@ export default function ClientsPage() {
         }
       }
       await fetchClients();
+      toast.success("Cliente excluído com sucesso!");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao excluir cliente.");
     } finally {
@@ -92,15 +99,25 @@ export default function ClientsPage() {
 
   return (
     <>
-      <div className="flex h-16 items-center px-4"><h1 className="text-xl font-semibold">Cadastro de Clientes</h1></div>
+      <PageHeader 
+        title="Clientes" 
+        description="Gerencie seus clientes"
+        actions={
+          <Button asChild>
+            <Link href="/clients/new">Novo Cliente</Link>
+          </Button>
+        }
+      />
       <Card className="w-full">
         <CardContent>
           <Toolbar>
             <ToolbarSection>
-              <Button asChild>
-                <a href="/clients/new">Novo Cliente</a>
-              </Button>
-              <Input placeholder="Pesquisar" value={q} onChange={(e) => { setPage(1); setQ(e.target.value); }} className="w-56" />
+              <Input 
+                placeholder="Pesquisar clientes..." 
+                value={q} 
+                onChange={(e) => { setPage(1); setQ(e.target.value); }} 
+                className="w-64" 
+              />
             </ToolbarSection>
             <ToolbarSpacer />
             <ToolbarSection>
@@ -136,45 +153,77 @@ export default function ClientsPage() {
               </Select>
             </ToolbarSection>
           </Toolbar>
-          {loading && <div className="text-blue-600">Carregando...</div>}
-          {error && <div className="text-red-600">{error}</div>}
+          {error && <ErrorAlert message={error} onRetry={fetchClients} />}
           <div className="w-full overflow-x-auto">
-          <Table className="w-full">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>CNPJ/CPF</TableHead>
-                <TableHead>Telefone</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Endereço</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.isArray(clients) && clients.map((client: any, idx) => (
-                <TableRow key={client?.id ?? idx}>
-                  <TableCell>{client.name}</TableCell>
-                  <TableCell>{client.cnpjCpf}</TableCell>
-                  <TableCell>{client.phone}</TableCell>
-                  <TableCell>{client.email}</TableCell>
-                  <TableCell>{client.address}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button asChild variant="outline"><a href={`/clients/${client.id}/edit`}>Editar</a></Button>
-                      <ConfirmDialog
-                        title="Excluir cliente"
-                        description="Esta ação não pode ser desfeita. Se houver ordens vinculadas, a exclusão será bloqueada."
-                        confirmLabel="Excluir"
-                        confirmVariant="destructive"
-                        onConfirm={() => handleDelete(client.id)}
-                        trigger={<Button variant="destructive">Excluir</Button>}
-                      />
-                    </div>
-                  </TableCell>
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>CNPJ/CPF</TableHead>
+                  <TableHead>Telefone</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Endereço</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  // Skeleton rows
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-36" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : clients.length === 0 ? (
+                  // Empty state
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-64">
+                      <EmptyState
+                        icon={Users}
+                        title="Nenhum cliente encontrado"
+                        description="Comece criando seu primeiro cliente para gerenciar suas ordens de produção"
+                        action={
+                          <Button asChild>
+                            <Link href="/clients/new">Criar Primeiro Cliente</Link>
+                          </Button>
+                        }
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  // Actual data
+                  clients.map((client) => (
+                    <TableRow key={client.id}>
+                      <TableCell>{client.name}</TableCell>
+                      <TableCell>{client.cnpjCpf}</TableCell>
+                      <TableCell>{client.phone}</TableCell>
+                      <TableCell>{client.email}</TableCell>
+                      <TableCell>{client.address}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/clients/${client.id}/edit`}>Editar</Link>
+                          </Button>
+                          <ConfirmDialog
+                            title="Excluir cliente"
+                            description="Esta ação não pode ser desfeita. Se houver ordens vinculadas, a exclusão será bloqueada."
+                            confirmLabel="Excluir"
+                            confirmVariant="destructive"
+                            onConfirm={() => handleDelete(client.id)}
+                            trigger={<Button variant="destructive">Excluir</Button>}
+                          />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
           <div className="mt-4">
             <Pagination

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,10 +9,18 @@ import { Toolbar, ToolbarSpacer, ToolbarSection } from "@/components/ui/toolbar"
 import { Pagination } from "@/components/ui/pagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorAlert } from "@/components/ui/error-alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrencyBRL } from "@/lib/utils";
+import { Book } from "lucide-react";
+import type { Budget } from "@/types/models";
+import type { PaginatedResponse } from "@/types/api";
+import { toast } from "sonner";
 
 export default function BudgetsPage() {
-  const [budgets, setBudgets] = useState<any[]>([]);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [q, setQ] = useState("");
@@ -38,12 +47,11 @@ export default function BudgetsPage() {
       params.set("pageSize", String(pageSize));
       const res = await fetch(`/api/budgets?${params.toString()}`);
       if (!res.ok) throw new Error("Erro ao carregar orçamentos.");
-      const json = await res.json();
-      const list = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
-      setBudgets(list);
+      const json: PaginatedResponse<Budget> = await res.json();
+      setBudgets(json.data);
       const meta = json?.meta || {};
       setPageCount(Number(meta.pageCount) || 1);
-      setTotal(Number(meta.total) || list.length);
+      setTotal(Number(meta.total) || json.data.length);
     } catch (err) {
       setError("Erro ao carregar orçamentos.");
       setBudgets([]);
@@ -64,6 +72,7 @@ export default function BudgetsPage() {
       const res = await fetch(`/api/budgets/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Erro ao excluir orçamento.");
       await fetchBudgets();
+      toast.success("Orçamento excluído com sucesso!");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao excluir orçamento.");
     } finally {
@@ -73,16 +82,19 @@ export default function BudgetsPage() {
 
   return (
     <>
-      <div className="flex h-16 items-center px-4">
-        <h1 className="text-xl font-semibold">Cadastro de Orçamentos</h1>
-      </div>
+      <PageHeader
+        title="Orçamentos"
+        description="Gerencie seus orçamentos"
+        actions={
+          <Button asChild>
+            <Link href="/budgets/new">Novo Orçamento</Link>
+          </Button>
+        }
+      />
       <Card className="w-full">
         <CardContent>
           <Toolbar>
             <ToolbarSection>
-              <Button asChild>
-                <a href="/budgets/new">Novo Orçamento</a>
-              </Button>
               <Input
                 placeholder="Pesquisar"
                 value={q}
@@ -92,11 +104,11 @@ export default function BudgetsPage() {
                 }}
                 className="w-56"
               />
+              <Input type="date" value={dateFrom} onChange={(e) => { setPage(1); setDateFrom(e.target.value); }} />
+              <Input type="date" value={dateTo} onChange={(e) => { setPage(1); setDateTo(e.target.value); }} />
             </ToolbarSection>
             <ToolbarSpacer />
             <ToolbarSection>
-              <Input type="date" value={dateFrom} onChange={(e) => { setPage(1); setDateFrom(e.target.value); }} />
-              <Input type="date" value={dateTo} onChange={(e) => { setPage(1); setDateTo(e.target.value); }} />
               <Select value={sortBy} onValueChange={(value) => { setPage(1); setSortBy(value); }}>
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Sort by" />
@@ -135,8 +147,7 @@ export default function BudgetsPage() {
               </Select>
             </ToolbarSection>
           </Toolbar>
-          {loading && <div className="text-blue-600">Carregando...</div>}
-          {error && <div className="text-red-600">{error}</div>}
+          {error && <ErrorAlert message={error} onRetry={fetchBudgets} />}
           <div className="w-full overflow-x-auto">
             <Table className="w-full">
               <TableHeader>
@@ -155,9 +166,40 @@ export default function BudgetsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Array.isArray(budgets) &&
-                  budgets.map((budget, idx) => (
-                    <TableRow key={budget?.id ?? idx}>
+                {loading ? (
+                  Array.from({ length: pageSize }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : budgets.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={11} className="h-64">
+                      <EmptyState
+                        icon={Book}
+                        title="Nenhum orçamento encontrado"
+                        description="Comece criando seu primeiro orçamento."
+                        action={
+                          <Button asChild>
+                            <Link href="/budgets/new">Criar Primeiro Orçamento</Link>
+                          </Button>
+                        }
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  budgets.map((budget) => (
+                    <TableRow key={budget.id}>
                       <TableCell>{budget.titulo}</TableCell>
                       <TableCell>{budget.numero_pedido ?? "-"}</TableCell>
                       <TableCell>{budget.tiragem}</TableCell>
@@ -170,8 +212,8 @@ export default function BudgetsPage() {
                       <TableCell>{budget.observacoes}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button asChild variant="outline">
-                            <a href={`/budgets/${budget.id}/edit`}>Editar</a>
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/budgets/${budget.id}/edit`}>Editar</Link>
                           </Button>
                           <ConfirmDialog
                             title="Excluir orçamento"
@@ -184,7 +226,8 @@ export default function BudgetsPage() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )))
+                }
               </TableBody>
             </Table>
           </div>

@@ -1,6 +1,5 @@
 /**
  * Core data models for Alphabook application
- * These types match the Prisma schema and API responses
  */
 
 export interface Client {

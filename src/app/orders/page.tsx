@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,13 +9,21 @@ import { Toolbar, ToolbarSpacer, ToolbarSection } from "@/components/ui/toolbar"
 import { Pagination } from "@/components/ui/pagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorAlert } from "@/components/ui/error-alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { formatCurrencyBRL } from "@/lib/utils";
-import Link from "next/link";
+import { Book, Users } from "lucide-react";
+import type { Order, Client, Center } from "@/types/models";
+import type { PaginatedResponse } from "@/types/api";
+import { toast } from "sonner";
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [clients, setClients] = useState<{ id: number; name: string }[]>([]);
-  const [centers, setCenters] = useState<{ id: number; name: string }[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [clients, setClients] = useState<Pick<Client, 'id' | 'name'>[]>([]);
+  const [centers, setCenters] = useState<Pick<Center, 'id' | 'name'>[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [q, setQ] = useState("");
@@ -45,12 +54,11 @@ export default function OrdersPage() {
       params.set("pageSize", String(pageSize));
       const res = await fetch(`/api/orders?${params.toString()}`);
       if (!res.ok) throw new Error("Erro ao carregar ordens.");
-      const json = await res.json();
-      const list = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
-      setOrders(list);
+      const json: PaginatedResponse<Order> = await res.json();
+      setOrders(json.data);
       const meta = json?.meta || {};
       setPageCount(Number(meta.pageCount) || 1);
-      setTotal(Number(meta.total) || list.length);
+      setTotal(Number(meta.total) || json.data.length);
     } catch (err) {
       setError("Erro ao carregar ordens.");
       setOrders([]);
@@ -63,13 +71,8 @@ export default function OrdersPage() {
     try {
       const res = await fetch("/api/clients");
       if (!res.ok) throw new Error("Erro ao carregar clientes.");
-      const data = await res.json();
-      const list = Array.isArray(data)
-        ? data
-        : Array.isArray((data as any)?.data)
-        ? (data as any).data
-        : [];
-      setClients(list.map((c: any) => ({ id: c.id, name: c.name })));
+      const data: PaginatedResponse<Client> = await res.json();
+      setClients(data.data.map((c) => ({ id: c.id, name: c.name })));
     } catch {
       setClients([]);
     }
@@ -79,13 +82,8 @@ export default function OrdersPage() {
     try {
       const res = await fetch("/api/centers");
       if (!res.ok) throw new Error("Erro ao carregar centros.");
-      const data = await res.json();
-      const list = Array.isArray(data)
-        ? data
-        : Array.isArray((data as any)?.data)
-        ? (data as any).data
-        : [];
-      setCenters(list.map((c: any) => ({ id: c.id, name: c.name })));
+      const data: PaginatedResponse<Center> = await res.json();
+      setCenters(data.data.map((c) => ({ id: c.id, name: c.name })));
     } catch {
       setCenters([]);
     }
@@ -108,6 +106,7 @@ export default function OrdersPage() {
       const res = await fetch(`/api/orders/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Erro ao excluir ordem.");
       await fetchOrders();
+      toast.success("Ordem de produção excluída com sucesso!");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao excluir ordem.");
     } finally {
@@ -117,16 +116,19 @@ export default function OrdersPage() {
 
   return (
     <>
-      <div className="flex h-16 items-center px-4">
-        <h1 className="text-xl font-semibold">Cadastro de Ordens de Produção</h1>
-      </div>
+      <PageHeader
+        title="Ordens de Produção"
+        description="Gerencie suas ordens de produção"
+        actions={
+          <Button asChild>
+            <Link href="/orders/new">Nova OP</Link>
+          </Button>
+        }
+      />
       <Card className="w-full">
         <CardContent>
           <Toolbar>
             <ToolbarSection>
-              <Button asChild>
-                <Link href="/orders/new">Nova OP</Link>
-              </Button>
               <Input
                 placeholder="Pesquisar"
                 value={q}
@@ -254,8 +256,7 @@ export default function OrdersPage() {
               </Select>
             </ToolbarSection>
           </Toolbar>
-          {loading && <div className="text-blue-600">Carregando...</div>}
-          {error && <div className="text-red-600">{error}</div>}
+          {error && <ErrorAlert message={error} onRetry={fetchOrders} />}
           <div className="w-full overflow-x-auto">
             <Table className="w-full">
               <TableHeader>
@@ -263,6 +264,7 @@ export default function OrdersPage() {
                   <TableHead>Cliente</TableHead>
                   <TableHead>Centro</TableHead>
                   <TableHead>Título</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Tiragem</TableHead>
                   <TableHead>Formato</TableHead>
                   <TableHead>Nº páginas total</TableHead>
@@ -275,12 +277,46 @@ export default function OrdersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Array.isArray(orders) &&
-                  orders.map((order, idx) => (
-                    <TableRow key={order?.id ?? idx}>
+                {loading ? (
+                  Array.from({ length: pageSize }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : orders.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={13} className="h-64">
+                      <EmptyState
+                        icon={Book}
+                        title="Nenhuma ordem de produção encontrada"
+                        description="Comece criando sua primeira ordem de produção para gerenciar sua produção"
+                        action={
+                          <Button asChild>
+                            <Link href="/orders/new">Criar Primeira OP</Link>
+                          </Button>
+                        }
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  orders.map((order) => (
+                    <TableRow key={order.id}>
                       <TableCell>{order.client?.name}</TableCell>
                       <TableCell>{order.center?.name}</TableCell>
                       <TableCell>{order.title}</TableCell>
+                      <TableCell><StatusBadge status={order.status || 'Pendente'} /></TableCell>
                       <TableCell>{order.tiragem}</TableCell>
                       <TableCell>{order.formato}</TableCell>
                       <TableCell>{order.numPaginasTotal}</TableCell>
@@ -295,7 +331,7 @@ export default function OrdersPage() {
                       <TableCell>{order.obs}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button asChild variant="outline">
+                          <Button asChild variant="outline" size="sm">
                             <Link href={`/orders/${order.id}/edit`}>Editar</Link>
                           </Button>
                           <ConfirmDialog
@@ -309,7 +345,8 @@ export default function OrdersPage() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )))
+                }
               </TableBody>
             </Table>
           </div>

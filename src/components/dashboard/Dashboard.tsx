@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,41 +5,9 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RevenueChart } from "./RevenueChart";
-import { cardVariants, cardHeaderVariants, cardContentVariants } from "./styles";
-
-interface DashboardSummary {
-  totalClients: number;
-  totalOrders: number;
-  totalRevenue: number;
-  pendingOrders: number;
-}
-
-interface RecentOrder {
-  id: number;
-  title: string;
-  valorTotal: number;
-  status: string;
-  date: string;
-  numero_pedido: string | null;
-  client: {
-    id: number;
-    name: string;
-    email: string;
-    phone: string;
-  };
-  center: {
-    id: number;
-    name: string;
-  };
-}
-
-interface RecentClient {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  cnpjCpf: string;
-}
+import { StatusBadge } from "@/components/ui/status-badge";
+import { ErrorAlert } from "@/components/ui/error-alert";
+import type { DashboardSummary, RecentOrder, RecentClient } from "@/types/models";
 
 export function Dashboard() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
@@ -83,10 +50,14 @@ export function Dashboard() {
 
     fetchDashboardData();
   }, []);
+
   if (error) {
     return (
       <div className="p-8">
-        <div className="text-red-600">Erro ao carregar dados: {error}</div>
+        <ErrorAlert 
+          message={error} 
+          onRetry={() => window.location.reload()} 
+        />
       </div>
     );
   }
@@ -94,11 +65,11 @@ export function Dashboard() {
   return (
     <div className="flex flex-col gap-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className={cardVariants({ variant: "default" })}>
-          <CardHeader className={cardHeaderVariants({ size: "default" })}>
+        <Card>
+          <CardHeader>
             <CardTitle>Total de Clientes</CardTitle>
           </CardHeader>
-          <CardContent className={cardContentVariants({ size: "default" })}>
+          <CardContent>
             {loading ? (
               <Skeleton className="h-10 w-16" />
             ) : (
@@ -106,11 +77,11 @@ export function Dashboard() {
             )}
           </CardContent>
         </Card>
-        <Card className={cardVariants({ variant: "default" })}>
-          <CardHeader className={cardHeaderVariants({ size: "default" })}>
+        <Card>
+          <CardHeader>
             <CardTitle>Total de Ordens</CardTitle>
           </CardHeader>
-          <CardContent className={cardContentVariants({ size: "default" })}>
+          <CardContent>
             {loading ? (
               <Skeleton className="h-10 w-16" />
             ) : (
@@ -118,11 +89,11 @@ export function Dashboard() {
             )}
           </CardContent>
         </Card>
-        <Card className={cardVariants({ variant: "highlight" })}>
-          <CardHeader className={cardHeaderVariants({ size: "default" })}>
+        <Card>
+          <CardHeader>
             <CardTitle>Total Faturado</CardTitle>
           </CardHeader>
-          <CardContent className={cardContentVariants({ size: "lg" })}>
+          <CardContent>
             {loading ? (
               <Skeleton className="h-10 w-24" />
             ) : (
@@ -132,11 +103,11 @@ export function Dashboard() {
             )}
           </CardContent>
         </Card>
-        <Card className={cardVariants({ variant: "default" })}>
-          <CardHeader className={cardHeaderVariants({ size: "default" })}>
+        <Card>
+          <CardHeader>
             <CardTitle>Ordens Pendentes</CardTitle>
           </CardHeader>
-          <CardContent className={cardContentVariants({ size: "default" })}>
+          <CardContent>
             {loading ? (
               <Skeleton className="h-10 w-16" />
             ) : (
@@ -214,14 +185,7 @@ export function Dashboard() {
                       <TableCell>{order.title}</TableCell>
                       <TableCell className="font-medium">R$ {order.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
                       <TableCell>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          order.status === 'Concluído' ? 'bg-green-100 text-green-800' :
-                          order.status === 'Pendente' ? 'bg-yellow-100 text-yellow-800' :
-                          order.status === 'Em Andamento' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {order.status}
-                        </span>
+                        <StatusBadge status={order.status} />
                       </TableCell>
                     </TableRow>
                   ))
