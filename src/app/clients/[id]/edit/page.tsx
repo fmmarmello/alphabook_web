@@ -110,7 +110,7 @@ export default function EditClientPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen"> 
+    <div className="flex flex-col items-center min-h-screen">
       <Card className="max-w-4xl w-full mt-8">
         <CardHeader>
           <CardTitle>Editar Cliente</CardTitle>
@@ -171,6 +171,6 @@ export default function EditClientPage() {
           </form>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }

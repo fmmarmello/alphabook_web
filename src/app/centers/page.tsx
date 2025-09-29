@@ -93,7 +93,7 @@ export default function CentersPage() {
       <div className="flex h-16 items-center px-4">
         <h1 className="text-xl font-semibold">Cadastro de Centros de Produção</h1>
       </div>
-      <main className="flex flex-col items-center min-h-screen">
+      <div className="flex flex-col items-center min-h-screen">
         <Card className="w-full">
           <CardContent>
             <Toolbar>
@@ -210,7 +210,7 @@ export default function CentersPage() {
             </div>
           </CardContent>
         </Card>
-      </main>
+      </div>
     </>
   );
 }

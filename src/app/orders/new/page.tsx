@@ -79,8 +79,7 @@ export default function NewOrderPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen">
-      <Navbar />
+    <div className="flex flex-col items-center min-h-screen">
       <Card className="max-w-3xl w-full mt-8">
         <CardHeader>
           <CardTitle>Nova OP</CardTitle>
@@ -252,7 +251,7 @@ export default function NewOrderPage() {
           </form>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }
 

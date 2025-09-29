@@ -133,8 +133,7 @@ export default function NewClientPage() {
   };
 
   return (
-    <main>
-      <Navbar />
+    <div>
       <Card className="max-w-4xl w-full mt-8">
         <CardHeader>
           <CardTitle>Novo Cliente</CardTitle>
@@ -196,7 +195,7 @@ export default function NewClientPage() {
           </form>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }
 

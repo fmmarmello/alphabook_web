@@ -15,20 +15,6 @@ import { FormGrid, FormField } from "@/components/ui/form-grid";
 type CenterFormData = { name: string; type: string; obs: string };
 const centerTypes = ["Interno", "Terceirizado", "Digital", "Offset", "Outro"];
 
-function Navbar() {
-  return (
-    <nav className="w-full bg-white shadow flex justify-center py-4 mb-8">
-      <div className="flex gap-8">
-        <Button asChild variant="ghost"><Link href="/">Dashboard</Link></Button>
-        <Button asChild variant="ghost"><Link href="/clients">Clientes</Link></Button>
-        <Button asChild variant="ghost"><Link href="/centers">Centros</Link></Button>
-        <Button asChild variant="ghost"><Link href="/orders">Ordens</Link></Button>
-        <Button asChild variant="ghost"><Link href="/reports">Relatórios</Link></Button>
-      </div>
-    </nav>
-  );
-}
-
 export default function NewCenterPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
@@ -59,8 +45,7 @@ export default function NewCenterPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen">
-      <Navbar />
+    <div className="flex flex-col items-center min-h-screen">
       <Card className="max-w-4xl w-full mt-8">
         <CardHeader>
           <CardTitle>Novo Centro</CardTitle>
@@ -103,6 +88,6 @@ export default function NewCenterPage() {
           </form>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }
