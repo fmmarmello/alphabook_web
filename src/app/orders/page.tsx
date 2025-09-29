@@ -19,8 +19,8 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [q, setQ] = useState("");
-  const [clientId, setClientId] = useState<number | "">("");
-  const [centerId, setCenterId] = useState<number | "">("");
+  const [clientId, setClientId] = useState<string>("all");
+  const [centerId, setCenterId] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [sortBy, setSortBy] = useState("id");
@@ -36,8 +36,8 @@ export default function OrdersPage() {
     try {
       const params = new URLSearchParams();
       if (q) params.set("q", q);
-      if (clientId) params.set("clientId", String(clientId));
-      if (centerId) params.set("centerId", String(centerId));
+      if (clientId && clientId !== 'all') params.set("clientId", String(clientId));
+      if (centerId && centerId !== 'all') params.set("centerId", String(centerId));
       if (dateFrom) params.set("dateFrom", dateFrom);
       if (dateTo) params.set("dateTo", dateTo);
       params.set("sortBy", sortBy);
@@ -163,21 +163,21 @@ export default function OrdersPage() {
                 <a href="/orders/new">Nova OP</a>
               </Button>
               <Input placeholder="Pesquisar" value={q} onChange={(e) => { setPage(1); setQ(e.target.value); }} className="w-56" />
-              <Select value={String(clientId)} onValueChange={(value) => { setPage(1); setClientId(value ? Number(value) : ""); }}>
+              <Select value={String(clientId)} onValueChange={(value) => { setPage(1); setClientId(value); }}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Cliente</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   {clients.map((c) => (<SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>))}
                 </SelectContent>
               </Select>
-              <Select value={String(centerId)} onValueChange={(value) => { setPage(1); setCenterId(value ? Number(value) : ""); }}>
+              <Select value={String(centerId)} onValueChange={(value) => { setPage(1); setCenterId(value); }}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Centro" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Centro</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   {centers.map((c) => (<SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>))}
                 </SelectContent>
               </Select>
@@ -294,3 +294,4 @@ export default function OrdersPage() {
     </main>
   );
 }
+

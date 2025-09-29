@@ -1,7 +1,7 @@
-// D:\\dev\\alphabook_project\\alphabook_web\\src\\app\\api\\budgets\\route.ts
 import prisma from "@/lib/prisma";
 import { ok, created, badRequest, serverError } from "@/lib/api-response";
 import { BudgetSchema, parseSort, parseNumber } from "@/lib/validation";
+import { generateNumeroPedido } from "@/lib/order-number";
 
 export async function GET(req: Request) {
   try {
@@ -81,9 +81,15 @@ export async function POST(req: Request) {
     const parsed = BudgetSchema.safeParse(json);
     if (!parsed.success) return badRequest("Dados inválidos", parsed.error.flatten());
 
-    const budget = await prisma.budget.create({ data: parsed.data });
+    const data: any = parsed.data;
+    let numero = (data.numero_pedido ?? "").trim();
+    if (!numero) {
+      numero = await generateNumeroPedido();
+    }
+    const budget = await prisma.budget.create({ data: { ...data, numero_pedido: numero } });
     return created(budget);
   } catch (error) {
     return serverError((error as Error).message);
   }
 }
+

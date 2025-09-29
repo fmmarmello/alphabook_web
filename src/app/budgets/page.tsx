@@ -125,6 +125,7 @@ export default function BudgetsPage() {
                   <SelectItem value="total_pgs">Páginas Total</SelectItem>
                   <SelectItem value="pgs_colors">Páginas Coloridas</SelectItem>
                   <SelectItem value="prazo_producao">Prazo</SelectItem>
+                  <SelectItem value="numero_pedido">Número do Pedido</SelectItem>
                   <SelectItem value="data_pedido">Data</SelectItem>
                 </SelectContent>
               </Select>
@@ -169,7 +170,7 @@ export default function BudgetsPage() {
             <TableBody>
               {Array.isArray(budgets) && budgets.map((budget, idx) => (
                 <TableRow key={budget?.id ?? idx}>
-                  <TableCell>{budget.titulo}</TableCell>
+                  <TableCell>{budget.titulo}</TableCell>`n                  <TableCell>{budget.numero_pedido ?? "-"}</TableCell>
                   <TableCell>{budget.tiragem}</TableCell>
                   <TableCell>{budget.formato}</TableCell>
                   <TableCell>{budget.total_pgs}</TableCell>
@@ -210,3 +211,5 @@ export default function BudgetsPage() {
     </main>
   );
 }
+
+

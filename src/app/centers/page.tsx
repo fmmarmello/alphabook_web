@@ -17,7 +17,7 @@ export default function CentersPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [q, setQ] = useState("");
-  const [type, setType] = useState("");
+  const [type, setType] = useState("all");
   const [sortBy, setSortBy] = useState("id");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
@@ -31,7 +31,7 @@ export default function CentersPage() {
     try {
       const params = new URLSearchParams();
       if (q) params.set("q", q);
-      if (type) params.set("type", type);
+      if (type && type !== 'all') params.set("type", type);
       params.set("sortBy", sortBy);
       params.set("sortOrder", sortOrder);
       params.set("page", String(page));
@@ -108,7 +108,7 @@ export default function CentersPage() {
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="Interno">Interno</SelectItem>
                   <SelectItem value="Terceirizado">Terceirizado</SelectItem>
                   <SelectItem value="Digital">Digital</SelectItem>

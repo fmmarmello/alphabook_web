@@ -37,7 +37,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent className={cardContentVariants({ size: "default" })}>
             <p className="text-3xl font-bold">{totalClients}</p>
-            <p className="text-sm text-gray-500">* Dados fictícios</p>
+            <p className="text-sm text-muted-foreground">* Dados fictícios</p>
           </CardContent>
         </Card>
         <Card className={cardVariants({ variant: "default" })}>
@@ -46,7 +46,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent className={cardContentVariants({ size: "default" })}>
             <p className="text-3xl font-bold">{totalOrders}</p>
-            <p className="text-sm text-gray-500">* Dados fictícios</p>
+            <p className="text-sm text-muted-foreground">* Dados fictícios</p>
           </CardContent>
         </Card>
         <Card className={cardVariants({ variant: "highlight" })}>
@@ -55,7 +55,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent className={cardContentVariants({ size: "lg" })}>
             <p className="text-3xl font-bold">R$ {totalBilled.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            <p className="text-sm text-gray-500">* Dados fictícios</p>
+            <p className="text-sm text-muted-foreground">* Dados fictícios</p>
           </CardContent>
         </Card>
         <Card className={cardVariants({ variant: "default" })}>
@@ -64,7 +64,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent className={cardContentVariants({ size: "default" })}>
             <p className="text-3xl font-bold">{pendingOrders}</p>
-            <p className="text-sm text-gray-500">* Dados fictícios</p>
+            <p className="text-sm text-muted-foreground">* Dados fictícios</p>
           </CardContent>
         </Card>
       </div>
