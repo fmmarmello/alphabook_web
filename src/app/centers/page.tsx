@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { CenterInput } from "@/lib/validation";
-
-
+import Link from "next/link";
 
 export default function CentersPage() {
   const [centers, setCenters] = useState<CenterInput[]>([]);
@@ -31,7 +30,7 @@ export default function CentersPage() {
     try {
       const params = new URLSearchParams();
       if (q) params.set("q", q);
-      if (type && type !== 'all') params.set("type", type);
+      if (type && type !== "all") params.set("type", type);
       params.set("sortBy", sortBy);
       params.set("sortOrder", sortOrder);
       params.set("page", String(page));
@@ -90,112 +89,128 @@ export default function CentersPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen">
-      
-      <Card className="max-w-4xl w-full mt-8">
-        <CardHeader>
-          <CardTitle>Cadastro de Centros de Produção</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Toolbar>
-            <ToolbarSection>
-              <Button asChild>
-                <a href="/centers/new">Novo Centro</a>
-              </Button>
-              <Input placeholder="Pesquisar" value={q} onChange={(e) => { setPage(1); setQ(e.target.value); }} className="w-56" />
-              <Select value={type} onValueChange={(value) => { setPage(1); setType(value); }}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="Interno">Interno</SelectItem>
-                  <SelectItem value="Terceirizado">Terceirizado</SelectItem>
-                  <SelectItem value="Digital">Digital</SelectItem>
-                  <SelectItem value="Offset">Offset</SelectItem>
-                  <SelectItem value="Outro">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-            </ToolbarSection>
-            <ToolbarSpacer />
-            <ToolbarSection>
-              <Select value={sortBy} onValueChange={(value) => { setPage(1); setSortBy(value); }}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="id">ID</SelectItem>
-                  <SelectItem value="name">Nome</SelectItem>
-                  <SelectItem value="type">Tipo</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={sortOrder} onValueChange={(value) => { setPage(1); setSortOrder(value as any); }}>
-                <SelectTrigger className="w-24">
-                  <SelectValue placeholder="Order" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="asc">Asc</SelectItem>
-                  <SelectItem value="desc">Desc</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={String(pageSize)} onValueChange={(value) => { setPage(1); setPageSize(Number(value)); }}>
-                <SelectTrigger className="w-24">
-                  <SelectValue placeholder="Page size" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                </SelectContent>
-              </Select>
-            </ToolbarSection>
-          </Toolbar>
-          {loading && <div className="text-blue-600">Carregando...</div>}
-          {error && <div className="text-red-600">{error}</div>}
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Observações</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.isArray(centers) && centers.map((center: any, idx) => (
-                <TableRow key={center?.id ?? idx}>
-                  <TableCell>{center.name}</TableCell>
-                  <TableCell>{center.type}</TableCell>
-                  <TableCell>{center.obs}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button asChild variant="outline"><a href={`/centers/${center.id}/edit`}>Editar</a></Button>
-                      <ConfirmDialog
-                        title="Excluir centro"
-                        description="Esta ação não pode ser desfeita. Se houver ordens vinculadas, a exclusão será bloqueada."
-                        confirmLabel="Excluir"
-                        confirmVariant="destructive"
-                        onConfirm={() => handleDelete(center.id)}
-                        trigger={<Button variant="destructive">Excluir</Button>}
-                      />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <div className="mt-4">
-            <Pagination
-              page={page}
-              pageCount={pageCount}
-              total={total}
-              pageSize={pageSize}
-              onPageChange={setPage}
-              onPageSizeChange={(s) => { setPage(1); setPageSize(s); }}
-            />
-          </div>
-        </CardContent>
-      </Card>
-    </main>
+    <>
+      <div className="flex h-16 items-center px-4">
+        <h1 className="text-xl font-semibold">Cadastro de Centros de Produção</h1>
+      </div>
+      <main className="flex flex-col items-center min-h-screen">
+        <Card className="w-full">
+          <CardContent>
+            <Toolbar>
+              <ToolbarSection>
+                <Button asChild>
+                  <Link href="/centers/new">Novo Centro</Link>
+                </Button>
+                <Input
+                  placeholder="Pesquisar"
+                  value={q}
+                  onChange={(e) => {
+                    setPage(1);
+                    setQ(e.target.value);
+                  }}
+                  className="w-56"
+                />
+                <Select value={type} onValueChange={(value) => { setPage(1); setType(value); }}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="Interno">Interno</SelectItem>
+                    <SelectItem value="Terceirizado">Terceirizado</SelectItem>
+                    <SelectItem value="Digital">Digital</SelectItem>
+                    <SelectItem value="Offset">Offset</SelectItem>
+                    <SelectItem value="Outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </ToolbarSection>
+              <ToolbarSpacer />
+              <ToolbarSection>
+                <Select value={sortBy} onValueChange={(value) => { setPage(1); setSortBy(value); }}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="id">ID</SelectItem>
+                    <SelectItem value="name">Nome</SelectItem>
+                    <SelectItem value="type">Tipo</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={sortOrder} onValueChange={(value) => { setPage(1); setSortOrder(value as "asc" | "desc"); }}>
+                  <SelectTrigger className="w-24">
+                    <SelectValue placeholder="Order" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="asc">Asc</SelectItem>
+                    <SelectItem value="desc">Desc</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={String(pageSize)} onValueChange={(value) => { setPage(1); setPageSize(Number(value)); }}>
+                  <SelectTrigger className="w-24">
+                    <SelectValue placeholder="Page size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+              </ToolbarSection>
+            </Toolbar>
+            {loading && <div className="text-blue-600">Carregando...</div>}
+            {error && <div className="text-red-600">{error}</div>}
+            <div className="w-full overflow-x-auto">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Observações</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.isArray(centers) && centers.map((center, idx) => (
+                    <TableRow key={center?.id ?? idx}>
+                      <TableCell>{center.name}</TableCell>
+                      <TableCell>{center.type}</TableCell>
+                      <TableCell>{center.obs}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button asChild variant="outline">
+                            <Link href={`/centers/${center.id}/edit`}>Editar</Link>
+                          </Button>
+                          <ConfirmDialog
+                            title="Excluir centro"
+                            description="Esta ação não pode ser desfeita. Se houver ordens vinculadas, a exclusão será bloqueada."
+                            confirmLabel="Excluir"
+                            confirmVariant="destructive"
+                            onConfirm={() => handleDelete(center.id)}
+                            trigger={<Button variant="destructive">Excluir</Button>}
+                          />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="mt-4">
+              <Pagination
+                page={page}
+                pageCount={pageCount}
+                total={total}
+                pageSize={pageSize}
+                onPageChange={setPage}
+                onPageSizeChange={(s) => {
+                  setPage(1);
+                  setPageSize(s);
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+    </>
   );
 }

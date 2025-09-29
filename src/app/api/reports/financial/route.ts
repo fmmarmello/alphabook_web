@@ -1,5 +1,5 @@
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { ok, badRequest, serverError } from '@/lib/api-response';
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
       orders,
       totalValorTotal,
     });
-  } catch (error) {
+  } catch {
     return serverError('An error occurred while fetching the financial report.');
   }
 }

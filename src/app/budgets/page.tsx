@@ -1,7 +1,6 @@
-// D:\\dev\\alphabook_project\\alphabook_web\\src\\app\\budgets\\page.tsx
 "use client";
 import { useEffect, useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +9,6 @@ import { Pagination } from "@/components/ui/pagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrencyBRL } from "@/lib/utils";
-
-
 
 export default function BudgetsPage() {
   const [budgets, setBudgets] = useState<any[]>([]);
@@ -40,14 +37,7 @@ export default function BudgetsPage() {
       params.set("page", String(page));
       params.set("pageSize", String(pageSize));
       const res = await fetch(`/api/budgets?${params.toString()}`);
-      if (!res.ok) {
-        try {
-          const err = await res.json();
-          throw new Error(err?.error || "Erro ao carregar orçamentos.");
-        } catch {
-          throw new Error("Erro ao carregar orçamentos.");
-        }
-      }
+      if (!res.ok) throw new Error("Erro ao carregar orçamentos.");
       const json = await res.json();
       const list = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
       setBudgets(list);
@@ -72,19 +62,7 @@ export default function BudgetsPage() {
     setError("");
     try {
       const res = await fetch(`/api/budgets/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        try {
-          const err = await res.json();
-          const msg = err?.error?.message || "Erro ao excluir orçamento.";
-          const details = err?.error?.details;
-          const formErrors = Array.isArray(details?.formErrors) ? details.formErrors : [];
-          const fullMsg = formErrors.length ? `${msg}: ${formErrors.join("; ")}` : msg;
-          throw new Error(fullMsg);
-        } catch (e) {
-          if (e instanceof Error && e.message !== "Failed to fetch") throw e;
-          throw new Error("Erro ao excluir orçamento.");
-        }
-      }
+      if (!res.ok) throw new Error("Erro ao excluir orçamento.");
       await fetchBudgets();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao excluir orçamento.");
@@ -94,19 +72,26 @@ export default function BudgetsPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen">
-      
-      <Card className="max-w-6xl w-full mt-8">
-        <CardHeader>
-          <CardTitle>Cadastro de Orçamentos</CardTitle>
-        </CardHeader>
+    <>
+      <div className="flex h-16 items-center px-4">
+        <h1 className="text-xl font-semibold">Cadastro de Orçamentos</h1>
+      </div>
+      <Card className="w-full">
         <CardContent>
           <Toolbar>
             <ToolbarSection>
               <Button asChild>
                 <a href="/budgets/new">Novo Orçamento</a>
               </Button>
-              <Input placeholder="Pesquisar" value={q} onChange={(e) => { setPage(1); setQ(e.target.value); }} className="w-56" />
+              <Input
+                placeholder="Pesquisar"
+                value={q}
+                onChange={(e) => {
+                  setPage(1);
+                  setQ(e.target.value);
+                }}
+                className="w-56"
+              />
             </ToolbarSection>
             <ToolbarSpacer />
             <ToolbarSection>
@@ -152,50 +137,57 @@ export default function BudgetsPage() {
           </Toolbar>
           {loading && <div className="text-blue-600">Carregando...</div>}
           {error && <div className="text-red-600">{error}</div>}
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Título</TableHead>
-                <TableHead>Tiragem</TableHead>
-                <TableHead>Formato</TableHead>
-                <TableHead>Nº páginas total</TableHead>
-                <TableHead>Nº páginas coloridas</TableHead>
-                <TableHead>Valor Unitário</TableHead>
-                <TableHead>Valor Total</TableHead>
-                <TableHead>Prazo de produção</TableHead>
-                <TableHead>Observações</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.isArray(budgets) && budgets.map((budget, idx) => (
-                <TableRow key={budget?.id ?? idx}>
-                  <TableCell>{budget.titulo}</TableCell>`n                  <TableCell>{budget.numero_pedido ?? "-"}</TableCell>
-                  <TableCell>{budget.tiragem}</TableCell>
-                  <TableCell>{budget.formato}</TableCell>
-                  <TableCell>{budget.total_pgs}</TableCell>
-                  <TableCell>{budget.pgs_colors}</TableCell>
-                  <TableCell>{formatCurrencyBRL(Number(budget.preco_unitario) || 0)}</TableCell>
-                  <TableCell>{formatCurrencyBRL(Number(budget.preco_total) || 0)}</TableCell>
-                  <TableCell>{budget.prazo_producao}</TableCell>
-                  <TableCell>{budget.observacoes}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button asChild variant="outline"><a href={`/budgets/${budget.id}/edit`}>Editar</a></Button>
-                      <ConfirmDialog
-                        title="Excluir orçamento"
-                        description="Esta ação não pode ser desfeita."
-                        confirmLabel="Excluir"
-                        confirmVariant="destructive"
-                        onConfirm={() => handleDelete(budget.id)}
-                        trigger={<Button variant="destructive">Excluir</Button>}
-                      />
-                    </div>
-                  </TableCell>
+          <div className="w-full overflow-x-auto">
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Título</TableHead>
+                  <TableHead>Número do Pedido</TableHead>
+                  <TableHead>Tiragem</TableHead>
+                  <TableHead>Formato</TableHead>
+                  <TableHead>Nº páginas total</TableHead>
+                  <TableHead>Nº páginas coloridas</TableHead>
+                  <TableHead>Valor Unitário</TableHead>
+                  <TableHead>Valor Total</TableHead>
+                  <TableHead>Prazo de produção</TableHead>
+                  <TableHead>Observações</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {Array.isArray(budgets) &&
+                  budgets.map((budget, idx) => (
+                    <TableRow key={budget?.id ?? idx}>
+                      <TableCell>{budget.titulo}</TableCell>
+                      <TableCell>{budget.numero_pedido ?? "-"}</TableCell>
+                      <TableCell>{budget.tiragem}</TableCell>
+                      <TableCell>{budget.formato}</TableCell>
+                      <TableCell>{budget.total_pgs}</TableCell>
+                      <TableCell>{budget.pgs_colors}</TableCell>
+                      <TableCell>{formatCurrencyBRL(Number(budget.preco_unitario) || 0)}</TableCell>
+                      <TableCell>{formatCurrencyBRL(Number(budget.preco_total) || 0)}</TableCell>
+                      <TableCell>{budget.prazo_producao}</TableCell>
+                      <TableCell>{budget.observacoes}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button asChild variant="outline">
+                            <a href={`/budgets/${budget.id}/edit`}>Editar</a>
+                          </Button>
+                          <ConfirmDialog
+                            title="Excluir orçamento"
+                            description="Esta ação não pode ser desfeita."
+                            confirmLabel="Excluir"
+                            confirmVariant="destructive"
+                            onConfirm={() => handleDelete(budget.id)}
+                            trigger={<Button variant="destructive">Excluir</Button>}
+                          />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </div>
           <div className="mt-4">
             <Pagination
               page={page}
@@ -203,13 +195,14 @@ export default function BudgetsPage() {
               total={total}
               pageSize={pageSize}
               onPageChange={setPage}
-              onPageSizeChange={(s) => { setPage(1); setPageSize(s); }}
+              onPageSizeChange={(s) => {
+                setPage(1);
+                setPageSize(s);
+              }}
             />
           </div>
         </CardContent>
       </Card>
-    </main>
+    </>
   );
 }
-
-

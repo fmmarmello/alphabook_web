@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -91,12 +91,9 @@ export default function ClientsPage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen">
-      
-      <Card className="max-w-4xl w-full mt-8">
-        <CardHeader>
-          <CardTitle>Cadastro de Clientes</CardTitle>
-        </CardHeader>
+    <>
+      <div className="flex h-16 items-center px-4"><h1 className="text-xl font-semibold">Cadastro de Clientes</h1></div>
+      <Card className="w-full">
         <CardContent>
           <Toolbar>
             <ToolbarSection>
@@ -141,7 +138,8 @@ export default function ClientsPage() {
           </Toolbar>
           {loading && <div className="text-blue-600">Carregando...</div>}
           {error && <div className="text-red-600">{error}</div>}
-          <Table>
+          <div className="w-full overflow-x-auto">
+          <Table className="w-full">
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
@@ -177,6 +175,7 @@ export default function ClientsPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
           <div className="mt-4">
             <Pagination
               page={page}
@@ -189,6 +188,6 @@ export default function ClientsPage() {
           </div>
         </CardContent>
       </Card>
-    </main>
+    </>
   );
 }

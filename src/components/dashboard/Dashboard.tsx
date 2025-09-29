@@ -1,33 +1,95 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cardVariants, cardHeaderVariants, cardContentVariants } from "./styles";
 
-// Fictional data
-const totalClients = 125;
-const totalOrders = 543;
-const totalBilled = 125430.50;
-const pendingOrders = 15;
+interface DashboardSummary {
+  totalClients: number;
+  totalOrders: number;
+  totalRevenue: number;
+  pendingOrders: number;
+}
 
-const recentOrders = [
-  { id: 1, client: "Cliente A", title: "Livro de Receitas", value: 1250.00, status: "Em produção" },
-  { id: 2, client: "Cliente B", title: "Catálogo de Produtos", value: 2500.00, status: "Aguardando aprovação" },
-  { id: 3, client: "Cliente C", title: "Revista Mensal", value: 800.00, status: "Concluído" },
-  { id: 4, client: "Cliente D", title: "Cartões de Visita", value: 250.00, status: "Em produção" },
-  { id: 5, client: "Cliente E", title: "Relatório Anual", value: 3500.00, status: "Concluído" },
-];
+interface RecentOrder {
+  id: number;
+  title: string;
+  valorTotal: number;
+  status: string;
+  date: string;
+  numero_pedido: string | null;
+  client: {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+  };
+  center: {
+    id: number;
+    name: string;
+  };
+}
 
-const recentClients = [
-  { id: 1, name: "Cliente A", email: "cliente.a@example.com", phone: "(11) 98765-4321" },
-  { id: 2, name: "Cliente B", email: "cliente.b@example.com", phone: "(21) 91234-5678" },
-  { id: 3, name: "Cliente C", email: "cliente.c@example.com", phone: "(31) 99999-8888" },
-  { id: 4, name: "Cliente D", email: "cliente.d@example.com", phone: "(41) 98888-7777" },
-  { id: 5, name: "Cliente E", email: "cliente.e@example.com", phone: "(51) 97777-6666" },
-];
+interface RecentClient {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  cnpjCpf: string;
+}
 
 export function Dashboard() {
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [recentClients, setRecentClients] = useState<RecentClient[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [summaryRes, ordersRes, clientsRes] = await Promise.all([
+          fetch("/api/dashboard/summary"),
+          fetch("/api/dashboard/recent-orders?limit=5"),
+          fetch("/api/dashboard/recent-clients?limit=5"),
+        ]);
+
+        if (!summaryRes.ok || !ordersRes.ok || !clientsRes.ok) {
+          throw new Error("Erro ao carregar dados do dashboard");
+        }
+
+        const [summaryData, ordersData, clientsData] = await Promise.all([
+          summaryRes.json(),
+          ordersRes.json(),
+          clientsRes.json(),
+        ]);
+
+        setSummary(summaryData.data);
+        setRecentOrders(ordersData.data);
+        setRecentClients(clientsData.data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erro desconhecido");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="text-red-600">Erro ao carregar dados: {error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -36,8 +98,11 @@ export function Dashboard() {
             <CardTitle>Total de Clientes</CardTitle>
           </CardHeader>
           <CardContent className={cardContentVariants({ size: "default" })}>
-            <p className="text-3xl font-bold">{totalClients}</p>
-            <p className="text-sm text-muted-foreground">* Dados fictícios</p>
+            {loading ? (
+              <Skeleton className="h-10 w-16" />
+            ) : (
+              <p className="text-3xl font-bold">{summary?.totalClients ?? 0}</p>
+            )}
           </CardContent>
         </Card>
         <Card className={cardVariants({ variant: "default" })}>
@@ -45,8 +110,11 @@ export function Dashboard() {
             <CardTitle>Total de Ordens</CardTitle>
           </CardHeader>
           <CardContent className={cardContentVariants({ size: "default" })}>
-            <p className="text-3xl font-bold">{totalOrders}</p>
-            <p className="text-sm text-muted-foreground">* Dados fictícios</p>
+            {loading ? (
+              <Skeleton className="h-10 w-16" />
+            ) : (
+              <p className="text-3xl font-bold">{summary?.totalOrders ?? 0}</p>
+            )}
           </CardContent>
         </Card>
         <Card className={cardVariants({ variant: "highlight" })}>
@@ -54,8 +122,13 @@ export function Dashboard() {
             <CardTitle>Total Faturado</CardTitle>
           </CardHeader>
           <CardContent className={cardContentVariants({ size: "lg" })}>
-            <p className="text-3xl font-bold">R$ {totalBilled.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            <p className="text-sm text-muted-foreground">* Dados fictícios</p>
+            {loading ? (
+              <Skeleton className="h-10 w-24" />
+            ) : (
+              <p className="text-3xl font-bold">
+                R$ {(summary?.totalRevenue ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </p>
+            )}
           </CardContent>
         </Card>
         <Card className={cardVariants({ variant: "default" })}>
@@ -63,8 +136,11 @@ export function Dashboard() {
             <CardTitle>Ordens Pendentes</CardTitle>
           </CardHeader>
           <CardContent className={cardContentVariants({ size: "default" })}>
-            <p className="text-3xl font-bold">{pendingOrders}</p>
-            <p className="text-sm text-muted-foreground">* Dados fictícios</p>
+            {loading ? (
+              <Skeleton className="h-10 w-16" />
+            ) : (
+              <p className="text-3xl font-bold">{summary?.pendingOrders ?? 0}</p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -83,14 +159,25 @@ export function Dashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recentOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell>{order.client}</TableCell>
-                    <TableCell>{order.title}</TableCell>
-                    <TableCell>R$ {order.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
-                    <TableCell>{order.status}</TableCell>
-                  </TableRow>
-                ))}
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  recentOrders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell>{order.client.name}</TableCell>
+                      <TableCell>{order.title}</TableCell>
+                      <TableCell>R$ {order.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                      <TableCell>{order.status}</TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </Card>
@@ -107,13 +194,23 @@ export function Dashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recentClients.map((client) => (
-                  <TableRow key={client.id}>
-                    <TableCell>{client.name}</TableCell>
-                    <TableCell>{client.email}</TableCell>
-                    <TableCell>{client.phone}</TableCell>
-                  </TableRow>
-                ))}
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  recentClients.map((client) => (
+                    <TableRow key={client.id}>
+                      <TableCell>{client.name}</TableCell>
+                      <TableCell>{client.email}</TableCell>
+                      <TableCell>{client.phone}</TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </Card>

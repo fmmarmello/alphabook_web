@@ -1,5 +1,4 @@
 
-import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { ok, serverError } from '@/lib/api-response';
 
@@ -20,7 +19,7 @@ export async function GET() {
     const editorialList = editorials.map((e) => e.editorial).filter(Boolean) as string[];
 
     return ok(editorialList);
-  } catch (error) {
+  } catch {
     return serverError('An error occurred while fetching editorials.');
   }
 }
