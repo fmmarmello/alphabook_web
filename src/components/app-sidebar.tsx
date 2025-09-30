@@ -2,14 +2,13 @@
 
 import * as React from "react"
 import {
+  BarChart3,
+  Building2,
+  Calculator,
+  FileText,
+  GalleryVerticalEnd,
   LayoutDashboard,
   Users,
-  Building2,
-  FileText,
-  Calculator,
-  BarChart3,
-  GalleryVerticalEnd,
-  Settings,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 
@@ -24,7 +23,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-// Navigation data structure for Alphabook
+// This is sample data.
 const data = {
   user: {
     name: "Alphabook User",
@@ -43,7 +42,6 @@ const data = {
       title: "Dashboard",
       url: "/",
       icon: LayoutDashboard,
-      isActive: true,
     },
     {
       title: "Clientes",

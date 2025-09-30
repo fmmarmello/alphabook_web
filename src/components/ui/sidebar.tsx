@@ -225,7 +225,7 @@ function Sidebar({
           variant === "floating" || variant === "inset"
             ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+1rem)]"
             : "group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)]",
-          variant === "sidebar" ? "hidden" : ""
+          variant !== "sidebar" ? "hidden" : ""
         )}
       />
       <div

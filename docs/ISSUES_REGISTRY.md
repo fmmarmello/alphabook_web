@@ -16,7 +16,7 @@
 **Impact**: Sidebar styling breaks completely on dashboard route
 
 **Description**:
-Root [`layout.tsx`](alphabook_web/src/app/layout.tsx:35) wraps app in `SidebarProvider`, but [`dashboard/page.tsx`](alphabook_web/src/app/dashboard/page.tsx:20) creates another `SidebarProvider`, causing:
+Root [`layout.tsx`](../../../alphabook_web/src/app/layout.tsx:35) wraps app in `SidebarProvider`, but [`dashboard/page.tsx`](alphabook_web/src/app/dashboard/page.tsx:20) creates another `SidebarProvider`, causing:
 - Conflicting React contexts
 - CSS variable scope issues
 - Broken sidebar animations
