@@ -32,21 +32,10 @@ export async function middleware(request: NextRequest) {
 
     console.log('[SECURITY MIDDLEWARE] Authenticated:', decoded.email, 'Role:', decoded.role);
 
-    // Pass user data to API routes via headers
-    const requestHeaders = new Headers(request.headers);
+    console.log('[SECURITY MIDDLEWARE] Authenticated:', decoded.email, 'Role:', decoded.role);
     
-    // 🐛 FIX: Add user context to REQUEST headers (not response headers)
-    requestHeaders.set('x-user-id', decoded.userId.toString());
-    requestHeaders.set('x-user-email', decoded.email);
-    requestHeaders.set('x-user-role', decoded.role);
-    
-    console.log('[SECURITY MIDDLEWARE] Added headers - UserId:', decoded.userId, 'Email:', decoded.email, 'Role:', decoded.role);
-    
-    const response = NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
+    // Continue to the route - API routes will verify token directly
+    const response = NextResponse.next();
     
     addSecurityHeaders(response);
     return response;

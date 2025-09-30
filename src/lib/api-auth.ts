@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { Role } from './rbac';
+import { verifyAccessToken, extractAccessToken } from './auth';
 
 export interface AuthenticatedUser {
   userId: number;
@@ -15,30 +16,37 @@ export class ApiAuthError extends Error {
 }
 
 /**
- * Get authenticated user from middleware headers (set by middleware)
+ * Get authenticated user by verifying JWT token from cookies or Authorization header
+ * 🐛 FIX: Read token directly instead of relying on middleware headers
  */
 export function getAuthenticatedUser(request: NextRequest): AuthenticatedUser {
-  const userId = request.headers.get('x-user-id');
-  const email = request.headers.get('x-user-email');
-  const role = request.headers.get('x-user-role');
+  // 🔍 DEBUG: Log authentication attempt
+  console.log('[API-AUTH] Starting authentication...');
   
-  // 🔍 DEBUG: Log what headers we receive
-  console.log('[API-AUTH DEBUG] Headers received:');
-  console.log('  x-user-id:', userId);
-  console.log('  x-user-email:', email);
-  console.log('  x-user-role:', role);
-  console.log('  All headers:', Object.fromEntries(request.headers.entries()));
+  // Extract token from cookies or Authorization header
+  const token = extractAccessToken(request);
   
-  if (!userId || !email || !role) {
-    console.log('[API-AUTH ERROR] Missing authentication headers - throwing 401');
+  if (!token) {
+    console.log('[API-AUTH ERROR] No access token found');
     throw new ApiAuthError('Authentication required', 401);
   }
   
-  console.log('[API-AUTH SUCCESS] User authenticated:', email, 'Role:', role);
+  console.log('[API-AUTH] Token found, verifying...');
+  
+  // Verify the token
+  const decoded = verifyAccessToken(token);
+  
+  if (!decoded) {
+    console.log('[API-AUTH ERROR] Token verification failed');
+    throw new ApiAuthError('Invalid or expired token', 401);
+  }
+  
+  console.log('[API-AUTH SUCCESS] User authenticated:', decoded.email, 'Role:', decoded.role);
+  
   return {
-    userId: parseInt(userId),
-    email,
-    role: role as Role
+    userId: decoded.userId,
+    email: decoded.email,
+    role: decoded.role as Role
   };
 }
 
