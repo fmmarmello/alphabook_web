@@ -23,9 +23,9 @@ export function Dashboard() {
         setError(null);
 
         const [summaryRes, ordersRes, clientsRes] = await Promise.all([
-          fetch("/api/dashboard/summary"),
-          fetch("/api/dashboard/recent-orders?limit=5"),
-          fetch("/api/dashboard/recent-clients?limit=5"),
+          fetch("/api/dashboard/summary", { credentials: 'include' }),
+          fetch("/api/dashboard/recent-orders?limit=5", { credentials: 'include' }),
+          fetch("/api/dashboard/recent-clients?limit=5", { credentials: 'include' }),
         ]);
 
         if (!summaryRes.ok || !ordersRes.ok || !clientsRes.ok) {

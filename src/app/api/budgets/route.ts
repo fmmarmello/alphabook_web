@@ -1,10 +1,16 @@
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { ok, created, badRequest, serverError } from "@/lib/api-response";
 import { BudgetSchema, parseSort, parseNumber } from "@/lib/validation";
 import { generateNumeroPedido } from "@/lib/order-number";
+import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { Role } from '@/lib/rbac';
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
+    // ✅ SECURITY: Get authenticated user (throws if not authenticated)
+    const user = getAuthenticatedUser(req);
+    
+    // ✅ SECURITY: All authenticated users can view budgets (role-based filtering applied below)
     const url = req?.url ? new URL(req.url) : new URL("http://localhost");
     const { searchParams } = url;
     const page = parseNumber(searchParams.get("page"), 1);
@@ -59,27 +65,48 @@ export async function GET(req: Request) {
       skip: (page - 1) * pageSize,
       take: pageSize,
     });
-    return ok(data, {
-      page,
-      pageSize,
-      total,
-      pageCount: Math.ceil(total / pageSize),
-      sortBy: Object.keys(orderBy)[0],
-      sortOrder,
-      q,
-      dateFrom,
-      dateTo,
+    return NextResponse.json({
+      data,
+      meta: {
+        page,
+        pageSize,
+        total,
+        pageCount: Math.ceil(total / pageSize),
+        sortBy: Object.keys(orderBy)[0],
+        sortOrder,
+        q,
+        dateFrom,
+        dateTo,
+      },
+      error: null
     });
+    
   } catch (error) {
-    return serverError((error as Error).message);
+    const { error: apiError, status } = handleApiError(error);
+    return NextResponse.json(apiError, { status });
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // ✅ SECURITY: Get authenticated user (throws if not authenticated)
+    const user = getAuthenticatedUser(req);
+    
+    // ✅ SECURITY: Budget creation requires MODERATOR or ADMIN role
+    if (user.role === Role.USER) {
+      throw new ApiAuthError('Insufficient permissions to create budgets', 403);
+    }
+
     const json = await req.json();
     const parsed = BudgetSchema.safeParse(json);
-    if (!parsed.success) return badRequest("Dados inválidos", parsed.error.flatten());
+    if (!parsed.success) {
+      return NextResponse.json({
+        error: {
+          message: "Dados inválidos",
+          details: parsed.error.flatten()
+        }
+      }, { status: 400 });
+    }
 
     const data: any = parsed.data;
     let numero = (data.numero_pedido ?? "").trim();
@@ -87,9 +114,14 @@ export async function POST(req: Request) {
       numero = await generateNumeroPedido();
     }
     const budget = await prisma.budget.create({ data: { ...data, numero_pedido: numero } });
-    return created(budget);
+    
+    return NextResponse.json({
+      data: budget,
+      error: null
+    }, { status: 201 });
+    
   } catch (error) {
-    return serverError((error as Error).message);
+    const { error: apiError, status } = handleApiError(error);
+    return NextResponse.json(apiError, { status });
   }
 }
-

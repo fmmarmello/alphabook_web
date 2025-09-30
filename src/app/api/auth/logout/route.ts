@@ -7,6 +7,14 @@ export async function POST() {
       error: null,
     });
 
+    // Clear access token cookie
+    response.cookies.set("accessToken", "", {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 0, // Expire immediately
+    });
+
     // Clear refresh token cookie
     response.cookies.set("refreshToken", "", {
       httpOnly: true,

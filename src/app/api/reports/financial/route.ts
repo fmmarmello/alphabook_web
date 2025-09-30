@@ -1,8 +1,9 @@
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { ok, badRequest, serverError } from '@/lib/api-response';
+import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { Role } from '@/lib/rbac';
 
 const FilterSchema = z.object({
   dateFrom: z.string().optional(),
@@ -13,12 +14,22 @@ const FilterSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
+    // ✅ SECURITY: Get authenticated user (throws if not authenticated)
+    const user = getAuthenticatedUser(req);
+    
+    // ✅ SECURITY: Financial reports are ADMIN/MODERATOR only
+    if (user.role === Role.USER) {
+      throw new ApiAuthError('Insufficient permissions to access financial reports', 403);
+    }
+
     const { searchParams } = new URL(req.url);
     const query = Object.fromEntries(searchParams.entries());
 
     const validation = FilterSchema.safeParse(query);
     if (!validation.success) {
-      return badRequest('Invalid query parameters');
+      return NextResponse.json({
+        error: { message: 'Invalid query parameters', details: validation.error.flatten() }
+      }, { status: 400 });
     }
 
     const { dateFrom, dateTo, editorial, centerId } = validation.data;
@@ -43,7 +54,7 @@ export async function GET(req: NextRequest) {
         numero_pedido: true,
         tipo_produto: true,
         data_entrega: true,
-        titulo: true,
+        title: true,
         tiragem: true,
         valorUnitario: true,
         valorTotal: true,
@@ -55,11 +66,16 @@ export async function GET(req: NextRequest) {
 
     const totalValorTotal = orders.reduce((acc, order) => acc + order.valorTotal, 0);
 
-    return ok({
-      orders,
-      totalValorTotal,
+    return NextResponse.json({
+      data: {
+        orders,
+        totalValorTotal,
+      },
+      error: null
     });
-  } catch {
-    return serverError('An error occurred while fetching the financial report.');
+    
+  } catch (error) {
+    const { error: apiError, status } = handleApiError(error);
+    return NextResponse.json(apiError, { status });
   }
 }

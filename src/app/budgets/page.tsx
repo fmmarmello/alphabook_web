@@ -18,8 +18,9 @@ import { Book } from "lucide-react";
 import type { Budget } from "@/types/models";
 import type { PaginatedResponse } from "@/types/api";
 import { toast } from "sonner";
+import { AuthenticatedRoute } from "@/components/auth/ProtectedRoute";
 
-export default function BudgetsPage() {
+function BudgetsContent() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -247,5 +248,13 @@ export default function BudgetsPage() {
         </CardContent>
       </Card>
     </>
+  );
+}
+
+export default function BudgetsPage() {
+  return (
+    <AuthenticatedRoute>
+      <BudgetsContent />
+    </AuthenticatedRoute>
   );
 }

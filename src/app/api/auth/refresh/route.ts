@@ -73,6 +73,14 @@ export async function POST(request: NextRequest) {
       error: null,
     });
 
+    // Set new access token as regular cookie (readable by client)
+    response.cookies.set("accessToken", accessToken, {
+      httpOnly: false, // Allow client to read
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 60, // 15 minutes (matches token expiry)
+    });
+
     // Update refresh token cookie
     response.cookies.set("refreshToken", newRefreshToken, {
       httpOnly: true,

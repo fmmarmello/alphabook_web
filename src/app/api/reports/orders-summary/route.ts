@@ -1,8 +1,18 @@
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
-import { ok, serverError } from "@/lib/api-response";
+import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { Role } from '@/lib/rbac';
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
+    // ✅ SECURITY: Get authenticated user (throws if not authenticated)
+    const user = getAuthenticatedUser(req);
+    
+    // ✅ SECURITY: Orders summary with financial data - ADMIN/MODERATOR only
+    if (user.role === Role.USER) {
+      throw new ApiAuthError('Insufficient permissions to access financial summary reports', 403);
+    }
+
     const { searchParams } = new URL(req.url);
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");
@@ -33,9 +43,15 @@ export async function GET(req: Request) {
       })),
     };
 
-    return ok(data, { dateFrom, dateTo });
+    return NextResponse.json({
+      data,
+      meta: { dateFrom, dateTo },
+      error: null
+    });
+    
   } catch (error) {
-    return serverError((error as Error).message);
+    const { error: apiError, status } = handleApiError(error);
+    return NextResponse.json(apiError, { status });
   }
 }
 

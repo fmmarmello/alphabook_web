@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link"; // ADD THIS
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -9,16 +9,17 @@ import { Toolbar, ToolbarSpacer, ToolbarSection } from "@/components/ui/toolbar"
 import { Pagination } from "@/components/ui/pagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PageHeader } from "@/components/ui/page-header"; // ADD THIS
-import { EmptyState } from "@/components/ui/empty-state"; // ADD THIS
-import { ErrorAlert } from "@/components/ui/error-alert"; // ADD THIS
-import { Users } from "lucide-react"; // ADD THIS
-import type { Client } from "@/types/models"; // ADD THIS
-import type { PaginatedResponse } from "@/types/api"; // ADD THIS
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ErrorAlert } from "@/components/ui/error-alert";
+import { Users } from "lucide-react";
+import type { Client } from "@/types/models";
+import type { PaginatedResponse } from "@/types/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SecureRoute } from "@/components/auth/ProtectedRoute";
 
-export default function ClientsPage() {
+function ClientsContent() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -238,5 +239,13 @@ export default function ClientsPage() {
         </CardContent>
       </Card>
     </>
+  );
+}
+
+export default function ClientsPage() {
+  return (
+    <SecureRoute>
+      <ClientsContent />
+    </SecureRoute>
   );
 }

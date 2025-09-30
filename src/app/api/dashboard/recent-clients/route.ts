@@ -1,27 +1,66 @@
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
-import { ok, serverError } from "@/lib/api-response";
+import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { Role } from '@/lib/rbac';
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
+    // ✅ SECURITY: Get authenticated user (throws if not authenticated)
+    const user = getAuthenticatedUser(req);
+    
+    // ✅ SECURITY: Recent clients data - apply role-based filtering
+
     const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get("limit") ?? "5");
+
+    // Role-based data selection
+    let select;
+    switch (user.role) {
+      case Role.ADMIN:
+        select = {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          cnpjCpf: true,
+        };
+        break;
+      case Role.MODERATOR:
+        select = {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          cnpjCpf: true,
+        };
+        break;
+      case Role.USER:
+        select = {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+        };
+        break;
+      default:
+        throw new ApiAuthError('Invalid user role', 403);
+    }
 
     const recentClients = await prisma.client.findMany({
       take: limit,
       orderBy: {
         id: "desc",
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        cnpjCpf: true,
-      },
+      select,
     });
 
-    return ok(recentClients);
+    return NextResponse.json({
+      data: recentClients,
+      error: null
+    });
+    
   } catch (error) {
-    return serverError((error as Error).message);
+    const { error: apiError, status } = handleApiError(error);
+    return NextResponse.json(apiError, { status });
   }
 }

@@ -17,8 +17,9 @@ import { Building } from "lucide-react";
 import type { Center } from "@/types/models";
 import type { PaginatedResponse } from "@/types/api";
 import { toast } from "sonner";
+import { SecureRoute } from "@/components/auth/ProtectedRoute";
 
-export default function CentersPage() {
+function CentersContent() {
   const [centers, setCenters] = useState<Center[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -245,5 +246,13 @@ export default function CentersPage() {
         </CardContent>
       </Card>
     </>
+  );
+}
+
+export default function CentersPage() {
+  return (
+    <SecureRoute>
+      <CentersContent />
+    </SecureRoute>
   );
 }

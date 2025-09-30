@@ -1,14 +1,32 @@
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
-import { ok, notFound, badRequest, serverError } from "@/lib/api-response";
 import { generateNumeroPedido } from "@/lib/order-number";
+import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { Role } from '@/lib/rbac';
 
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    // ✅ SECURITY: Get authenticated user (throws if not authenticated)
+    const user = getAuthenticatedUser(req);
+    
+    // ✅ SECURITY: Budget approval requires MODERATOR or ADMIN role
+    if (user.role === Role.USER) {
+      throw new ApiAuthError('Insufficient permissions to approve budgets', 403);
+    }
+
     const id = Number(params.id);
-    if (!Number.isInteger(id) || id <= 0) return badRequest("ID inválido");
+    if (!Number.isInteger(id) || id <= 0) {
+      return NextResponse.json({
+        error: { message: "ID inválido", details: null }
+      }, { status: 400 });
+    }
 
     let budget = await prisma.budget.findUnique({ where: { id } });
-    if (!budget) return notFound("Orçamento não encontrado");
+    if (!budget) {
+      return NextResponse.json({
+        error: { message: "Orçamento não encontrado", details: null }
+      }, { status: 404 });
+    }
 
     if (!budget.numero_pedido) {
       const numero = await generateNumeroPedido();
@@ -52,9 +70,14 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
       data: { approved: true, orderId: order.id },
     });
 
-    return ok(order);
+    return NextResponse.json({
+      data: order,
+      error: null
+    });
+    
   } catch (error) {
-    return serverError((error as Error).message);
+    const { error: apiError, status } = handleApiError(error);
+    return NextResponse.json(apiError, { status });
   }
 }
 

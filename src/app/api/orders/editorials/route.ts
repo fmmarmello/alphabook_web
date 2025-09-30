@@ -1,9 +1,15 @@
 
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { ok, serverError } from '@/lib/api-response';
+import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    // ✅ SECURITY: Get authenticated user (throws if not authenticated)
+    const user = getAuthenticatedUser(req);
+    
+    // ✅ SECURITY: All authenticated users can access editorials list
+    
     const editorials = await prisma.order.findMany({
       select: {
         editorial: true,
@@ -18,8 +24,13 @@ export async function GET() {
 
     const editorialList = editorials.map((e) => e.editorial).filter(Boolean) as string[];
 
-    return ok(editorialList);
-  } catch {
-    return serverError('An error occurred while fetching editorials.');
+    return NextResponse.json({
+      data: editorialList,
+      error: null
+    });
+    
+  } catch (error) {
+    const { error: apiError, status } = handleApiError(error);
+    return NextResponse.json(apiError, { status });
   }
 }

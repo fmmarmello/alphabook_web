@@ -19,8 +19,9 @@ import { Book, Users } from "lucide-react";
 import type { Order, Client, Center } from "@/types/models";
 import type { PaginatedResponse } from "@/types/api";
 import { toast } from "sonner";
+import { SecureRoute } from "@/components/auth/ProtectedRoute";
 
-export default function OrdersPage() {
+function OrdersContent() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [clients, setClients] = useState<Pick<Client, 'id' | 'name'>[]>([]);
   const [centers, setCenters] = useState<Pick<Center, 'id' | 'name'>[]>([]);
@@ -366,5 +367,13 @@ export default function OrdersPage() {
         </CardContent>
       </Card>
     </>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <SecureRoute>
+      <OrdersContent />
+    </SecureRoute>
   );
 }

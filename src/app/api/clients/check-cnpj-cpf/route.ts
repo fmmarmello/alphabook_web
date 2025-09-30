@@ -1,14 +1,22 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
-import { ok, serverError, conflict } from "@/lib/api-response";
+import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
 
 export async function GET(req: NextRequest) {
   try {
+    // ✅ SECURITY: Get authenticated user (throws if not authenticated)
+    const user = getAuthenticatedUser(req);
+    
+    // ✅ SECURITY: All authenticated users can check CNPJ/CPF duplicates
+
     const { searchParams } = new URL(req.url);
     const cnpjCpf = searchParams.get("value");
 
     if (!cnpjCpf) {
-      return ok({ exists: false });
+      return NextResponse.json({
+        data: { exists: false },
+        error: null
+      });
     }
 
     // Normalize to digits-only for a best-effort comparison
@@ -25,12 +33,22 @@ export async function GET(req: NextRequest) {
     });
 
     if (existingClient) {
-      return conflict("Cliente com este CNPJ/CPF já existe.", { exists: true });
+      return NextResponse.json({
+        error: {
+          message: "Cliente com este CNPJ/CPF já existe.",
+          details: { exists: true }
+        }
+      }, { status: 409 });
     }
 
-    return ok({ exists: false });
+    return NextResponse.json({
+      data: { exists: false },
+      error: null
+    });
+    
   } catch (error) {
-    return serverError((error as Error).message);
+    const { error: apiError, status } = handleApiError(error);
+    return NextResponse.json(apiError, { status });
   }
 }
 

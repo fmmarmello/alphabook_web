@@ -17,8 +17,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function LoginForm({
   className,
+  redirectTo = '/dashboard',
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<"div"> & {
+  redirectTo?: string;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -45,11 +48,8 @@ export function LoginForm({
         throw new Error(data.error?.message || "Login failed");
       }
 
-      // Store access token in localStorage
-      localStorage.setItem("accessToken", data.data.accessToken);
-
-      // Redirect to dashboard or home
-      router.push("/dashboard");
+      // Token is now stored in cookie by the API, redirect to the specified location
+      router.push(redirectTo);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {

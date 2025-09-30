@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { ReportFilters } from "./ReportFilters";
 import { ProductionReport } from "./ProductionReport";
 import { FinancialReport } from "./FinancialReport";
+import { SecureRoute } from "@/components/auth/ProtectedRoute";
 
 type ReportType = "production" | "financial";
 
-export default function ReportsPage() {
+function ReportsContent() {
   const [reportType, setReportType] = useState<ReportType>("production");
   const [reportData, setReportData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -76,6 +77,14 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
     </main>
+  );
+}
+
+export default function ReportsPage() {
+  return (
+    <SecureRoute>
+      <ReportsContent />
+    </SecureRoute>
   );
 }
 

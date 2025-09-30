@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import { Role } from "@/lib/rbac";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key";
@@ -29,6 +30,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate role if provided
+    let userRole = Role.USER; // Default role
+    if (role) {
+      if (!Object.values(Role).includes(role)) {
+        return NextResponse.json(
+          { error: { message: "Invalid role specified", details: null } },
+          { status: 400 }
+        );
+      }
+      userRole = role;
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -38,7 +51,7 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         name,
-        role: role || "user",
+        role: userRole,
       },
       select: {
         id: true,
@@ -74,6 +87,14 @@ export async function POST(request: NextRequest) {
         user,
       },
       error: null,
+    });
+
+    // Set access token as regular cookie (readable by client)
+    response.cookies.set("accessToken", accessToken, {
+      httpOnly: false, // Allow client to read
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 60, // 15 minutes (matches token expiry)
     });
 
     // Set refresh token as httpOnly cookie

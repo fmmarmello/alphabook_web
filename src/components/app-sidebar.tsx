@@ -15,6 +15,7 @@ import { usePathname } from "next/navigation"
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
+import { useAuth } from "@/components/auth/AuthProvider"
 import {
   Sidebar,
   SidebarContent,
@@ -73,12 +74,20 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
+  const { user } = useAuth()
 
   // Update active state based on current pathname
   const navMainWithActive = data.navMain.map((item) => ({
     ...item,
     isActive: pathname === item.url || (item.url !== "/" && pathname.startsWith(item.url + "/")),
   }))
+
+  // Use authenticated user data if available
+  const displayUser = user ? {
+    name: user.name,
+    email: user.email,
+    avatar: "/avatars/default.jpg",
+  } : data.user
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -89,7 +98,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navMainWithActive} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={displayUser} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
