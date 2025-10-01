@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BudgetSchema } from "@/lib/validation";
+import { BudgetSchema, BudgetInput } from "@/lib/validation";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -13,34 +13,7 @@ import { FormGrid, FormField } from "@/components/ui/form-grid";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrencyBRL, parseCurrencyBRL } from "@/lib/utils";
 
-type BudgetFormData = {
-  titulo: string;
-  tiragem: number;
-  formato: string;
-  total_pgs: number;
-  pgs_colors: number;
-  preco_unitario: number;
-  preco_total: number;
-  prazo_producao: string;
-  observacoes: string;
-  numero_pedido: string;
-  data_pedido: string;
-  data_entrega: string;
-  solicitante: string;
-  documento: string;
-  editorial: string;
-  tipo_produto: string;
-  cor_miolo: string;
-  papel_miolo: string;
-  papel_capa: string;
-  cor_capa: string;
-  laminacao: string;
-  acabamento: string;
-  shrink: string;
-  centro_producao: string;
-  pagamento: string;
-  frete: string;
-};
+type BudgetFormData = BudgetInput;
 
 import { Navbar } from "@/components/layout/Navbar";
 
@@ -48,7 +21,7 @@ export default function NewBudgetForm({ specifications }: { specifications: any 
   const router = useRouter();
   const [serverError, setServerError] = useState("");
 
-  const { register, handleSubmit, reset, watch, setValue, control, formState: { errors, isValid, isSubmitting } } = useForm<BudgetFormData>({
+  const { register, handleSubmit, reset, watch, setValue, control, formState: { errors, isValid, isSubmitting } } = useForm<BudgetInput>({
     resolver: zodResolver(BudgetSchema),
     mode: "onChange",
     reValidateMode: "onChange",
@@ -62,7 +35,7 @@ export default function NewBudgetForm({ specifications }: { specifications: any 
     setValue("preco_total", total, { shouldValidate: true });
   }, [tiragem, preco_unitario, setValue]);
 
-  const onSubmit = async (data: BudgetFormData) => {
+  const onSubmit = async (data: BudgetInput) => {
     setServerError("");
     try {
       const res = await fetch('/api/budgets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });

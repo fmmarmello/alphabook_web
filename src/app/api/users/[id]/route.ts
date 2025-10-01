@@ -6,13 +6,14 @@ import { Role } from '@/lib/rbac';
 // GET /api/users/[id] - Get user by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
     const currentUser = getAuthenticatedUser(request);
     
-    const userId = parseInt(params.id);
+    const { id: paramId } = await params;
+    const userId = parseInt(paramId);
     if (isNaN(userId)) {
       return NextResponse.json(
         { error: { message: "Invalid user ID", details: null } },
@@ -58,13 +59,14 @@ export async function GET(
 // PUT /api/users/[id] - Update user
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
     const currentUser = getAuthenticatedUser(request);
     
-    const userId = parseInt(params.id);
+    const { id: paramId } = await params;
+    const userId = parseInt(paramId);
     if (isNaN(userId)) {
       return NextResponse.json(
         { error: { message: "Invalid user ID", details: null } },
@@ -161,7 +163,7 @@ export async function PUT(
 // DELETE /api/users/[id] - Delete user (admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
@@ -172,7 +174,8 @@ export async function DELETE(
       throw new ApiAuthError('Insufficient permissions to delete users', 403);
     }
 
-    const userId = parseInt(params.id);
+    const { id: paramId } = await params;
+    const userId = parseInt(paramId);
     if (isNaN(userId)) {
       return NextResponse.json(
         { error: { message: "Invalid user ID", details: null } },

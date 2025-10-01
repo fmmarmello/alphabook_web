@@ -11,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
-import { Center } from "@prisma/client";
+import { Center } from "@/types/models";
 
 type FiltersForm = {
   dateFrom: string;

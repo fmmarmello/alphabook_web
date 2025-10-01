@@ -4,12 +4,13 @@ import { OrderSchema } from "@/lib/validation";
 import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
     const user = getAuthenticatedUser(req);
     
-    const id = Number(params.id);
+    const { id: paramId } = await params;
+    const id = Number(paramId);
     if (!Number.isInteger(id)) {
       return NextResponse.json({
         error: { message: "ID inválido", details: null }
@@ -69,7 +70,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
     const user = getAuthenticatedUser(req);
@@ -79,7 +80,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       throw new ApiAuthError('Insufficient permissions to update orders', 403);
     }
 
-    const id = Number(params.id);
+    const { id: paramId } = await params;
+    const id = Number(paramId);
     if (!Number.isInteger(id)) {
       return NextResponse.json({
         error: { message: "ID inválido", details: null }
@@ -140,7 +142,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
     const user = getAuthenticatedUser(req);
@@ -150,7 +152,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       throw new ApiAuthError('Insufficient permissions to update orders', 403);
     }
 
-    const id = Number(params.id);
+    const { id: paramId } = await params;
+    const id = Number(paramId);
     if (!Number.isInteger(id)) {
       return NextResponse.json({
         error: { message: "ID inválido", details: null }
@@ -212,7 +215,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
     const user = getAuthenticatedUser(req);
@@ -222,7 +225,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       throw new ApiAuthError('Insufficient permissions to delete orders', 403);
     }
 
-    const id = Number(params.id);
+    const { id: paramId } = await params;
+    const id = Number(paramId);
     if (!Number.isInteger(id)) {
       return NextResponse.json({
         error: { message: "ID inválido", details: null }

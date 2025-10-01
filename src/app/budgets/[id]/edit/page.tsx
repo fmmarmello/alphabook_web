@@ -18,9 +18,10 @@ async function getBudget(id: string): Promise<Budget | null> {
 export default async function EditBudgetPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  const budget = await getBudget(params.id);
+  const { id } = await params;
+  const budget = await getBudget(id);
   
   if (!budget) {
     notFound();

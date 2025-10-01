@@ -4,7 +4,7 @@ import { generateNumeroPedido } from "@/lib/order-number";
 import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
     const user = getAuthenticatedUser(req);
@@ -14,7 +14,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       throw new ApiAuthError('Insufficient permissions to approve budgets', 403);
     }
 
-    const id = Number(params.id);
+    const { id: paramId } = await params;
+    const id = Number(paramId);
     if (!Number.isInteger(id) || id <= 0) {
       return NextResponse.json({
         error: { message: "ID inválido", details: null }
