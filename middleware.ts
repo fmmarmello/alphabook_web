@@ -32,8 +32,6 @@ export async function middleware(request: NextRequest) {
 
     console.log('[SECURITY MIDDLEWARE] Authenticated:', decoded.email, 'Role:', decoded.role);
 
-    console.log('[SECURITY MIDDLEWARE] Authenticated:', decoded.email, 'Role:', decoded.role);
-    
     // Continue to the route - API routes will verify token directly
     const response = NextResponse.next();
     
