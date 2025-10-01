@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
 import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
+import type { Prisma } from "@/generated/prisma";
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,7 +17,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");
-    const where: any = {};
+
+    const where: Prisma.OrderWhereInput = {};
     if (dateFrom || dateTo) {
       where.date = {};
       if (dateFrom) where.date.gte = new Date(dateFrom);
@@ -52,4 +54,3 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(apiError, { status });
   }
 }
-

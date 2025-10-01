@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser, handleApiError, ApiAuthError, canManageUser } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
+import type { Prisma } from "@/generated/prisma";
 
 // GET /api/users/[id] - Get user by ID
 export async function GET(
@@ -130,7 +131,7 @@ export async function PUT(
     }
 
     // Prepare update data
-    const updateData: any = {};
+    const updateData: Prisma.UserUpdateInput = {};
     if (name !== undefined) updateData.name = name;
     if (role !== undefined) updateData.role = role;
     if (email !== undefined) updateData.email = email;

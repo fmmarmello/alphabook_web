@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { z } from "zod";
 import { CenterSchema, CenterInput } from "@/lib/validation";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FormGrid, FormField } from "@/components/ui/form-grid";
+import { FormField } from "@/components/ui/form-grid";
 import { ErrorAlert } from "@/components/ui/error-alert";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -21,22 +22,40 @@ interface CenterFormProps {
   initialData?: Center;
 }
 
+type CenterFormValues = z.input<typeof CenterSchema>;
+
+
+const CENTER_TYPES = ["Interno", "Terceirizado", "Digital", "Offset", "Outro"] as const;
+
+const isCenterType = (value: string): value is CenterFormValues['type'] => {
+  return (CENTER_TYPES as readonly string[]).includes(value);
+};
+
+const mapCenterDefaults = (center: Center): CenterFormValues => ({
+  name: center.name,
+  type: isCenterType(center.type) ? center.type : "Outro",
+  obs: center.obs ?? "",
+});
+
 export function CenterForm({ mode, initialData }: CenterFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
+
+  const formDefaultValues = useMemo(() => {
+    if (!initialData) return undefined;
+    return mapCenterDefaults(initialData);
+  }, [initialData]);
 
   const { 
     register, 
     handleSubmit, 
     setValue,
     formState: { errors, isValid, isSubmitting } 
-  } = useForm<CenterInput>({
+  } = useForm<CenterFormValues, undefined, CenterInput>({
     resolver: zodResolver(CenterSchema),
     mode: "onChange",
     reValidateMode: "onChange",
-    defaultValues: initialData ? {
-      ...initialData,
-    } : {},
+    defaultValues: formDefaultValues,
   });
 
   const onSubmit = async (data: CenterInput) => {
@@ -82,7 +101,13 @@ export function CenterForm({ mode, initialData }: CenterFormProps) {
 
           <FormField>
             <Label htmlFor="type">Tipo *</Label>
-            <Select onValueChange={(value) => setValue('type', value)} defaultValue={initialData?.type}>
+            <Select
+              onValueChange={(value) => {
+                const nextType = isCenterType(value) ? value : "Outro";
+                setValue('type', nextType);
+              }}
+              defaultValue={formDefaultValues?.type}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um tipo" />
               </SelectTrigger>

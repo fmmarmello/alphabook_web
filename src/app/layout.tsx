@@ -1,5 +1,6 @@
 
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { RootLayoutClient } from "@/components/layout/RootLayoutClient";
@@ -19,9 +20,11 @@ export default function RootLayout({
   return (
     <html lang="pt" suppressHydrationWarning>
       <body className={inter.className}>
-        <RootLayoutClient>
-          {children}
-        </RootLayoutClient>
+        <Suspense>
+          <RootLayoutClient>
+            {children}
+          </RootLayoutClient>
+        </Suspense>
       </body>
     </html>
   );

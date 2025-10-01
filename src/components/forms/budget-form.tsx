@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BudgetSchema, BudgetInput } from "@/lib/validation";
@@ -20,9 +20,64 @@ interface BudgetFormProps {
   initialData?: Budget;
 }
 
+const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+const toDateInputValue = (value: Date | string | null | undefined) => {
+  if (!value) return undefined;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? undefined : value.toISOString().slice(0, 10);
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    if (DATE_ONLY_REGEX.test(trimmed)) {
+      return trimmed;
+    }
+    const parsed = new Date(trimmed);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString().slice(0, 10);
+  }
+  return undefined;
+};
+
+const mapBudgetDefaults = (budget: Budget): Partial<BudgetInput> => ({
+  numero_pedido: budget.numero_pedido ?? undefined,
+  data_pedido: toDateInputValue(budget.data_pedido),
+  data_entrega: toDateInputValue(budget.data_entrega),
+  solicitante: budget.solicitante ?? undefined,
+  documento: budget.documento ?? undefined,
+  editorial: budget.editorial ?? undefined,
+  tipo_produto: budget.tipo_produto ?? undefined,
+  titulo: budget.titulo,
+  tiragem: budget.tiragem,
+  formato: budget.formato,
+  total_pgs: budget.total_pgs,
+  pgs_colors: budget.pgs_colors,
+  cor_miolo: budget.cor_miolo ?? undefined,
+  papel_miolo: budget.papel_miolo ?? undefined,
+  papel_capa: budget.papel_capa ?? undefined,
+  cor_capa: budget.cor_capa ?? undefined,
+  laminacao: budget.laminacao ?? undefined,
+  acabamento: budget.acabamento ?? undefined,
+  shrink: budget.shrink ?? undefined,
+  centro_producao: budget.centro_producao ?? undefined,
+  observacoes: budget.observacoes ?? undefined,
+  preco_unitario: Number(budget.preco_unitario ?? 0),
+  preco_total: Number(budget.preco_total ?? 0),
+  prazo_producao: budget.prazo_producao ?? undefined,
+  pagamento: budget.pagamento ?? undefined,
+  frete: budget.frete ?? undefined,
+  approved: budget.approved ?? undefined,
+  orderId: budget.orderId ?? undefined,
+});
+
 export function BudgetForm({ mode, initialData }: BudgetFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
+
+  const formDefaultValues = useMemo<Partial<BudgetInput> | undefined>(() => {
+    if (!initialData) return undefined;
+    return mapBudgetDefaults(initialData);
+  }, [initialData]);
 
   const { 
     register, 
@@ -32,9 +87,7 @@ export function BudgetForm({ mode, initialData }: BudgetFormProps) {
     resolver: zodResolver(BudgetSchema),
     mode: "onChange",
     reValidateMode: "onChange",
-    defaultValues: initialData ? {
-      ...initialData,
-    } : {},
+    defaultValues: formDefaultValues,
   });
 
   const onSubmit = async (data: BudgetInput) => {

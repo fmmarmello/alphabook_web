@@ -15,7 +15,7 @@ import { ErrorAlert } from "@/components/ui/error-alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatCurrencyBRL } from "@/lib/utils";
-import { Book, Users } from "lucide-react";
+import { Book } from "lucide-react";
 import type { Order, Client, Center } from "@/types/models";
 import type { PaginatedResponse } from "@/types/api";
 import { toast } from "sonner";
@@ -61,6 +61,7 @@ function OrdersContent() {
       setPageCount(Number(meta.pageCount) || 1);
       setTotal(Number(meta.total) || json.data.length);
     } catch (err) {
+      console.error(err);
       setError("Erro ao carregar ordens.");
       setOrders([]);
     } finally {

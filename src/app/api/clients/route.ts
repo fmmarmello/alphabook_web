@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser, applyUserFilter, getFieldSelection, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { getAuthenticatedUser, getFieldSelection, handleApiError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 import prisma from "@/lib/prisma";
 import { ClientSchema } from "@/lib/validation";

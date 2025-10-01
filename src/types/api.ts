@@ -37,7 +37,7 @@ export function isApiError(response: unknown): response is ApiError {
     typeof response === 'object' &&
     response !== null &&
     'error' in response &&
-    typeof (response as any).error === 'object'
+  typeof (response as { error: unknown }).error === 'object'
   )
 }
 

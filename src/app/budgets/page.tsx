@@ -54,6 +54,7 @@ function BudgetsContent() {
       setPageCount(Number(meta.pageCount) || 1);
       setTotal(Number(meta.total) || json.data.length);
     } catch (err) {
+      console.error(err);
       setError("Erro ao carregar orçamentos.");
       setBudgets([]);
     } finally {
@@ -127,7 +128,7 @@ function BudgetsContent() {
                   <SelectItem value="data_pedido">Data</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={sortOrder} onValueChange={(value) => { setPage(1); setSortOrder(value as any); }}>
+              <Select value={sortOrder} onValueChange={(value) => { setPage(1); setSortOrder(value as "asc" | "desc"); }}>
                 <SelectTrigger className="w-24">
                   <SelectValue placeholder="Order" />
                 </SelectTrigger>

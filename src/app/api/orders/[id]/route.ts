@@ -48,6 +48,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       case Role.USER:
         // Users DO NOT see financial data
         const { valorTotal, valorUnitario, ...safeOrder } = order;
+        void valorTotal; void valorUnitario;
         filteredOrder = {
           ...safeOrder,
           client: { id: order.client.id, name: order.client.name },
@@ -252,4 +253,3 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     return NextResponse.json(apiError, { status });
   }
 }
-

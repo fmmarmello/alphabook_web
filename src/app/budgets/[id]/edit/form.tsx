@@ -13,11 +13,11 @@ import { Button } from "@/components/ui/button";
 import { FormGrid, FormField } from "@/components/ui/form-grid";
 import { formatCurrencyBRL, parseCurrencyBRL } from "@/lib/utils";
 
-type BudgetFormData = BudgetInput;
+// type BudgetFormData = BudgetInput; // unused type alias removed
 
 
 
-export default function EditBudgetForm({ specifications }: { specifications: any }) {
+export default function EditBudgetForm({ specifications }: { specifications: Record<string, string[]> }) {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const id = params?.id;

@@ -1,5 +1,5 @@
 // D:\\dev\\alphabook_project\\alphabook_web\\src\\lib\\specifications.ts
-let specifications: any = null;
+let specifications: Record<string, unknown> | null = null;
 
 export function getSpecifications() {
   if (specifications) {

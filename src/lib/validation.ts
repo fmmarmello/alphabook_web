@@ -14,9 +14,7 @@ export type ClientInput = z.infer<typeof ClientSchema>;
 
 export const CenterSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
-  type: z.enum(["Interno", "Terceirizado", "Digital", "Offset", "Outro"], {
-    errorMap: () => ({ message: "Tipo inválido" }),
-  }),
+  type: z.enum(["Interno", "Terceirizado", "Digital", "Offset", "Outro"]),
   obs: z.string().optional().default(""),
 });
 

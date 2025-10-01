@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { z } from "zod";
 import { OrderSchema, OrderInput } from "@/lib/validation";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -21,27 +22,79 @@ interface OrderFormProps {
   initialData?: Order;
 }
 
+type OrderFormValues = z.input<typeof OrderSchema>;
+
+const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+const toDateInputValue = (value: Date | string | null | undefined) => {
+  if (!value) return undefined;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? undefined : value.toISOString().slice(0, 10);
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+    if (DATE_ONLY_REGEX.test(trimmed)) {
+      return trimmed;
+    }
+    const parsed = new Date(trimmed);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString().slice(0, 10);
+  }
+  return undefined;
+};
+
+const mapOrderDefaults = (order: Order): OrderFormValues => ({
+  clientId: order.clientId,
+  centerId: order.centerId,
+  title: order.title,
+  tiragem: order.tiragem,
+  formato: order.formato,
+  numPaginasTotal: order.numPaginasTotal,
+  numPaginasColoridas: order.numPaginasColoridas,
+  valorUnitario: Number(order.valorUnitario ?? 0),
+  valorTotal: Number(order.valorTotal ?? 0),
+  prazoEntrega: toDateInputValue(order.prazoEntrega) ?? "",
+  obs: order.obs ?? "",
+  numero_pedido: order.numero_pedido ?? undefined,
+  data_pedido: toDateInputValue(order.data_pedido),
+  data_entrega: toDateInputValue(order.data_entrega),
+  solicitante: order.solicitante ?? undefined,
+  documento: order.documento ?? undefined,
+  editorial: order.editorial ?? undefined,
+  tipo_produto: order.tipo_produto ?? undefined,
+  cor_miolo: order.cor_miolo ?? undefined,
+  papel_miolo: order.papel_miolo ?? undefined,
+  papel_capa: order.papel_capa ?? undefined,
+  cor_capa: order.cor_capa ?? undefined,
+  laminacao: order.laminacao ?? undefined,
+  acabamento: order.acabamento ?? undefined,
+  shrink: order.shrink ?? undefined,
+  pagamento: order.pagamento ?? undefined,
+  frete: order.frete ?? undefined,
+  status: order.status ?? undefined,
+});
+
 export function OrderForm({ mode, initialData }: OrderFormProps) {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
   const [clients, setClients] = useState<Pick<Client, 'id' | 'name'>[]>([]);
   const [centers, setCenters] = useState<Pick<Center, 'id' | 'name'>[]>([]);
 
+  const formDefaultValues = useMemo(() => {
+    if (!initialData) return undefined;
+    return mapOrderDefaults(initialData);
+  }, [initialData]);
+
   const { 
     register, 
     handleSubmit, 
-    setValue, 
-    watch,
+    setValue,
     formState: { errors, isValid, isSubmitting } 
-  } = useForm<OrderInput>({
+  } = useForm<OrderFormValues, undefined, OrderInput>({
     resolver: zodResolver(OrderSchema),
     mode: "onChange",
     reValidateMode: "onChange",
-    defaultValues: initialData ? {
-      ...initialData,
-      clientId: initialData.clientId,
-      centerId: initialData.centerId,
-    } : {},
+    defaultValues: formDefaultValues,
   });
 
   useEffect(() => {
@@ -100,7 +153,7 @@ export function OrderForm({ mode, initialData }: OrderFormProps) {
           <FormGrid columns={2} gap="md">
             <FormField>
               <Label htmlFor="clientId">Cliente *</Label>
-              <Select onValueChange={(value) => setValue('clientId', parseInt(value))} defaultValue={initialData?.clientId.toString()}>
+              <Select onValueChange={(value) => setValue('clientId', parseInt(value))} defaultValue={formDefaultValues?.clientId !== undefined ? String(formDefaultValues.clientId) : undefined}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>
@@ -115,7 +168,7 @@ export function OrderForm({ mode, initialData }: OrderFormProps) {
 
             <FormField>
               <Label htmlFor="centerId">Centro *</Label>
-              <Select onValueChange={(value) => setValue('centerId', parseInt(value))} defaultValue={initialData?.centerId.toString()}>
+              <Select onValueChange={(value) => setValue('centerId', parseInt(value))} defaultValue={formDefaultValues?.centerId !== undefined ? String(formDefaultValues.centerId) : undefined}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um centro" />
                 </SelectTrigger>

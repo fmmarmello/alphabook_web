@@ -1,9 +1,9 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
+import type { Prisma } from "@/generated/prisma";
 
 const FilterSchema = z.object({
   dateFrom: z.string().optional(),
@@ -34,15 +34,19 @@ export async function GET(req: NextRequest) {
 
     const { dateFrom, dateTo, editorial, centerId } = validation.data;
 
-    const where: any = {};
+    const where: Prisma.OrderWhereInput = {};
+    const dateFilter: Prisma.DateTimeFilter<"Order"> = {} as Prisma.DateTimeFilter<"Order">;
     if (dateFrom) {
-      where.date = { ...where.date, gte: new Date(dateFrom) };
+      dateFilter.gte = new Date(dateFrom);
     }
     if (dateTo) {
-      where.date = { ...where.date, lte: new Date(dateTo) };
+      dateFilter.lte = new Date(dateTo);
+    }
+    if (Object.keys(dateFilter).length) {
+      where.date = dateFilter;
     }
     if (editorial && editorial !== 'all') {
-      where.editorial = { contains: editorial, mode: 'insensitive' };
+      where.editorial = { contains: editorial };
     }
     if (centerId && centerId !== 'all') {
       where.centerId = parseInt(centerId, 10);

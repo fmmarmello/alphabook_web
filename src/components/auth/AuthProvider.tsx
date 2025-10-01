@@ -3,8 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { Role } from '@/lib/rbac';
 import { logAuth } from '@/lib/auth-logger';
-import { decodeJwtPayload, isJwtExpired } from '@/lib/token-utils';
-import type { JWTPayload } from '@/lib/auth-types';
+// Removed unused token utility imports
 
 export interface User {
   id: number;

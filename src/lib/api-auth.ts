@@ -88,7 +88,7 @@ export function canManageUser(actorRole: Role, targetRole: Role): boolean {
 /**
  * Apply user-specific data filtering based on role
  */
-export function applyUserFilter(user: AuthenticatedUser, baseWhere: any = {}) {
+export function applyUserFilter(user: AuthenticatedUser, baseWhere: Record<string, unknown> = {}) {
   switch (user.role) {
     case Role.ADMIN:
       return baseWhere; // No restrictions for admins
@@ -174,7 +174,7 @@ export function getFieldSelection(user: AuthenticatedUser, resourceType: 'client
 /**
  * Check if user can access a specific resource (ownership check)
  */
-export function canAccessResource(user: AuthenticatedUser, resource: any): boolean {
+export function canAccessResource(user: AuthenticatedUser, resource: Record<string, unknown>): boolean {
   // Admins can access everything
   if (user.role === Role.ADMIN) {
     return true;

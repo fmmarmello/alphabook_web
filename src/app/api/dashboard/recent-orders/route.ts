@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
-import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { getAuthenticatedUser, handleApiError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 
 export async function GET(req: NextRequest) {

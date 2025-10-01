@@ -112,7 +112,7 @@ export function ProtectedRoute({
               <div className="text-center max-w-md">
                 <Alert>
                   <AlertDescription>
-                    You don't have the required permissions to access this content.
+                    You don&apos;t have the required permissions to access this content.
                     Required roles: {requiredRoles.join(', ')}.
                     Your role: {user?.role || 'None'}.
                   </AlertDescription>

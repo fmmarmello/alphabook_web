@@ -3,19 +3,30 @@
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 
-interface ProductionReportProps {
-  data: {
-    orders: any[];
-    totalTiragem: number;
-  };
+interface ProductionOrderRow {
+  numero_pedido: string;
+  data_entrega: string | Date | null;
+  titulo: string;
+  tiragem: number;
 }
 
-function downloadCSV(data: any[], fileName: string) {
+interface ProductionReportData {
+  orders: ProductionOrderRow[];
+  totalTiragem: number;
+}
+
+interface ProductionReportProps {
+  data: ProductionReportData;
+}
+
+function downloadCSV<T extends object>(data: T[], fileName: string) {
   if (!data?.length) return;
-  const headers = Object.keys(data[0]);
+  const first = data[0] as Record<string, unknown>;
+  const headers = Object.keys(first);
   const rows = [headers.join(",")];
   for (const row of data) {
-    const values = headers.map((h) => `"${String(row[h] ?? "").replace(/"/g, '"')}"`);
+    const rec = row as Record<string, unknown>;
+    const values = headers.map((h) => `"${String(rec[h] ?? "").replace(/\"/g, '"')}"`);
     rows.push(values.join(","));
   }
   const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
@@ -67,4 +78,3 @@ export function ProductionReport({ data }: ProductionReportProps) {
     </div>
   );
 }
-

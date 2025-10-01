@@ -50,7 +50,8 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
-import { Role } from "@/lib/rbac";
+// Role is not used directly here
+// import { Role } from "@/lib/rbac";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
@@ -137,8 +138,8 @@ export async function POST(request: NextRequest) {
       { expiresIn: "7d" }
     );
 
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    // Remove password from response without unused var
+    const userWithoutPassword = (({ password, ...rest }) => { void password; return rest; })(user);
 
     const response = NextResponse.json({
       data: {

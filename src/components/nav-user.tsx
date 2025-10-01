@@ -31,7 +31,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/components/auth/AuthProvider";
-import { Role } from "@/lib/rbac";
 
 export function NavUser({
   user: fallbackUser,

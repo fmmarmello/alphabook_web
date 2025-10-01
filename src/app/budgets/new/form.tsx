@@ -13,15 +13,13 @@ import { FormGrid, FormField } from "@/components/ui/form-grid";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrencyBRL, parseCurrencyBRL } from "@/lib/utils";
 
-type BudgetFormData = BudgetInput;
+// type BudgetFormData = BudgetInput; // unused type alias removed
 
-import { Navbar } from "@/components/layout/Navbar";
-
-export default function NewBudgetForm({ specifications }: { specifications: any }) {
+export default function NewBudgetForm({ specifications }: { specifications: Record<string, string[]> }) {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
 
-  const { register, handleSubmit, reset, watch, setValue, control, formState: { errors, isValid, isSubmitting } } = useForm<BudgetInput>({
+  const { register, handleSubmit, watch, setValue, control, formState: { errors, isValid, isSubmitting } } = useForm<BudgetInput>({
     resolver: zodResolver(BudgetSchema),
     mode: "onChange",
     reValidateMode: "onChange",

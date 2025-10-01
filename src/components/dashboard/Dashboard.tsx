@@ -185,7 +185,7 @@ export function Dashboard() {
                       <TableCell>{order.title}</TableCell>
                       <TableCell className="font-medium">R$ {order.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
                       <TableCell>
-                        <StatusBadge status={order.status} />
+                        <StatusBadge status={order.status || 'Pendente'} />
                       </TableCell>
                     </TableRow>
                   ))

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { Role } from '@/lib/rbac';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { AdminRoute } from '@/components/auth/ProtectedRoute';
@@ -28,7 +27,6 @@ interface User {
 
 export default function AdminUsersPage() {
   const { user: currentUser } = useAuth();
-  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);

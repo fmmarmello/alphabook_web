@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { BudgetSchema, parseSort, parseNumber } from "@/lib/validation";
+import { BudgetSchema, parseSort, parseNumber, BudgetInput } from "@/lib/validation";
 import { generateNumeroPedido } from "@/lib/order-number";
 import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
+import type { Prisma } from "@/generated/prisma";
 
 export async function GET(req: NextRequest) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(req);
+    getAuthenticatedUser(req);
     
     // ✅ SECURITY: All authenticated users can view budgets (role-based filtering applied below)
     const url = req?.url ? new URL(req.url) : new URL("http://localhost");
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
     ]);
     const orderBy = allowedSort.has(sortBy) ? { [sortBy]: sortOrder } : { id: "desc" as const };
 
-    const where: any = {};
+    const where: Prisma.BudgetWhereInput = {};
     if (q) {
       where.OR = [
         { titulo: { contains: q } },
@@ -108,7 +109,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const data: any = parsed.data;
+    const data: BudgetInput = parsed.data;
     let numero = (data.numero_pedido ?? "").trim();
     if (!numero) {
       numero = await generateNumeroPedido();

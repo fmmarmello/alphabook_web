@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser, getFieldSelection, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 import prisma from "@/lib/prisma";
 import { OrderSchema, parseSort, parseNumber } from "@/lib/validation";
+import type { Prisma } from "@/generated/prisma";
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
     ]);
     const orderBy = allowedSort.has(sortBy) ? { [sortBy]: sortOrder } : { id: "desc" as const };
 
-    const where: any = {};
+    const where: Prisma.OrderWhereInput = {};
     if (q) {
       where.OR = [
         { title: { contains: q } },
@@ -57,9 +58,10 @@ export async function GET(request: NextRequest) {
     if (clientId) where.clientId = Number(clientId);
     if (centerId) where.centerId = Number(centerId);
     if (dateFrom || dateTo) {
-      where.date = {};
-      if (dateFrom) where.date.gte = new Date(dateFrom);
-      if (dateTo) where.date.lte = new Date(dateTo);
+      const dateFilter: Prisma.DateTimeFilter<"Order"> = {} as Prisma.DateTimeFilter<"Order">;
+      if (dateFrom) dateFilter.gte = new Date(dateFrom);
+      if (dateTo) dateFilter.lte = new Date(dateTo);
+      where.date = dateFilter;
     }
 
     const total = await prisma.order.count({ where });
@@ -88,7 +90,8 @@ export async function GET(request: NextRequest) {
           
         case Role.USER:
           // Users DO NOT see financial data
-          const { valorTotal, valorUnitario, ...safeOrder } = order;
+          const { valorTotal: _valorTotal, valorUnitario: _valorUnitario, ...safeOrder } = order;
+          void _valorTotal; void _valorUnitario;
           return {
             ...safeOrder,
             client: { id: order.client.id, name: order.client.name },

@@ -3,11 +3,12 @@ import prisma from "@/lib/prisma";
 import { CenterSchema } from "@/lib/validation";
 import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
+import type { Prisma } from "@/generated/prisma";
 
 export async function GET(req: NextRequest) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(req);
+    getAuthenticatedUser(req);
     
     const url = req?.url ? new URL(req.url) : new URL("http://localhost");
     const { searchParams } = url;
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
     const allowedSort = new Set(["id", "name", "type"]);
     const orderBy = allowedSort.has(sortBy) ? { [sortBy]: sortOrder } : { id: "desc" as const };
 
-    const where: any = {};
+    const where: Prisma.CenterWhereInput = {};
     if (q) where.OR = [{ name: { contains: q } }, { obs: { contains: q } }];
     if (type) where.type = type;
 
@@ -87,4 +88,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(apiError, { status });
   }
 }
-

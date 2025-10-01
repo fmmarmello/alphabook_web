@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  eslint: {
+    // Block production builds on ESLint errors
+    ignoreDuringBuilds: false,
+  },
 };
 
 export default nextConfig;

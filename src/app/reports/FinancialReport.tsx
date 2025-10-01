@@ -4,14 +4,24 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Button } from "@/components/ui/button";
 import { formatCurrencyBRL } from "@/lib/utils";
 
+interface Order {
+  numero_pedido: string;
+  tipo_produto: string;
+  data_entrega: string;
+  titulo: string;
+  tiragem: number;
+  valorUnitario: number;
+  valorTotal: number;
+}
+
 interface FinancialReportProps {
   data: {
-    orders: any[];
+    orders: Order[];
     totalValorTotal: number;
   };
 }
 
-function downloadCSV(data: any[], fileName: string) {
+function downloadCSV(data: Order[], fileName: string) {
   if (!data?.length) return;
   const headers = [
     "Numero OP",

@@ -5,8 +5,6 @@ export default defineConfig({
     environment: "node",
     include: ["src/lib/**/__tests__/*.test.ts"],
   },
-  css: {
-    postcss: null,
-  },
+  // css config removed as postcss: null is invalid
 });
 

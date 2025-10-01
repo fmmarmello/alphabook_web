@@ -1,12 +1,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { getAuthenticatedUser, handleApiError } from '@/lib/api-auth';
 
 export async function GET(req: NextRequest) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(req);
+    getAuthenticatedUser(req);
     
     // ✅ SECURITY: All authenticated users can access editorials list
     

@@ -2,12 +2,12 @@
 
 import { ReactNode } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { Role, RBAC } from '@/lib/rbac';
+import { Role, RBAC, Permission } from '@/lib/rbac';
 
 interface RoleGuardProps {
   children: ReactNode;
   roles?: Role[];
-  permissions?: string[];
+  permissions?: Permission[];
   fallback?: ReactNode;
   requireAllPermissions?: boolean;
 }
@@ -48,10 +48,10 @@ export function RoleGuard({
 
     if (requireAllPermissions) {
       // Must have ALL permissions
-      hasPermission = RBAC.hasAllPermissions(user.role, permissions as any);
+      hasPermission = RBAC.hasAllPermissions(user.role, permissions);
     } else {
       // Must have ANY of the permissions
-      hasPermission = RBAC.hasAnyPermission(user.role, permissions as any);
+      hasPermission = RBAC.hasAnyPermission(user.role, permissions);
     }
 
     if (!hasPermission) {
@@ -95,7 +95,7 @@ export function PermissionGuard({
   fallback
 }: {
   children: ReactNode;
-  permissions: string[];
+  permissions: Permission[];
   requireAll?: boolean;
   fallback?: ReactNode;
 }) {

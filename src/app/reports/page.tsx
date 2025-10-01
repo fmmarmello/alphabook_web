@@ -12,11 +12,22 @@ type ReportType = "production" | "financial";
 
 function ReportsContent() {
   const [reportType, setReportType] = useState<ReportType>("production");
-  const [reportData, setReportData] = useState<any>(null);
+  type Filters = { dateFrom?: string; dateTo?: string; editorial?: string; centerId?: string };
+  type ProductionRow = { numero_pedido: string; data_entrega: string | Date | null; titulo: string; tiragem: number };
+  type FinancialRow = { numero_pedido: string; tipo_produto: string; data_entrega: string; titulo: string; tiragem: number; valorUnitario: number; valorTotal: number };
+  type ReportData = { orders: ProductionRow[]; totalTiragem: number } | { orders: FinancialRow[]; totalValorTotal: number } | null;
+  const [reportData, setReportData] = useState<ReportData>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleGenerateReport = async (filters: any) => {
+  const isProductionData = (d: ReportData): d is { orders: ProductionRow[]; totalTiragem: number } => {
+    return !!d && typeof d === 'object' && 'totalTiragem' in d;
+  };
+  const isFinancialData = (d: ReportData): d is { orders: FinancialRow[]; totalValorTotal: number } => {
+    return !!d && typeof d === 'object' && 'totalValorTotal' in d;
+  };
+
+  const handleGenerateReport = async (filters: Filters) => {
     setLoading(true);
     setError("");
     setReportData(null);
@@ -35,8 +46,9 @@ function ReportsContent() {
       }
 
       const json = await res.json();
-      setReportData(json.data);
-    } catch (err: any) {
+      setReportData(json.data as ReportData);
+    } catch (err: unknown) {
+      // @ts-expect-error: err can be Error, provide fallback below
       setError(err.message || "Erro ao gerar relatório.");
     } finally {
       setLoading(false);
@@ -71,8 +83,12 @@ function ReportsContent() {
             {loading && <div className="text-blue-600">Carregando...</div>}
             {error && <div className="text-red-600">{error}</div>}
 
-            {reportData && reportType === "production" && <ProductionReport data={reportData} />}
-            {reportData && reportType === "financial" && <FinancialReport data={reportData} />}
+            {reportData && reportType === "production" && isProductionData(reportData) && (
+              <ProductionReport data={reportData} />
+            )}
+            {reportData && reportType === "financial" && isFinancialData(reportData) && (
+              <FinancialReport data={reportData} />
+            )}
           </div>
         </CardContent>
       </Card>
@@ -87,4 +103,3 @@ export default function ReportsPage() {
     </SecureRoute>
   );
 }
-

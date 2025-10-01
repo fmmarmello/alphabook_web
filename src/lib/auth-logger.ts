@@ -8,7 +8,7 @@ interface LogEntry {
   component: string;
   function: string;
   action: string;
-  details: any;
+  details: Record<string, unknown>;
   userId?: string;
   sessionId?: string;
 }
@@ -22,7 +22,7 @@ class AuthLogger {
     component: string,
     functionName: string,
     action: string,
-    details: any = {},
+  details: Record<string, unknown> = {},
     userId?: string
   ): LogEntry {
     return {
@@ -45,7 +45,7 @@ class AuthLogger {
     return 'server';
   }
 
-  log(component: string, functionName: string, action: string, details: any = {}, userId?: string) {
+  log(component: string, functionName: string, action: string, details: Record<string, unknown> = {}, userId?: string) {
     if (!this.isEnabled) return;
 
     const entry = this.createLogEntry(component, functionName, action, details, userId);
@@ -96,7 +96,7 @@ class AuthLogger {
       { tokenLength: token.length, error });
   }
 
-  authStateChange(oldState: any, newState: any, reason: string) {
+  authStateChange(oldState: unknown, newState: unknown, reason: string) {
     this.log('AuthState', 'useAuth', 'state_changed',
       { oldState, newState, reason });
   }
@@ -146,7 +146,7 @@ export const logAuth = {
   token: (token: string, isValid: boolean, error?: string) =>
     authLogger.tokenValidation(token, isValid, error),
 
-  state: (oldState: any, newState: any, reason: string) =>
+  state: (oldState: unknown, newState: unknown, reason: string) =>
     authLogger.authStateChange(oldState, newState, reason),
 
   api: (endpoint: string, method: string, hasAuth: boolean, status: number, userId?: string) =>
@@ -158,5 +158,5 @@ export const logAuth = {
 
 // Make logger available globally for debugging
 if (typeof window !== 'undefined') {
-  (window as any).authLogger = authLogger;
+  (window as unknown as { authLogger: AuthLogger }).authLogger = authLogger;
 }

@@ -7,7 +7,7 @@ import { Role } from '@/lib/rbac';
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(req);
+    getAuthenticatedUser(req);
     
     const { id: paramId } = await params;
     const id = Number(paramId);

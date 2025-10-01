@@ -47,6 +47,7 @@ export async function middleware(request: NextRequest) {
 }
 
 function handleUnauthorized(request: NextRequest, reason: string) {
+  void reason;
   const pathname = request.nextUrl.pathname;
   
   // API routes return JSON error (CRITICAL for API security)

@@ -102,7 +102,7 @@ export interface RecentOrder extends Pick<Order, 'id' | 'title' | 'valorTotal' |
   center: Pick<Center, 'id' | 'name'>
 }
 
-export interface RecentClient extends Pick<Client, 'id' | 'name' | 'email' | 'phone' | 'cnpjCpf'> {}
+export type RecentClient = Pick<Client, 'id' | 'name' | 'email' | 'phone' | 'cnpjCpf'>;
 
 export type OrderStatus = 
   | 'Pendente'

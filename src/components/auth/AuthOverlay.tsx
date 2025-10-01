@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { cn } from "@/lib/utils";
@@ -106,12 +106,12 @@ export function AuthOverlay({ onClose }: AuthOverlayProps) {
     }
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (!isLoading) {
       setShowLoginModal(false);
       if (onClose) onClose();
     }
-  };
+  }, [isLoading, onClose, setShowLoginModal]);
 
   // Handle escape key
   useEffect(() => {
@@ -125,7 +125,7 @@ export function AuthOverlay({ onClose }: AuthOverlayProps) {
       document.addEventListener('keydown', handleEscape);
       return () => document.removeEventListener('keydown', handleEscape);
     }
-  }, [showLoginModal, isLoading]);
+  }, [showLoginModal, isLoading, handleClose]);
 
   // Don't render if not supposed to show
   if (!showLoginModal) return null;

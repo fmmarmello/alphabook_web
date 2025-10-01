@@ -58,6 +58,7 @@ function CentersContent() {
       setPageCount(Number(meta.pageCount) || 1);
       setTotal(Number(meta.total) || json.data.length);
     } catch (err) {
+      console.error(err);
       setError("Erro ao carregar centros.");
       setCenters([]);
     } finally {
@@ -67,6 +68,7 @@ function CentersContent() {
 
   useEffect(() => {
     fetchCenters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, type, sortBy, sortOrder, page, pageSize]);
 
   const handleDelete = async (id: number) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { Role } from '@/lib/rbac';
 
 export interface User {
@@ -33,6 +33,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
     return null;
   };
+
+  // Memoized auth actions used by effects
+  const login = useCallback((accessToken: string, userData: User) => {
+    // Token is now stored in cookie by the API, no need to store in localStorage
+    setUser(userData);
+  }, []);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    // Clear tokens by calling logout API (removes cookies)
+    fetch('/api/auth/logout', { method: 'POST' }).catch(console.error);
+  }, []);
+
+  const refreshAuth = useCallback(async () => {
+    try {
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include', // Include cookies
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Token is now stored in cookie by the API
+        setUser(data.data.user);
+      } else {
+        throw new Error('Refresh failed');
+      }
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      logout();
+      throw error;
+    }
+  }, [logout]);
 
   // Initialize auth state from cookies
   useEffect(() => {
@@ -69,39 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     initAuth();
-  }, []);
-
-  const login = (accessToken: string, userData: User) => {
-    // Token is now stored in cookie by the API, no need to store in localStorage
-    setUser(userData);
-  };
-
-  const logout = () => {
-    setUser(null);
-    // Clear tokens by calling logout API (removes cookies)
-    fetch('/api/auth/logout', { method: 'POST' }).catch(console.error);
-  };
-
-  const refreshAuth = async () => {
-    try {
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        credentials: 'include', // Include cookies
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // Token is now stored in cookie by the API
-        setUser(data.data.user);
-      } else {
-        throw new Error('Refresh failed');
-      }
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      logout();
-      throw error;
-    }
-  };
+  }, [refreshAuth, logout]);
 
   const value: AuthContextType = {
     user,

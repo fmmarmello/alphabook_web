@@ -18,7 +18,21 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "src/generated/**",
     ],
+  },
+  {
+    files: ["scripts/**/*.js", "tests/**/*.js"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-var-requires": "off",
+    },
+  },
+  {
+    files: ["public/**/*.js"],
+    rules: {
+      "@typescript-eslint/no-unused-expressions": "off",
+    },
   },
 ];
 
