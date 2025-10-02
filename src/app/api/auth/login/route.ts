@@ -66,10 +66,16 @@ if (!JWT_REFRESH_SECRET || JWT_REFRESH_SECRET.length < 32) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[LOGIN API] Request received at:', new Date().toISOString());
+    console.log('[LOGIN API] URL:', request.url);
+    console.log('[LOGIN API] Method:', request.method);
+    
     const clientIP = getClientIP(request);
+    console.log('[LOGIN API] Client IP:', clientIP);
 
     // Check rate limit
     if (!checkRateLimit(clientIP)) {
+      console.log('[LOGIN API] Rate limit exceeded for IP:', clientIP);
       const response = NextResponse.json(
         { error: { message: "Too many login attempts. Please try again later.", details: null } },
         { status: 429 }
@@ -170,7 +176,8 @@ export async function POST(request: NextRequest) {
     addSecurityHeaders(response);
     return response;
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("[LOGIN API] Login error:", error);
+    console.error("[LOGIN API] Error stack:", error instanceof Error ? error.stack : 'No stack trace');
     const response = NextResponse.json(
       { error: { message: "Internal server error", details: null } },
       { status: 500 }
