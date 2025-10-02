@@ -1,5 +1,5 @@
 [build]
-  command = "npm install && npm run prisma:generate && npm run build"
+  command = "pnpm install && pnpm run prisma:generate && pnpm run build"
   publish = ".next"
 
 [build.environment]

@@ -15,11 +15,13 @@ import { ErrorAlert } from "@/components/ui/error-alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatCurrencyBRL } from "@/lib/utils";
-import { Book } from "lucide-react";
+import { Book, Columns2 } from "lucide-react";
 import type { Order, Client, Center } from "@/types/models";
 import type { PaginatedResponse } from "@/types/api";
 import { toast } from "sonner";
 import { SecureRoute } from "@/components/auth/ProtectedRoute";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable, type VisibilityState } from "@tanstack/react-table";
 
 function OrdersContent() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -38,6 +40,104 @@ function OrdersContent() {
   const [pageSize, setPageSize] = useState(20);
   const [pageCount, setPageCount] = useState(1);
   const [total, setTotal] = useState(0);
+
+  // TanStack Table columns
+  const columns: ColumnDef<Order, unknown>[] = [
+    {
+      id: "client",
+      header: "Cliente",
+      meta: { label: "Cliente" },
+      cell: ({ row }) => row.original.client?.name ?? "",
+    },
+    {
+      id: "center",
+      header: "Centro",
+      meta: { label: "Centro" },
+      cell: ({ row }) => row.original.center?.name ?? "",
+    },
+    { accessorKey: "title", header: "Titulo", meta: { label: "Titulo" } },
+    {
+      accessorKey: "status",
+      header: "Status",
+      meta: { label: "Status" },
+      cell: ({ row }) => <StatusBadge status={row.original.status || "Pendente"} />,
+    },
+    { accessorKey: "tiragem", header: "Tiragem", meta: { label: "Tiragem" } },
+    { accessorKey: "formato", header: "Formato", meta: { label: "Formato" } },
+    {
+      accessorKey: "numPaginasTotal",
+      header: "Num paginas total",
+      meta: { label: "Num paginas total" },
+    },
+    {
+      accessorKey: "numPaginasColoridas",
+      header: "Num paginas coloridas",
+      meta: { label: "Num paginas coloridas" },
+    },
+    {
+      accessorKey: "valorUnitario",
+      header: "Valor Unitario",
+      meta: { label: "Valor Unitario" },
+      cell: ({ row }) => formatCurrencyBRL(Number(row.original.valorUnitario) || 0),
+    },
+    {
+      accessorKey: "valorTotal",
+      header: "Valor Total",
+      meta: { label: "Valor Total" },
+      cell: ({ row }) => formatCurrencyBRL(Number(row.original.valorTotal) || 0),
+    },
+    { accessorKey: "prazoEntrega", header: "Prazo de entrega", meta: { label: "Prazo de entrega" } },
+    { accessorKey: "obs", header: "Observacoes", meta: { label: "Observacoes" } },
+    {
+      id: "actions",
+      header: "Acoes",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const order = row.original as Order;
+        return (
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/orders/${order.id}/edit`}>Editar</Link>
+            </Button>
+            <ConfirmDialog
+              title="Excluir ordem"
+              description="Esta acao nao pode ser desfeita."
+              confirmLabel="Excluir"
+              confirmVariant="destructive"
+              onConfirm={() => handleDelete(order.id)}
+              trigger={<Button variant="destructive">Excluir</Button>}
+            />
+          </div>
+        );
+      },
+    },
+  ];
+
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const saved = localStorage.getItem("orders.table.columnVisibility");
+      return saved ? (JSON.parse(saved) as VisibilityState) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("orders.table.columnVisibility", JSON.stringify(columnVisibility));
+    } catch {
+      /* ignore */
+    }
+  }, [columnVisibility]);
+
+  const table = useReactTable({
+    data: orders,
+    columns,
+    state: { columnVisibility },
+    onColumnVisibilityChange: setColumnVisibility,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -256,9 +356,90 @@ function OrdersContent() {
                   <SelectItem value="50">50</SelectItem>
                 </SelectContent>
               </Select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="whitespace-nowrap">
+                    <Columns2 className="mr-2 h-4 w-4" /> Colunas
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Mostrar colunas</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {table
+                    .getAllLeafColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) => column.toggleVisibility(Boolean(value))}
+                      >
+                        {(column.columnDef as any).meta?.label ?? column.id}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </ToolbarSection>
           </Toolbar>
           {error && <ErrorAlert message={error} onRetry={fetchOrders} />}
+          {/* Legacy table disabled in favor of DataTable */}
+          <div className="w-full overflow-x-auto mb-4">
+            <Table className="w-full">
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: pageSize }).map((_, i) => (
+                    <TableRow key={i}>
+                      {table.getVisibleLeafColumns().map((col) => (
+                        <TableCell key={String(col.id)}>
+                          <Skeleton className="h-4 w-28" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : table.getRowModel().rows.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={table.getVisibleLeafColumns().length || 1} className="h-64">
+                      <EmptyState
+                        icon={Book}
+                        title="Nenhuma ordem de producao encontrada"
+                        description="Comece criando sua primeira ordem de producao para gerenciar sua producao"
+                        action={
+                          <Button asChild>
+                            <Link href="/orders/new">Criar Primeira OP</Link>
+                          </Button>
+                        }
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {false && (
           <div className="w-full overflow-x-auto">
             <Table className="w-full">
               <TableHeader>
@@ -352,6 +533,7 @@ function OrdersContent() {
               </TableBody>
             </Table>
           </div>
+          )}
           <div className="mt-4">
             <Pagination
               page={page}
