@@ -183,17 +183,7 @@ function BudgetsContent() {
     }
   }, [visibleColumns]);
 
-  const toggleColumn = (key: ColKey, next: boolean) => {
-    setVisibleColumns((prev) => {
-      const nextState = { ...prev, [key]: next } as Record<ColKey, boolean>;
-      const visibleCount = Object.values(nextState).filter(Boolean).length;
-      if (visibleCount === 0) {
-        // prevent hiding all columns
-        return prev;
-      }
-      return nextState;
-    });
-  };
+  // legacy manual column toggle handler removed (unused)
 
   const hiddenIndexes = columns
     .map((c, idx) => (!visibleColumns[c.key] ? idx + 1 : null))
@@ -331,7 +321,9 @@ function BudgetsContent() {
                         checked={column.getIsVisible()}
                         onCheckedChange={(value) => column.toggleVisibility(Boolean(value))}
                       >
-                        {(column.columnDef as any).meta?.label ?? column.id}
+                        {(
+                          column.columnDef.meta as { label?: string } | undefined
+                        )?.label ?? column.id}
                       </DropdownMenuCheckboxItem>
                     ))}
                 </DropdownMenuContent>
@@ -347,7 +339,9 @@ function BudgetsContent() {
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className={(header.column.columnDef as any).meta?.className}
+                      className={(
+                        header.column.columnDef.meta as { className?: string } | undefined
+                      )?.className}
                     >
                       {header.isPlaceholder
                         ? null

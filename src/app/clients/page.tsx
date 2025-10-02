@@ -12,14 +12,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorAlert } from "@/components/ui/error-alert";
-import { Users, Columns2 } from "lucide-react";
+import { Users } from "lucide-react";
 import type { Client } from "@/types/models";
 import type { PaginatedResponse } from "@/types/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SecureRoute } from "@/components/auth/ProtectedRoute";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable, type VisibilityState } from "@tanstack/react-table";
+import { ColumnDef, flexRender } from "@tanstack/react-table";
+import { ColumnVisibilityDropdown, useTableWithColumnVisibility } from "@/components/ui/column-visibility";
 
 function ClientsContent() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -65,30 +65,10 @@ function ClientsContent() {
     },
   ];
 
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
-    if (typeof window === "undefined") return {};
-    try {
-      const saved = localStorage.getItem("clients.table.columnVisibility");
-      return saved ? (JSON.parse(saved) as VisibilityState) : {};
-    } catch {
-      return {};
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("clients.table.columnVisibility", JSON.stringify(columnVisibility));
-    } catch {
-      /* ignore */
-    }
-  }, [columnVisibility]);
-
-  const table = useReactTable({
+  const { table } = useTableWithColumnVisibility<Client>({
     data: clients,
     columns,
-    state: { columnVisibility },
-    onColumnVisibilityChange: setColumnVisibility,
-    getCoreRowModel: getCoreRowModel(),
+    storageKey: "clients.table.columnVisibility",
   });
 
   const fetchClients = async () => {
@@ -214,30 +194,7 @@ function ClientsContent() {
                   <SelectItem value="50">50</SelectItem>
                 </SelectContent>
               </Select>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="whitespace-nowrap">
-                    <Columns2 className="mr-2 h-4 w-4" /> Colunas
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Mostrar colunas</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {table
-                    .getAllLeafColumns()
-                    .filter((column) => column.getCanHide())
-                    .map((column) => (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize"
-                        checked={column.getIsVisible()}
-                        onCheckedChange={(value) => column.toggleVisibility(Boolean(value))}
-                      >
-                        {(column.columnDef as any).meta?.label ?? column.id}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ColumnVisibilityDropdown table={table} />
             </ToolbarSection>
           </Toolbar>
           {error && <ErrorAlert message={error} onRetry={fetchClients} />}

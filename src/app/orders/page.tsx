@@ -15,13 +15,13 @@ import { ErrorAlert } from "@/components/ui/error-alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatCurrencyBRL } from "@/lib/utils";
-import { Book, Columns2 } from "lucide-react";
+import { Book } from "lucide-react";
 import type { Order, Client, Center } from "@/types/models";
 import type { PaginatedResponse } from "@/types/api";
 import { toast } from "sonner";
 import { SecureRoute } from "@/components/auth/ProtectedRoute";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable, type VisibilityState } from "@tanstack/react-table";
+import { ColumnDef, flexRender } from "@tanstack/react-table";
+import { ColumnVisibilityDropdown, useTableWithColumnVisibility } from "@/components/ui/column-visibility";
 
 function OrdersContent() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -113,30 +113,10 @@ function OrdersContent() {
     },
   ];
 
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
-    if (typeof window === "undefined") return {};
-    try {
-      const saved = localStorage.getItem("orders.table.columnVisibility");
-      return saved ? (JSON.parse(saved) as VisibilityState) : {};
-    } catch {
-      return {};
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("orders.table.columnVisibility", JSON.stringify(columnVisibility));
-    } catch {
-      /* ignore */
-    }
-  }, [columnVisibility]);
-
-  const table = useReactTable({
+  const { table } = useTableWithColumnVisibility<Order>({
     data: orders,
     columns,
-    state: { columnVisibility },
-    onColumnVisibilityChange: setColumnVisibility,
-    getCoreRowModel: getCoreRowModel(),
+    storageKey: "orders.table.columnVisibility",
   });
 
   const fetchOrders = async () => {
@@ -356,30 +336,7 @@ function OrdersContent() {
                   <SelectItem value="50">50</SelectItem>
                 </SelectContent>
               </Select>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="whitespace-nowrap">
-                    <Columns2 className="mr-2 h-4 w-4" /> Colunas
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Mostrar colunas</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {table
-                    .getAllLeafColumns()
-                    .filter((column) => column.getCanHide())
-                    .map((column) => (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize"
-                        checked={column.getIsVisible()}
-                        onCheckedChange={(value) => column.toggleVisibility(Boolean(value))}
-                      >
-                        {(column.columnDef as any).meta?.label ?? column.id}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ColumnVisibilityDropdown table={table} />
             </ToolbarSection>
           </Toolbar>
           {error && <ErrorAlert message={error} onRetry={fetchOrders} />}
