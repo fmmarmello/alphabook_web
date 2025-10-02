@@ -1,29 +1,14 @@
 [build]
-  base = "/"
-  command = "npm install && npm run prisma:generate && npm run build"
+  command = "pnpm install && pnpm run prisma:generate && pnpm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
   NPM_VERSION = "9"
+  PNPM_VERSION = "8"
   NEXT_TELEMETRY_DISABLED = "1"
 
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
-
-# Handle Next.js non-dynamic routes
-[[redirects]]
-  from = "/_next/static/*"
-  to = "/_next/static/:splat"
-  status = 200
-
-# Handle all other routes with Next.js
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-[functions]
-  node_version = "20"
