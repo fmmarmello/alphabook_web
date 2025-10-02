@@ -5,14 +5,12 @@ const nextConfig: NextConfig = {
     // Block production builds on ESLint errors
     ignoreDuringBuilds: false,
   },
-  // Configure for Netlify Functions
+  // Configure for Netlify deployment
   images: {
     unoptimized: true,
   },
   // Ensure API routes work correctly
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client'],
-  },
+  serverExternalPackages: ['@prisma/client'],
 };
 
 export default nextConfig;

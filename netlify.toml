@@ -1,14 +1,12 @@
 [build]
-  command = "pnpm install && pnpm run prisma:generate && pnpm run build"
+  command = "npm install && npm run prisma:generate && npm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
   NPM_VERSION = "9"
-  PNPM_VERSION = "8"
   NEXT_TELEMETRY_DISABLED = "1"
 
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+# Use Netlify's Next.js Runtime
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

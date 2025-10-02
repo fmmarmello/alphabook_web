@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
       {
         userId: user.id,
         email: user.email,
+        name: user.name,
         role: user.role,
       },
       JWT_SECRET,
