@@ -1,26 +1,19 @@
 import { CenterForm } from "@/components/forms/center-form";
 import { notFound } from "next/navigation";
 import type { Center } from "@/types/models";
+import { serverApiCall } from "@/lib/server-auth";
 
 async function getCenter(id: string): Promise<Center | null> {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/centers/${id}`, {
-      cache: 'no-store'
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.data;
-  } catch {
-    return null;
-  }
+  return await serverApiCall<Center>(`/api/centers/${id}`);
 }
 
 export default async function EditCenterPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  const center = await getCenter(params.id);
+  const { id } = await params;
+  const center = await getCenter(id);
   
   if (!center) {
     notFound();

@@ -1,18 +1,10 @@
 import { BudgetForm } from "@/components/forms/budget-form";
 import { notFound } from "next/navigation";
 import type { Budget } from "@/types/models";
+import { serverApiCall } from "@/lib/server-auth";
 
 async function getBudget(id: string): Promise<Budget | null> {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/budgets/${id}`, {
-      cache: 'no-store'
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.data;
-  } catch {
-    return null;
-  }
+  return await serverApiCall<Budget>(`/api/budgets/${id}`);
 }
 
 export default async function EditBudgetPage({
