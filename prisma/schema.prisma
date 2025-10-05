@@ -14,28 +14,73 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum BudgetStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  CONVERTED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PRODUCTION
+  COMPLETED
+  DELIVERED
+  CANCELLED
+  ON_HOLD
+}
+
+enum OrderType {
+  BUDGET_DERIVED
+  DIRECT_ORDER
+  RUSH_ORDER
+}
+
 model Client {
-  id      Int    @id @default(autoincrement())
-  name    String
-  cnpjCpf String
-  phone   String
-  email   String
-  address String
-  orders  Order[]
+  id        Int      @id @default(autoincrement())
+  name      String
+  cnpjCpf   String
+  phone     String
+  email     String
+  address   String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  
+  // Relationships
+  orders    Order[]
+  budgets   Budget[]
+  
+  @@index([cnpjCpf])
+  @@index([email])
+  @@index([active])
 }
 
 model Center {
-  id    Int    @id @default(autoincrement())
-  name  String
-  type  String
-  obs   String
-  orders Order[]
+  id        Int      @id @default(autoincrement())
+  name      String
+  type      String
+  obs       String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  
+  // Relationships
+  orders    Order[]
+  budgets   Budget[]
+  
+  @@index([active])
+  @@index([type])
 }
 
 model Order {
-  id                  Int      @id @default(autoincrement())
+  id                  Int         @id @default(autoincrement())
   clientId            Int
   centerId            Int
+  budgetId            Int?        @unique
+  orderType           OrderType   @default(DIRECT_ORDER)
   title               String
   tiragem             Int
   formato             String
@@ -45,9 +90,10 @@ model Order {
   valorTotal          Float
   prazoEntrega        String
   obs                 String
-  date                DateTime @default(now())
-  client              Client   @relation(fields: [clientId], references: [id])
-  center              Center   @relation(fields: [centerId], references: [id])
+  date                DateTime    @default(now())
+  status              OrderStatus @default(PENDING)
+  
+  // Extended fields
   numero_pedido       String?
   data_pedido         DateTime?
   data_entrega        DateTime?
@@ -64,14 +110,29 @@ model Order {
   shrink              String?
   pagamento           String?
   frete               String?
-  status              String    @default("Pendente")
-  budgets             Budget[]
+  
+  // Relationships
+  client              Client   @relation(fields: [clientId], references: [id])
+  center              Center   @relation(fields: [centerId], references: [id])
+  budget              Budget?  @relation(fields: [budgetId], references: [id])
+  
+  @@index([clientId])
+  @@index([centerId])
+  @@index([budgetId])
+  @@index([status])
+  @@index([orderType])
+  @@index([date])
 }
 
 model Budget {
-  id                  Int       @id @default(autoincrement())
+  id                  Int          @id @default(autoincrement())
+  clientId            Int?
+  centerId            Int?
+  status              BudgetStatus @default(DRAFT)
+  
+  // Core fields
   numero_pedido       String?
-  data_pedido         DateTime  @default(now())
+  data_pedido         DateTime     @default(now())
   data_entrega        DateTime?
   solicitante         String?
   documento           String?
@@ -96,9 +157,31 @@ model Budget {
   prazo_producao      String?
   pagamento           String?
   frete               String?
-  approved            Boolean   @default(false)
-  orderId             Int?      @unique
-  order               Order?    @relation(fields: [orderId], references: [id])
+  
+  // Audit trail fields
+  submittedAt         DateTime?
+  approvedAt          DateTime?
+  rejectedAt          DateTime?
+  cancelledAt         DateTime?
+  convertedAt         DateTime?
+  approvedById        Int?
+  rejectedById        Int?
+  
+  // Legacy compatibility
+  approved            Boolean      @default(false)
+  
+  // Relationships
+  client              Client?      @relation(fields: [clientId], references: [id])
+  center              Center?      @relation(fields: [centerId], references: [id])
+  order               Order?
+  approvedBy          User?        @relation("BudgetApprovedBy", fields: [approvedById], references: [id])
+  rejectedBy          User?        @relation("BudgetRejectedBy", fields: [rejectedById], references: [id])
+  
+  @@index([clientId])
+  @@index([centerId])
+  @@index([status])
+  @@index([approvedById])
+  @@index([data_pedido])
 }
 
 enum Role {
@@ -108,11 +191,18 @@ enum Role {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                    Int      @id @default(autoincrement())
+  email                 String   @unique
+  password              String
+  name                  String
+  role                  Role     @default(USER)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // Budget approval relationships
+  budgetsApproved       Budget[] @relation("BudgetApprovedBy")
+  budgetsRejected       Budget[] @relation("BudgetRejectedBy")
+  
+  @@index([email])
+  @@index([role])
 }

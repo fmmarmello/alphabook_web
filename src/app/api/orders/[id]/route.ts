@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { OrderSchema } from "@/lib/validation";
 import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
+import { OrderStatus } from "@/generated/prisma";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -100,19 +101,49 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       }, { status: 400 });
     }
     
-    const exists = await prisma.order.findUnique({ where: { id } });
-    if (!exists) {
+    const currentOrder = await prisma.order.findUnique({ where: { id } });
+    if (!currentOrder) {
       return NextResponse.json({
-        error: { message: "Ordem não encontrada", details: null }
+        error: { message: "Pedido não encontrado", details: null }
       }, { status: 404 });
     }
-    
+
+    // ✅ SECURITY: Prevent changes to budgetId and orderType after creation
+    if (parsed.data.budgetId && parsed.data.budgetId !== currentOrder.budgetId) {
+      return NextResponse.json({
+        error: { 
+          message: "Não é possível alterar o orçamento vinculado após a criação do pedido", 
+          details: { currentBudgetId: currentOrder.budgetId, attemptedBudgetId: parsed.data.budgetId } 
+        }
+      }, { status: 400 });
+    }
+
+    if (parsed.data.orderType && parsed.data.orderType !== currentOrder.orderType) {
+      return NextResponse.json({
+        error: { 
+          message: "Não é possível alterar o tipo do pedido após a criação", 
+          details: { currentOrderType: currentOrder.orderType, attemptedOrderType: parsed.data.orderType } 
+        }
+      }, { status: 400 });
+    }
+
+    // ✅ SECURITY: Status changes should use the dedicated status API
+    if (parsed.data.status && parsed.data.status !== currentOrder.status) {
+      return NextResponse.json({
+        error: { 
+          message: "Use a API dedicada para mudanças de status: PATCH /api/orders/:id/status", 
+          details: { statusEndpoint: `/api/orders/${id}/status` } 
+        }
+      }, { status: 400 });
+    }
+
+    // Validate client and center if they are being changed
     const [client, center] = await Promise.all([
-      prisma.client.findUnique({ where: { id: parsed.data.clientId } }),
-      prisma.center.findUnique({ where: { id: parsed.data.centerId } }),
+      parsed.data.clientId ? prisma.client.findUnique({ where: { id: parsed.data.clientId } }) : null,
+      parsed.data.centerId ? prisma.center.findUnique({ where: { id: parsed.data.centerId } }) : null,
     ]);
     
-    if (!client) {
+    if (parsed.data.clientId && !client) {
       return NextResponse.json({
         error: {
           message: "Cliente não encontrado",
@@ -120,8 +151,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         }
       }, { status: 400 });
     }
+
+    if (parsed.data.clientId && client && !client.active) {
+      return NextResponse.json({
+        error: {
+          message: "Cliente não está ativo",
+          details: { clientId: parsed.data.clientId }
+        }
+      }, { status: 400 });
+    }
     
-    if (!center) {
+    if (parsed.data.centerId && !center) {
       return NextResponse.json({
         error: {
           message: "Centro de produção não encontrado",
@@ -129,8 +169,32 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         }
       }, { status: 400 });
     }
+
+    if (parsed.data.centerId && center && !center.active) {
+      return NextResponse.json({
+        error: {
+          message: "Centro de produção não está ativo",
+          details: { centerId: parsed.data.centerId }
+        }
+      }, { status: 400 });
+    }
     
-    const updated = await prisma.order.update({ where: { id }, data: parsed.data });
+    // Prepare update data, excluding protected fields
+    const { budgetId: _budgetId, orderType: _orderType, status: _status, ...updateData } = parsed.data;
+    void _budgetId; void _orderType; void _status; // Suppress unused variable warnings
+
+    // Add audit trail for significant changes
+    const timestamp = new Date().toISOString();
+    const auditEntry = `[${timestamp}] Pedido atualizado por ${user.email}`;
+    const newObs = currentOrder.obs ? `${currentOrder.obs}\n${auditEntry}` : auditEntry;
+    
+    const updated = await prisma.order.update({ 
+      where: { id }, 
+      data: {
+        ...updateData,
+        obs: newObs
+      }
+    });
     
     return NextResponse.json({
       data: updated,
@@ -172,19 +236,58 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }, { status: 400 });
     }
     
-    const exists = await prisma.order.findUnique({ where: { id } });
-    if (!exists) {
+    const currentOrder = await prisma.order.findUnique({ where: { id } });
+    if (!currentOrder) {
       return NextResponse.json({
-        error: { message: "Ordem não encontrada", details: null }
+        error: { message: "Pedido não encontrado", details: null }
       }, { status: 404 });
     }
 
+    // ✅ SECURITY: Prevent changes to budgetId and orderType after creation
+    if (parsed.data.budgetId !== undefined && parsed.data.budgetId !== currentOrder.budgetId) {
+      return NextResponse.json({
+        error: { 
+          message: "Não é possível alterar o orçamento vinculado após a criação do pedido", 
+          details: { currentBudgetId: currentOrder.budgetId, attemptedBudgetId: parsed.data.budgetId } 
+        }
+      }, { status: 400 });
+    }
+
+    if (parsed.data.orderType !== undefined && parsed.data.orderType !== currentOrder.orderType) {
+      return NextResponse.json({
+        error: { 
+          message: "Não é possível alterar o tipo do pedido após a criação", 
+          details: { currentOrderType: currentOrder.orderType, attemptedOrderType: parsed.data.orderType } 
+        }
+      }, { status: 400 });
+    }
+
+    // ✅ SECURITY: Status changes should use the dedicated status API
+    if (parsed.data.status !== undefined && parsed.data.status !== currentOrder.status) {
+      return NextResponse.json({
+        error: { 
+          message: "Use a API dedicada para mudanças de status: PATCH /api/orders/:id/status", 
+          details: { statusEndpoint: `/api/orders/${id}/status` } 
+        }
+      }, { status: 400 });
+    }
+
+    // Validate client and center if they are being changed
     if (parsed.data.clientId) {
       const client = await prisma.client.findUnique({ where: { id: parsed.data.clientId } });
       if (!client) {
         return NextResponse.json({
           error: {
             message: "Cliente não encontrado",
+            details: { clientId: parsed.data.clientId }
+          }
+        }, { status: 400 });
+      }
+
+      if (!client.active) {
+        return NextResponse.json({
+          error: {
+            message: "Cliente não está ativo",
             details: { clientId: parsed.data.clientId }
           }
         }, { status: 400 });
@@ -201,9 +304,33 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           }
         }, { status: 400 });
       }
+
+      if (!center.active) {
+        return NextResponse.json({
+          error: {
+            message: "Centro de produção não está ativo",
+            details: { centerId: parsed.data.centerId }
+          }
+        }, { status: 400 });
+      }
     }
 
-    const updated = await prisma.order.update({ where: { id }, data: parsed.data });
+    // Prepare update data, excluding protected fields
+    const { budgetId: _budgetId, orderType: _orderType, status: _status, ...updateData } = parsed.data;
+    void _budgetId; void _orderType; void _status; // Suppress unused variable warnings
+
+    // Add audit trail for significant changes
+    const timestamp = new Date().toISOString();
+    const auditEntry = `[${timestamp}] Pedido parcialmente atualizado por ${user.email}`;
+    const newObs = currentOrder.obs ? `${currentOrder.obs}\n${auditEntry}` : auditEntry;
+
+    const updated = await prisma.order.update({ 
+      where: { id }, 
+      data: {
+        ...updateData,
+        obs: newObs
+      }
+    });
     
     return NextResponse.json({
       data: updated,

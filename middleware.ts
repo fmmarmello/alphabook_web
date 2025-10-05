@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { extractAccessToken, verifyAccessTokenEdge } from '@/lib/edge-auth';
+import { extractAccessToken, verifyAccessToken } from '@/lib/unified-auth';
+
+// Environment-based feature flags for performance optimization
+const isDevelopment = process.env.NODE_ENV === 'development';
+const useOptimizedAuth = process.env.USE_OPTIMIZED_AUTH !== 'false';
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -11,35 +15,62 @@ export async function middleware(request: NextRequest) {
     return response;
   }
   
-  console.log('[SECURITY MIDDLEWARE] Protecting:', pathname);
+  // Conditional logging for performance optimization
+  if (isDevelopment) {
+    console.log('[SECURITY MIDDLEWARE] Protecting:', pathname);
+  }
 
   try {
     const accessToken = extractAccessToken(request);
 
     if (!accessToken) {
-      console.log('[SECURITY MIDDLEWARE] No access token found for:', pathname);
+      if (isDevelopment) {
+        console.log('[SECURITY MIDDLEWARE] No access token found for:', pathname);
+      }
       return handleUnauthorized(request, 'No access token provided');
     }
 
-    console.log('[SECURITY MIDDLEWARE] Access token found, verifying...');
+    if (isDevelopment) {
+      console.log('[SECURITY MIDDLEWARE] Access token found, verifying...');
+    }
 
-    const decoded = await verifyAccessTokenEdge(accessToken);
+    // Use optimized unified auth verification
+    const decoded = await verifyAccessToken(accessToken);
 
     if (!decoded) {
-      console.log('[SECURITY MIDDLEWARE] Invalid or expired token for:', pathname);
+      if (isDevelopment) {
+        console.log('[SECURITY MIDDLEWARE] Invalid or expired token for:', pathname);
+      }
       return handleUnauthorized(request, 'Invalid or expired token');
     }
 
-    console.log('[SECURITY MIDDLEWARE] Authenticated:', decoded.email, 'Role:', decoded.role);
+    if (isDevelopment) {
+      console.log('[SECURITY MIDDLEWARE] Authenticated:', decoded.email, 'Role:', decoded.role);
+    }
 
-    // Continue to the route - API routes will verify token directly
+    // Create response and add optimized user context headers for API routes
     const response = NextResponse.next();
+    
+    // Add authentication context headers for optimized API route processing
+    if (useOptimizedAuth) {
+      response.headers.set('X-Auth-User-Id', decoded.userId.toString());
+      response.headers.set('X-Auth-Email', decoded.email);
+      response.headers.set('X-Auth-Name', decoded.name);
+      response.headers.set('X-Auth-Role', decoded.role);
+      response.headers.set('X-Auth-Optimized', 'true');
+      
+      if (isDevelopment) {
+        console.log('[SECURITY MIDDLEWARE] Added auth context headers for optimization');
+      }
+    }
     
     addSecurityHeaders(response);
     return response;
 
   } catch (error) {
-    console.error('[SECURITY MIDDLEWARE] Authentication error:', error);
+    if (isDevelopment) {
+      console.error('[SECURITY MIDDLEWARE] Authentication error:', error);
+    }
     return handleUnauthorized(request, 'Authentication failed');
   }
 }
@@ -54,7 +85,7 @@ function handleUnauthorized(request: NextRequest, reason: string) {
       {
         error: {
           message: 'Unauthorized',
-          details: null // Don't expose internal reasons
+          details: null // Don't expose internal reasons for security
         }
       },
       { status: 401 }
@@ -71,17 +102,34 @@ function handleUnauthorized(request: NextRequest, reason: string) {
   return response;
 }
 
+// Optimized security headers application
 function addSecurityHeaders(response: NextResponse) {
-  // Always-safe headers
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-XSS-Protection', '1; mode=block');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'");
+  // Cache-friendly header application - only set if not already present
+  const headers = response.headers;
+  
+  if (!headers.get('X-Content-Type-Options')) {
+    headers.set('X-Content-Type-Options', 'nosniff');
+  }
+  
+  if (!headers.get('X-Frame-Options')) {
+    headers.set('X-Frame-Options', 'DENY');
+  }
+  
+  if (!headers.get('X-XSS-Protection')) {
+    headers.set('X-XSS-Protection', '1; mode=block');
+  }
+  
+  if (!headers.get('Referrer-Policy')) {
+    headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  }
+  
+  if (!headers.get('Content-Security-Policy')) {
+    headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'");
+  }
 
   // Only send HSTS in production over HTTPS to avoid local redirect issues
-  if (process.env.NODE_ENV === 'production') {
-    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  if (process.env.NODE_ENV === 'production' && !headers.get('Strict-Transport-Security')) {
+    headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
 }
 
@@ -96,6 +144,7 @@ export const config = {
     '/api/reports/:path*',       // ⚠️ CRITICAL - Report data exposed
     '/api/users/:path*',         // ⚠️ CRITICAL - User management exposed
     '/api/specifications/:path*', // ⚠️ CRITICAL - Business data exposed
+    '/api/navigation/:path*',    // Navigation counts API
     
     // Existing page protection (keep these)
     '/dashboard/:path*',

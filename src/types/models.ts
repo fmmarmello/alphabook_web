@@ -9,6 +9,9 @@ export interface Client {
   phone: string
   email: string
   address: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export interface Center {
@@ -16,12 +19,41 @@ export interface Center {
   name: string
   type: string
   obs: string
+  active?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
+
+// Order status enum matching Prisma schema
+export type OrderStatus = 
+  | 'PENDING'
+  | 'IN_PRODUCTION'
+  | 'COMPLETED'
+  | 'DELIVERED'
+  | 'CANCELLED'
+  | 'ON_HOLD'
+
+// Order type enum matching Prisma schema
+export type OrderType = 
+  | 'BUDGET_DERIVED'
+  | 'DIRECT_ORDER'
+  | 'RUSH_ORDER'
+
+// Budget status enum matching Prisma schema
+export type BudgetStatus = 
+  | 'DRAFT'
+  | 'SUBMITTED' 
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'CONVERTED'
+  | 'CANCELLED'
 
 export interface Order {
   id: number
   clientId: number
   centerId: number
+  budgetId?: number | null
+  orderType: OrderType
   title: string
   tiragem: number
   formato: string
@@ -32,8 +64,9 @@ export interface Order {
   prazoEntrega: string
   obs: string
   date: Date | string
+  status: OrderStatus
   
-  // Optional fields
+  // Extended fields
   numero_pedido?: string | null
   data_pedido?: Date | string | null
   data_entrega?: Date | string | null
@@ -50,15 +83,20 @@ export interface Order {
   shrink?: string | null
   pagamento?: string | null
   frete?: string | null
-  status?: string
   
   // Relations
   client?: Client
   center?: Center
+  budget?: Budget | null
 }
 
 export interface Budget {
   id: number
+  clientId?: number | null
+  centerId?: number | null
+  status: BudgetStatus
+  
+  // Core fields
   numero_pedido?: string | null
   data_pedido: Date | string
   data_entrega?: Date | string | null
@@ -85,9 +123,44 @@ export interface Budget {
   prazo_producao?: string | null
   pagamento?: string | null
   frete?: string | null
-  approved: boolean
-  orderId?: number | null
+  
+  // Audit trail fields
+  submittedAt?: Date | string | null
+  approvedAt?: Date | string | null
+  rejectedAt?: Date | string | null
+  cancelledAt?: Date | string | null
+  convertedAt?: Date | string | null
+  approvedById?: number | null
+  rejectedById?: number | null
+  
+  // Legacy compatibility
+  approved?: boolean
+  
+  // Relations
+  client?: Client | null
+  center?: Center | null
   order?: Order | null
+  approvedBy?: User | null
+  rejectedBy?: User | null
+}
+
+// User role enum
+export type Role = 
+  | 'USER'
+  | 'MODERATOR'
+  | 'ADMIN'
+
+export interface User {
+  id: number
+  email: string
+  name: string
+  role: Role
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  
+  // Relations for budget approval tracking
+  budgetsApproved?: Budget[]
+  budgetsRejected?: Budget[]
 }
 
 export interface DashboardSummary {
@@ -104,9 +177,10 @@ export interface RecentOrder extends Pick<Order, 'id' | 'title' | 'valorTotal' |
 
 export type RecentClient = Pick<Client, 'id' | 'name' | 'email' | 'phone' | 'cnpjCpf'>;
 
-export type OrderStatus = 
-  | 'Pendente'
-  | 'Em produção'
-  | 'Finalizado'
-  | 'Entregue'
-  | 'Cancelado'
+// Order status change payload
+export interface OrderStatusChange {
+  status: OrderStatus
+  reason?: string
+  timestamp?: Date | string
+  changedBy?: number
+}

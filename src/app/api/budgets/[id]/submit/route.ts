@@ -8,9 +8,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
     const user = getAuthenticatedUser(req);
     
-    // ✅ SECURITY: Budget approval requires MODERATOR or ADMIN role
+    // ✅ SECURITY: Budget submission requires MODERATOR or ADMIN role
     if (user.role === Role.USER) {
-      throw new ApiAuthError('Insufficient permissions to approve budgets', 403);
+      throw new ApiAuthError('Insufficient permissions to submit budgets', 403);
     }
 
     const { id: paramId } = await params;
@@ -35,10 +35,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }, { status: 404 });
     }
 
-    // ✅ VALIDATION: Check if budget can be approved
-    if (budget.status !== 'SUBMITTED') {
+    // ✅ VALIDATION: Check if budget can be submitted
+    if (budget.status !== 'DRAFT') {
       return NextResponse.json({
-        error: { message: "Apenas orçamentos enviados para aprovação podem ser aprovados", details: null }
+        error: { message: "Apenas orçamentos em rascunho podem ser enviados para aprovação", details: null }
       }, { status: 400 });
     }
 
@@ -49,43 +49,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }, { status: 400 });
     }
 
-    // ✅ VALIDATION: Verify client and center still exist and are active
-    const [client, center] = await Promise.all([
-      prisma.client.findFirst({ 
-        where: { id: budget.clientId, active: true },
-        select: { id: true, name: true }
-      }),
-      prisma.center.findFirst({ 
-        where: { id: budget.centerId, active: true },
-        select: { id: true, name: true }
-      })
-    ]);
-
-    if (!client) {
-      return NextResponse.json({
-        error: { message: "Cliente associado ao orçamento não foi encontrado ou está inativo", details: null }
-      }, { status: 400 });
-    }
-
-    if (!center) {
-      return NextResponse.json({
-        error: { message: "Centro de produção associado ao orçamento não foi encontrado ou está inativo", details: null }
-      }, { status: 400 });
-    }
-
-    // Update budget status to APPROVED with audit trail
+    // Update budget status to SUBMITTED with timestamp
     const updatedBudget = await prisma.budget.update({
       where: { id },
       data: { 
-        status: 'APPROVED',
-        approvedAt: new Date(),
-        approvedById: user.userId,
-        approved: true // Keep legacy field for compatibility
+        status: 'SUBMITTED',
+        submittedAt: new Date()
       },
       include: {
         client: { select: { id: true, name: true } },
-        center: { select: { id: true, name: true } },
-        approvedBy: { select: { id: true, name: true } }
+        center: { select: { id: true, name: true } }
       }
     });
 
@@ -99,4 +72,3 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json(apiError, { status });
   }
 }
-

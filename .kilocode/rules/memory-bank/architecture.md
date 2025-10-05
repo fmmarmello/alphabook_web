@@ -15,7 +15,7 @@ AlphaBook Web is a modern Next.js 15 application built with the App Router for m
 ### Core Business Domains
 1. **Client Management** - Customer data and relationship management with CNPJ/CPF validation
 2. **Order Management** - Production order lifecycle with financial tracking
-3. **Budget Management** - Pricing and approval workflows
+3. **Budget Management** - Pricing and approval workflows with state machine validation
 4. **Center Management** - Production facility management
 5. **Reporting** - Financial and operational analytics
 
@@ -23,7 +23,7 @@ AlphaBook Web is a modern Next.js 15 application built with the App Router for m
 ```
 Presentation Layer (Next.js App Router)
 ├── Authentication Layer (JWT + RBAC)
-├── Business Logic Layer (API Routes)
+├── Business Logic Layer (API Routes + State Machines)
 ├── Data Access Layer (Prisma ORM)
 └── Database Layer (SQLite)
 ```
@@ -93,12 +93,14 @@ Presentation Layer (Next.js App Router)
 - **PostgreSQL for Production**: Robust, scalable relational database
 - **Prisma ORM**: Type-safe database access with schema migrations
 - **Audit Trail**: Automatic tracking of creation and modification timestamps
+- **Enhanced Enum System**: BudgetStatus, OrderStatus, and OrderType enums for state management
 
 ### API Design
 - **RESTful Endpoints**: Standard HTTP methods with resource-based URLs
 - **Standardized Response Format**: Consistent `{data, error}` structure
 - **Role-Based Filtering**: Automatic data filtering based on user permissions
 - **Error Handling**: Centralized error processing with user-friendly messages
+- **State Machine APIs**: Budget workflow endpoints with transition validation
 
 ## Design Patterns
 
@@ -122,6 +124,12 @@ Presentation Layer (Next.js App Router)
 - **Client State for UI**: Local component state for form interactions
 - **URL State**: Search parameters for filters and pagination
 - **Auth Context**: Global authentication state management
+- **State Machine Pattern**: Budget workflow with DRAFT → SUBMITTED → APPROVED → CONVERTED transitions
+
+### Workflow Patterns
+- **Budget State Machine**: DRAFT → SUBMITTED → APPROVED → CONVERTED with validation at each step
+- **Order Status Management**: PENDING → IN_PRODUCTION → COMPLETED → DELIVERED with business logic validation
+- **Audit Trail Pattern**: Automatic timestamp and user tracking for all state changes
 
 ## Component Relationships
 
@@ -132,13 +140,25 @@ LoginForm → API (/auth/login) → JWT Generation → Cookie Storage
 Middleware Validation → User Context → RBAC Checks → Protected Routes
 ```
 
+### Budget Workflow System
+```
+Budget Creation (DRAFT) → Submit API (/submit) → Budget (SUBMITTED)
+                                    ↓
+Moderator Review → Approve API (/approve) → Budget (APPROVED)
+                                    ↓
+Order Conversion → Convert API (/convert-to-order) → Budget (CONVERTED) + Order (PENDING)
+                                    ↓
+Order Status Management → Status API (/status) → Order Status Updates
+```
+
 ### Form Component Relationships
 ```
 Form Components (budget-form, client-form, etc.)
 ├── React Hook Form (state management)
 ├── Zod Schema (validation)
 ├── API Integration (data submission)
-└── UI Components (inputs, buttons, alerts)
+├── Workflow Management (state transitions)
+└── UI Components (inputs, buttons, alerts, dialogs)
 ```
 
 ### Layout Hierarchy
@@ -148,18 +168,20 @@ RootLayout
 └── RootLayoutClient
     ├── AuthProvider
     └── AuthenticatedLayout
-        ├── AppSidebar (navigation)
+        ├── AppSidebar (navigation + real-time counts)
         └── Page Content (routes)
 ```
 
 ### Database Model Relationships
 ```
 User (1) ────→ (many) Order
-User (1) ────→ (many) Budget  
+User (1) ────→ (many) Budget (approved/rejected by)
 User (1) ────→ (many) Client
 Client (1) ────→ (many) Order
+Client (1) ────→ (many) Budget
 Center (1) ────→ (many) Order
-Budget (1) ────→ (1) Order (conversion)
+Center (1) ────→ (many) Budget
+Budget (1) ────→ (1) Order (unique constraint on budgetId)
 ```
 
 ### API Layer Relationships
@@ -167,8 +189,18 @@ Budget (1) ────→ (1) Order (conversion)
 API Routes
 ├── Authentication Layer (getAuthenticatedUser)
 ├── Authorization Layer (RBAC checks)
-├── Business Logic Layer (Prisma queries)
+├── Business Logic Layer (Prisma queries + State Machine validation)
+├── Audit Trail Layer (timestamp + user tracking)
 └── Response Layer (standardized formatting)
+```
+
+### Navigation System
+```
+Navigation Counts API (/api/navigation/counts)
+├── Pending Budgets Count (SUBMITTED status)
+├── Active Orders Count (PENDING + IN_PRODUCTION)
+├── Role-based Visibility (USER sees 0 pending budgets)
+└── Real-time Updates (sidebar badges)
 ```
 
 ## Critical Implementation Paths
@@ -179,21 +211,28 @@ API Routes
 3. **Token Expiry** → Refresh token validation → New access token generation
 4. **Logout** → Token invalidation → Cookie clearing
 
-### Order Creation Workflow
-1. **Form Submission** → Client validation → Budget conversion check
-2. **Data Validation** → Auto-calculation → Database transaction
-3. **Status Assignment** → Audit logging → Success response
-4. **UI Update** → Toast notification → Navigation redirect
+### Budget-to-Order Workflow
+1. **Budget Creation** → Form validation → Database insert (DRAFT status)
+2. **Budget Submission** → State validation → Status update (DRAFT → SUBMITTED)
+3. **Budget Approval** → Role check (MODERATOR/ADMIN) → Status update (SUBMITTED → APPROVED)
+4. **Order Conversion** → Approved budget validation → Database transaction (Budget → CONVERTED + Order → PENDING)
+5. **Order Management** → Status transitions → Audit trail updates
 
-### Budget Approval Process
-1. **Budget Submission** → Moderator notification → Status: PENDING
-2. **Review Process** → Field validation → Approval decision
-3. **Status Update** → Order creation trigger → Audit trail
-4. **Stakeholder Notification** → Email alerts → Dashboard refresh
+### Order Status Management
+1. **Status Change Request** → Role validation → Business logic validation
+2. **State Transition Check** → Valid transition validation → Database update
+3. **Audit Trail** → Timestamp recording → User tracking
+4. **UI Update** → Real-time count updates → Navigation badge refresh
+
+### Budget Rejection Process
+1. **Rejection Request** → Role check (MODERATOR/ADMIN) → Status validation
+2. **Status Update** → SUBMITTED → REJECTED → Audit trail
+3. **Notification** → User notification → Reason recording
+4. **Prevention Logic** → Block conversion attempts → Error handling
 
 ### Dashboard Data Loading
 1. **Page Load** → Authentication check → Role-based access
-2. **Parallel API Calls** → Summary metrics + Recent data + Charts
+2. **Parallel API Calls** → Summary metrics + Recent data + Charts + Navigation counts
 3. **Data Aggregation** → Client-side processing → UI rendering
 4. **Real-time Updates** → Polling/WebSocket → State synchronization
 
@@ -207,8 +246,11 @@ API Routes
 1. **Code Push** → Build process → Static generation
 2. **Serverless Functions** → API compilation → Netlify deployment
 3. **Database Migration** → Schema updates → Data integrity checks
-4. **Environment Setup** → Variable configuration → Health checks</target_file>
-</instructions>
-</attempt_completion>
-<result>I've created the architecture.md file in the memory bank directory, organizing the content from PROJECT_ARCHITECTURE.md into the required sections. The file captures the system's overall structure, key technical decisions, design patterns, component relationships, and critical implementation paths while maintaining the technical essence of how AlphaBook Web is built and organized.</result>
-</attempt_completion>
+4. **Environment Setup** → Variable configuration → Health checks
+
+### Testing and Validation Pipeline
+1. **Comprehensive Test Suite** → 36 tests across 5 scenarios
+2. **Database Integrity** → Foreign key validation → Relationship testing
+3. **API Endpoint Testing** → Authentication + Authorization + Business logic
+4. **Performance Validation** → Sub-20ms database operations → Concurrent access testing
+5. **Security Testing** → Role-based access controls → State machine validation

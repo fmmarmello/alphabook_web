@@ -110,11 +110,50 @@ export async function POST(req: NextRequest) {
     }
 
     const data: BudgetInput = parsed.data;
+
+    // ✅ SECURITY: Validate that clientId and centerId exist and are active
+    const [client, center] = await Promise.all([
+      prisma.client.findFirst({ 
+        where: { id: data.clientId, active: true },
+        select: { id: true, name: true }
+      }),
+      prisma.center.findFirst({ 
+        where: { id: data.centerId, active: true },
+        select: { id: true, name: true }
+      })
+    ]);
+
+    if (!client) {
+      return NextResponse.json({
+        error: { message: "Cliente não encontrado ou inativo", details: null }
+      }, { status: 400 });
+    }
+
+    if (!center) {
+      return NextResponse.json({
+        error: { message: "Centro de produção não encontrado ou inativo", details: null }
+      }, { status: 400 });
+    }
+
     let numero = (data.numero_pedido ?? "").trim();
     if (!numero) {
       numero = await generateNumeroPedido();
     }
-    const budget = await prisma.budget.create({ data: { ...data, numero_pedido: numero } });
+
+    // Create budget with default DRAFT status
+    const budget = await prisma.budget.create({ 
+      data: { 
+        ...data, 
+        numero_pedido: numero,
+        status: 'DRAFT',
+        data_pedido: data.data_pedido ? new Date(data.data_pedido) : new Date(),
+        data_entrega: data.data_entrega ? new Date(data.data_entrega) : null,
+      },
+      include: {
+        client: { select: { id: true, name: true } },
+        center: { select: { id: true, name: true } }
+      }
+    });
     
     return NextResponse.json({
       data: budget,

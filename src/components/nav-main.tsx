@@ -2,6 +2,7 @@
 
 import { type LucideIcon } from "lucide-react"
 import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
 
 import {
   SidebarGroup,
@@ -19,6 +20,12 @@ export function NavMain({
     url: string
     icon?: LucideIcon
     isActive?: boolean
+    badge?: {
+      count: number
+      variant?: "default" | "secondary" | "destructive" | "outline"
+      showZero?: boolean
+    }
+    description?: string
   }[]
 }) {
   return (
@@ -27,10 +34,24 @@ export function NavMain({
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton asChild tooltip={item.title} isActive={item.isActive}>
-              <Link href={item.url}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
+            <SidebarMenuButton 
+              asChild 
+              tooltip={item.description || item.title} 
+              isActive={item.isActive}
+            >
+              <Link href={item.url} className="flex items-center justify-between w-full">
+                <div className="flex items-center">
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </div>
+                {item.badge && (item.badge.showZero || item.badge.count > 0) && (
+                  <Badge 
+                    variant={item.badge.variant || "secondary"} 
+                    className="ml-auto text-xs h-5 min-w-5 flex items-center justify-center px-1.5"
+                  >
+                    {item.badge.count}
+                  </Badge>
+                )}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

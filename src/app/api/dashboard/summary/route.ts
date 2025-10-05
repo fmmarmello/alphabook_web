@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { requireApiAuth } from '@/lib/server-auth';
+import { handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
-    // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(request);
+    // ✅ OPTIMIZED: Use new optimized authentication (header-based when available)
+    const user = await requireApiAuth(request);
     
     // ✅ SECURITY: Role-based data filtering for dashboard
     let data;
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
           }),
           prisma.order.count({
             where: {
-              status: "Pendente",
+              status: "PENDING",
             },
           }),
         ]);
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
           prisma.order.count(),
           prisma.order.count({
             where: {
-              status: "Pendente",
+              status: "PENDING",
             },
           }),
         ]);
@@ -63,7 +64,7 @@ export async function GET(request: NextRequest) {
           prisma.order.count(),
           prisma.order.count({
             where: {
-              status: "Pendente",
+              status: "PENDING",
             },
           }),
         ]);
