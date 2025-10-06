@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
-import { getAuthenticatedUser, handleApiError } from '@/lib/api-auth';
+import { requireApiAuth } from '@/lib/server-auth';
+import { handleApiError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 
 export async function GET(req: NextRequest) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(req);
+    const user = await requireApiAuth(req);
     
     const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get("limit") ?? "5");

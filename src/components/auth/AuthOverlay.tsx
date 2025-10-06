@@ -204,13 +204,13 @@ export function AuthOverlay({ onClose }: AuthOverlayProps) {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Senha</Label>
-                  <button
+                  {/* <button
                     type="button"
                     className="text-sm text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
                     disabled={isLoading}
                   >
                     Esqueceu a senha?
-                  </button>
+                  </button> */}
                 </div>
                 <Input
                   id="password"

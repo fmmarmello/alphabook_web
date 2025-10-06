@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser, handleApiError } from '@/lib/api-auth';
+import { requireApiAuth } from '@/lib/server-auth';
+import { handleApiError } from '@/lib/api-auth';
 import prisma from '@/lib/prisma';
 import { Role } from '@/lib/rbac';
 import { BudgetStatus, OrderStatus } from '@/generated/prisma';
@@ -7,7 +8,7 @@ import { BudgetStatus, OrderStatus } from '@/generated/prisma';
 export async function GET(request: NextRequest) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(request);
+    const user = await requireApiAuth(request);
     
     // Count pending budgets (SUBMITTED status - waiting for approval)
     const pendingBudgetsCount = await prisma.budget.count({

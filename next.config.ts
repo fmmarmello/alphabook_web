@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   eslint: {
-    // Ignore ESLint errors during builds for deployment
+    // Skip ESLint during builds for faster compilation
     ignoreDuringBuilds: true,
   },
   // Configure for Netlify deployment

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { getAuthenticatedUser, handleApiError } from '@/lib/api-auth';
+import { requireApiAuth } from '@/lib/server-auth';
+import { handleApiError } from '@/lib/api-auth';
 
 export async function GET(req: NextRequest) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    getAuthenticatedUser(req);
+    await requireApiAuth(req);
     
     // ✅ SECURITY: All authenticated users can access specifications
     

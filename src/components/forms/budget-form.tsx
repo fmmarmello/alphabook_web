@@ -15,7 +15,7 @@ import { ErrorAlert } from "@/components/ui/error-alert";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Loader2, Search, CheckCircle, XCircle, FileText, Clock } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { formatCurrencyBRL, parseCurrencyBRL } from "@/lib/utils";
 import type { Budget, Client, Center, BudgetStatus } from "@/types/models";
 

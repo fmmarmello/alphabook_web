@@ -47,7 +47,7 @@ The application features an intuitive sidebar navigation that provides quick acc
 
 **Order Processing**: Creating orders involves selecting clients, choosing specifications from predefined templates, and auto-calculating pricing. Users can track order status through clear visual indicators and receive updates on production progress.
 
-**Budget Workflows**: Users submit budget proposals with detailed specifications. Moderators review and approve budgets, with clear audit trails and status notifications.
+**Budget Workflows**: Users submit budget proposals with detailed specifications through a comprehensive state machine system. Budgets flow through DRAFT → SUBMITTED → APPROVED → CONVERTED states with built-in validation and role-based permissions. Moderators review and approve budgets, with clear audit trails and status notifications.
 
 **Production Coordination**: The system connects orders to appropriate production centers, enabling efficient resource allocation and progress tracking.
 
@@ -67,6 +67,7 @@ The application features an intuitive sidebar navigation that provides quick acc
 
 ### Performance and Reliability
 - **Fast Loading**: Server-side rendering and optimized queries ensure sub-second response times
+- **Optimized Authentication**: Eliminated double token validation for improved API performance and faster response times
 - **Offline Resilience**: Graceful error handling and data persistence during connectivity issues
 - **Scalability**: Modular architecture supports business growth from small operations to enterprise scale
 
@@ -74,6 +75,8 @@ The application features an intuitive sidebar navigation that provides quick acc
 - **Clean Interface**: Modern UI with shadcn/ui components and consistent design language
 - **Responsive Layout**: Works seamlessly across desktop, tablet, and mobile devices
 - **Accessibility**: WCAG-compliant design with keyboard navigation and screen reader support
+- **Advanced Data Tables**: Column visibility controls and reusable components for better user experience
+- **Modular UI Components**: Shared logic extraction for consistent behavior across the application
 
 ### Productivity Enhancement
 - **Automation**: Auto-calculation of prices, validation of business rules, and workflow automation

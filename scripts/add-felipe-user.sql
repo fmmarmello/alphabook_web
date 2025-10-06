@@ -1,0 +1,2 @@
+INSERT INTO "User" ("email", "password", "name", "role", "createdAt", "updatedAt") 
+VALUES ('fmmarmello@gmail.com', '$2b$12$NIswVmhpqxJBhxfPjBqv5OkwyYX6NZnb.itug95/JamoQ4iNPY8ma', 'Felipe Admin', 'ADMIN', datetime('now'), datetime('now'));
