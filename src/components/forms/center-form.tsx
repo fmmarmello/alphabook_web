@@ -123,7 +123,7 @@ export function CenterForm({ mode, initialData }: CenterFormProps) {
           </FormField>
 
           <FormField>
-            <Label htmlFor="obs">Observações</Label>
+            <Label htmlFor="obs">Observações *</Label>
             <Input id="obs" placeholder="Observações sobre o centro" {...register('obs')} />
             {errors.obs?.message && <p className="text-sm text-destructive">{errors.obs.message}</p>}
           </FormField>

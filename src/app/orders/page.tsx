@@ -60,7 +60,7 @@ function OrdersContent() {
       accessorKey: "status",
       header: "Status",
       meta: { label: "Status" },
-      cell: ({ row }) => <StatusBadge status={row.original.status || "Pendente"} />,
+      cell: ({ row }) => <StatusBadge status={row.original.status || "Pendente"} type="order" />,
     },
     { accessorKey: "tiragem", header: "Tiragem", meta: { label: "Tiragem" } },
     { accessorKey: "formato", header: "Formato", meta: { label: "Formato" } },
@@ -456,7 +456,7 @@ function OrdersContent() {
                       <TableCell>{order.client?.name}</TableCell>
                       <TableCell>{order.center?.name}</TableCell>
                       <TableCell>{order.title}</TableCell>
-                      <TableCell><StatusBadge status={order.status || 'Pendente'} /></TableCell>
+                      <TableCell><StatusBadge status={order.status || 'Pendente'} type="order" /></TableCell>
                       <TableCell>{order.tiragem}</TableCell>
                       <TableCell>{order.formato}</TableCell>
                       <TableCell>{order.numPaginasTotal}</TableCell>

@@ -136,10 +136,8 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    let numero = (data.numero_pedido ?? "").trim();
-    if (!numero) {
-      numero = await generateNumeroPedido();
-    }
+    // Always generate order number automatically
+    const numero = await generateNumeroPedido();
 
     // Create budget with default DRAFT status
     const budget = await prisma.budget.create({ 

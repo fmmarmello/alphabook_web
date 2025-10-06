@@ -8,6 +8,16 @@ interface StatusBadgeProps {
   type?: 'order' | 'budget'
 }
 
+// Order status translations from enum values to Portuguese labels
+const orderStatusLabels: Record<OrderStatus, string> = {
+  PENDING: "Pendente",
+  IN_PRODUCTION: "Em produção",
+  COMPLETED: "Concluído",
+  DELIVERED: "Entregue",
+  CANCELLED: "Cancelado",
+  ON_HOLD: "Em Andamento"
+}
+
 const orderStatusStyles: Record<string, string> = {
   'Pendente': 'bg-yellow-500/10 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400',
   'Em produção': 'bg-blue-500/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
@@ -37,10 +47,28 @@ const budgetStatusLabels: Record<string, string> = {
 }
 
 export function StatusBadge({ status, className, type = 'order' }: StatusBadgeProps) {
-  const statusStyles = type === 'budget' ? budgetStatusStyles : orderStatusStyles
-  const style = statusStyles[status] || 'bg-gray-500/10 text-gray-700 dark:bg-gray-500/20'
-  const label = type === 'budget' ? budgetStatusLabels[status] || status : status
-  
+  let label: string
+  let style: string
+
+  if (type === 'budget') {
+    label = budgetStatusLabels[status] || status
+    style = budgetStatusStyles[status] || 'bg-gray-500/10 text-gray-700 dark:bg-gray-500/20'
+  } else {
+    // For orders, translate enum values to Portuguese labels first
+    label = orderStatusLabels[status as OrderStatus] || status
+    style = orderStatusStyles[label] || orderStatusStyles['Pendente'] || 'bg-yellow-500/10 text-yellow-700 dark:bg-yellow-500/20'
+
+    // Debug logging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[StatusBadge] Order status:', {
+        original: status,
+        translated: label,
+        styleFound: !!orderStatusStyles[label],
+        finalStyle: style
+      })
+    }
+  }
+
   return (
     <Badge variant="outline" className={cn(style, 'font-medium', className)}>
       {label}

@@ -4,6 +4,7 @@ import { handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 import prisma from "@/lib/prisma";
 import { OrderSchema, OrderCreationSchema, parseSort, parseNumber } from "@/lib/validation";
+import { generateNumeroPedido } from "@/lib/order-number";
 import type { Prisma } from "@/generated/prisma";
 import { OrderType, OrderStatus, BudgetStatus } from "@/generated/prisma";
 
@@ -202,6 +203,9 @@ export async function POST(request: NextRequest) {
 
       // Create order from budget data
       const order = await prisma.$transaction(async (tx) => {
+        // Generate order number automatically if not provided
+        const numeroPedido = data.numero_pedido || await generateNumeroPedido();
+
         // Create the order with budget data
         const newOrder = await tx.order.create({
           data: {
@@ -219,7 +223,7 @@ export async function POST(request: NextRequest) {
             valorTotal: data.valorTotal,
             prazoEntrega: data.prazoEntrega,
             obs: data.obs || "",
-            numero_pedido: data.numero_pedido,
+            numero_pedido: numeroPedido,
             data_pedido: data.data_pedido ? new Date(data.data_pedido) : null,
             data_entrega: data.data_entrega ? new Date(data.data_entrega) : null,
             solicitante: data.solicitante,
@@ -323,8 +327,11 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Generate order number automatically if not provided
+    const numeroPedido = data.numero_pedido || await generateNumeroPedido();
+
     // Create direct order
-    const order = await prisma.order.create({ 
+    const order = await prisma.order.create({
       data: {
         clientId: data.clientId,
         centerId: data.centerId,
@@ -339,7 +346,7 @@ export async function POST(request: NextRequest) {
         valorTotal: data.valorTotal,
         prazoEntrega: data.prazoEntrega,
         obs: data.obs || "",
-        numero_pedido: data.numero_pedido,
+        numero_pedido: numeroPedido,
         data_pedido: data.data_pedido ? new Date(data.data_pedido) : null,
         data_entrega: data.data_entrega ? new Date(data.data_entrega) : null,
         solicitante: data.solicitante,

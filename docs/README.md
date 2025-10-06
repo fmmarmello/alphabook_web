@@ -4,6 +4,7 @@
 
 ### Core Architecture
 - **[PROJECT_ARCHITECTURE.md](./PROJECT_ARCHITECTURE.md)** - Comprehensive system architecture documentation
+- **[DATABASE_MIGRATION_SQLITE_TO_POSTGRESQL.md](./DATABASE_MIGRATION_SQLITE_TO_POSTGRESQL.md)** - Database migration to Neon PostgreSQL
 - **[form-test-data.md](./form-test-data.md)** - Test data for all application forms
 
 ### Development Guides  
@@ -77,7 +78,7 @@
 
 ---
 
-**Index Version**: 1.0  
-**Last Updated**: 2025-10-03  
-**Next Review**: 2025-11-03  
+**Index Version**: 1.1
+**Last Updated**: 2025-10-06
+**Next Review**: 2025-11-06
 **Maintenance Owner**: Development Team

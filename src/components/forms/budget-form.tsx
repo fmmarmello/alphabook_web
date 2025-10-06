@@ -432,12 +432,15 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
             <FormGrid columns={3} gap="md">
               <FormField>
                 <Label htmlFor="numero_pedido">Número do Pedido</Label>
-                <Input 
-                  id="numero_pedido" 
-                  placeholder="Ex: 001/2024" 
-                  disabled={!canEdit}
-                  {...register('numero_pedido')} 
+                <Input
+                  id="numero_pedido"
+                  placeholder="Gerado automaticamente"
+                  disabled={true}
+                  {...register('numero_pedido')}
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  O número do pedido será gerado automaticamente no formato 0001/202501
+                </p>
               </FormField>
 
               <FormField>

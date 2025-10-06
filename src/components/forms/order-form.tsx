@@ -562,11 +562,85 @@ export function OrderForm({ mode, initialData, budgetId }: OrderFormProps) {
               </FormField>
             </FormGrid>
 
-            <FormField>
-              <Label htmlFor="obs">Observações</Label>
-              <Input id="obs" placeholder="Observações sobre a ordem" {...register('obs')} />
-              {errors.obs?.message && <p className="text-sm text-destructive">{errors.obs.message}</p>}
-            </FormField>
+            {/* Additional Fields Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Informações Adicionais</h3>
+
+              <FormGrid columns={3} gap="md">
+                <FormField>
+                  <Label htmlFor="numero_pedido">Número do Pedido</Label>
+                  <Input
+                    id="numero_pedido"
+                    placeholder="Gerado automaticamente ou manual"
+                    {...register('numero_pedido')}
+                  />
+                </FormField>
+
+                <FormField>
+                  <Label htmlFor="solicitante">Solicitante</Label>
+                  <Input
+                    id="solicitante"
+                    placeholder="Nome de quem solicitou"
+                    {...register('solicitante')}
+                  />
+                </FormField>
+
+                <FormField>
+                  <Label htmlFor="documento">Documento</Label>
+                  <Input
+                    id="documento"
+                    placeholder="CPF/CNPJ do solicitante"
+                    {...register('documento')}
+                  />
+                </FormField>
+              </FormGrid>
+
+              <FormGrid columns={2} gap="md">
+                <FormField>
+                  <Label htmlFor="data_pedido">Data do Pedido</Label>
+                  <Input
+                    id="data_pedido"
+                    type="date"
+                    {...register('data_pedido')}
+                  />
+                </FormField>
+
+                <FormField>
+                  <Label htmlFor="data_entrega">Data de Entrega</Label>
+                  <Input
+                    id="data_entrega"
+                    type="date"
+                    {...register('data_entrega')}
+                  />
+                </FormField>
+              </FormGrid>
+
+              <FormGrid columns={2} gap="md">
+                <FormField>
+                  <Label htmlFor="editorial">Editorial</Label>
+                  <Input
+                    id="editorial"
+                    placeholder="Grupo editorial"
+                    {...register('editorial')}
+                  />
+                </FormField>
+
+                <FormField>
+                  <Label htmlFor="tipo_produto">Tipo de Produto</Label>
+                  <Input
+                    id="tipo_produto"
+                    placeholder="Tipo de produto"
+                    {...register('tipo_produto')}
+                  />
+                </FormField>
+              </FormGrid>
+
+              <FormField>
+                <Label htmlFor="obs">Observações</Label>
+                <Input id="obs" placeholder="Observações sobre a ordem" {...register('obs')} />
+                {errors.obs?.message && <p className="text-sm text-destructive">{errors.obs.message}</p>}
+              </FormField>
+            </div>
 
             {/* Action Buttons */}
             <div className="flex gap-2 pt-4">
