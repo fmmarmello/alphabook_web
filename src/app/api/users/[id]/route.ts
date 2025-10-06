@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedUser, handleApiError, ApiAuthError, canManageUser } from '@/lib/api-auth';
+import { requireApiAuth } from '@/lib/server-auth';
+import { handleApiError, ApiAuthError, canManageUser } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 import type { Prisma } from "@/generated/prisma";
 
@@ -11,7 +12,7 @@ export async function GET(
 ) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const currentUser = getAuthenticatedUser(request);
+    const currentUser = await requireApiAuth(request);
     
     const { id: paramId } = await params;
     const userId = parseInt(paramId);
@@ -64,7 +65,7 @@ export async function PUT(
 ) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const currentUser = getAuthenticatedUser(request);
+    const currentUser = await requireApiAuth(request);
     
     const { id: paramId } = await params;
     const userId = parseInt(paramId);
@@ -168,7 +169,7 @@ export async function DELETE(
 ) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const currentUser = getAuthenticatedUser(request);
+    const currentUser = await requireApiAuth(request);
     
     // ✅ SECURITY: Only admins can delete users
     if (currentUser.role !== Role.ADMIN) {

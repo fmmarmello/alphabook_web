@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthenticatedUser, requireRole, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { requireApiAuth } from '@/lib/server-auth';
+import { requireRole, handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 import { prisma } from "@/lib/prisma";
 import bcrypt from 'bcryptjs';
@@ -8,7 +9,7 @@ import bcrypt from 'bcryptjs';
 export async function GET(request: NextRequest) {
   try {
     // ✅ SECURITY: Get authenticated user
-    const user = getAuthenticatedUser(request);
+    const user = await requireApiAuth(request);
     
     // ✅ SECURITY: Only moderators and admins can view user list
     if (user.role === Role.USER) {
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // ✅ SECURITY: Get authenticated user
-    const user = getAuthenticatedUser(request);
+    const user = await requireApiAuth(request);
     
     // ✅ SECURITY: Only admins can create users
     requireRole(user, Role.ADMIN);

@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { BudgetSchema, parseSort, parseNumber, BudgetInput } from "@/lib/validation";
 import { generateNumeroPedido } from "@/lib/order-number";
-import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { requireApiAuth } from '@/lib/server-auth';
+import { handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 import type { Prisma } from "@/generated/prisma";
 
 export async function GET(req: NextRequest) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    getAuthenticatedUser(req);
+    await requireApiAuth(req);
     
     // ✅ SECURITY: All authenticated users can view budgets (role-based filtering applied below)
     const url = req?.url ? new URL(req.url) : new URL("http://localhost");
@@ -91,7 +92,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(req);
+    const user = await requireApiAuth(req);
     
     // ✅ SECURITY: Budget creation requires MODERATOR or ADMIN role
     if (user.role === Role.USER) {

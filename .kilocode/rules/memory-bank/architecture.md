@@ -75,6 +75,8 @@ Presentation Layer (Next.js App Router)
 - **HttpOnly Cookies**: XSS-resistant token storage
 - **15-minute Access Tokens**: Balances security with user experience
 - **7-day Refresh Tokens**: Provides persistent sessions without frequent logins
+- **Performance Optimization**: Eliminated double token validation for improved API performance
+- **Server-Side Auth Helpers**: Enhanced server-side authentication utilities for consistent token handling
 
 ### Authorization System
 - **Three-Tier Role Hierarchy**: ADMIN → MODERATOR → USER with escalating permissions
@@ -87,6 +89,8 @@ Presentation Layer (Next.js App Router)
 - **Client Components for Interactivity**: Forms, real-time updates, and complex interactions
 - **shadcn/ui Integration**: Consistent, accessible UI components with Tailwind CSS
 - **Theme System**: Light/dark mode support with CSS custom properties
+- **Column Visibility Controls**: Advanced data table features with reusable visibility management
+- **Shared Logic Extraction**: Modularized common UI patterns for better maintainability
 
 ### Database Design
 - **SQLite for Development**: Simple setup and file-based database
@@ -207,7 +211,7 @@ Navigation Counts API (/api/navigation/counts)
 
 ### Authentication Flow
 1. **Login Request** → Credential validation → Token pair generation
-2. **API Request** → Token validation → User context extraction
+2. **API Request** → Optimized token validation → User context extraction
 3. **Token Expiry** → Refresh token validation → New access token generation
 4. **Logout** → Token invalidation → Cookie clearing
 
