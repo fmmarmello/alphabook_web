@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { requireApiAuth } from '@/lib/server-auth';
+import { handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 import prisma from "@/lib/prisma";
 import { OrderSchema, OrderCreationSchema, parseSort, parseNumber } from "@/lib/validation";
@@ -9,7 +10,7 @@ import { OrderType, OrderStatus, BudgetStatus } from "@/generated/prisma";
 export async function GET(request: NextRequest) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(request);
+    const user = await requireApiAuth(request);
     
     const url = new URL(request.url);
     const { searchParams } = url;
@@ -131,7 +132,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // ✅ SECURITY: Authentication required
-    const user = getAuthenticatedUser(request);
+    const user = await requireApiAuth(request);
     
     const json = await request.json();
     const parsed = OrderCreationSchema.safeParse(json);

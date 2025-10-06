@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { getAuthenticatedUser, handleApiError } from '@/lib/api-auth';
+import { requireApiAuth } from '@/lib/server-auth';
+import { handleApiError } from '@/lib/api-auth';
 import type { Prisma } from "@/generated/prisma";
 
 const FilterSchema = z.object({
@@ -14,7 +15,7 @@ const FilterSchema = z.object({
 export async function GET(req: NextRequest) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    getAuthenticatedUser(req);
+    await requireApiAuth(req);
     
     // ✅ SECURITY: Production reports require authentication (all roles can access production data)
     // Users can see production info but not financial data

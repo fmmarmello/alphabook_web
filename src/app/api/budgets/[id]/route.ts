@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
 import { BudgetSchema } from "@/lib/validation";
-import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { requireApiAuth } from '@/lib/server-auth';
+import { handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    getAuthenticatedUser(req);
+    await requireApiAuth(req);
     
     const { id: paramId } = await params;
     const id = Number(paramId);
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(req);
+    const user = await requireApiAuth(req);
     
     // ✅ SECURITY: Budget updates require MODERATOR or ADMIN role
     if (user.role === Role.USER) {
@@ -92,7 +93,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(req);
+    const user = await requireApiAuth(req);
     
     // ✅ SECURITY: Budget deletion requires ADMIN role only
     if (user.role !== Role.ADMIN) {

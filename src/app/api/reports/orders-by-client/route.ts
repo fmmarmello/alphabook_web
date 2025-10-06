@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
-import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { requireApiAuth } from '@/lib/server-auth';
+import { handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 import type { Prisma } from "@/generated/prisma";
 
 export async function GET(req: NextRequest) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(req);
+    const user = await requireApiAuth(req);
     
     // ✅ SECURITY: Orders by client with financial data - ADMIN/MODERATOR only
     if (user.role === Role.USER) {

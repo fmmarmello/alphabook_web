@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from "@/lib/prisma";
 import { OrderStatusChangeSchema } from "@/lib/validation";
-import { getAuthenticatedUser, handleApiError, ApiAuthError } from '@/lib/api-auth';
+import { requireApiAuth } from '@/lib/server-auth';
+import { handleApiError, ApiAuthError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
 import { OrderStatus } from "@/generated/prisma";
 
@@ -28,7 +29,7 @@ const STATUS_CHANGE_PERMISSIONS: Record<OrderStatus, Role[]> = {
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(req);
+    const user = await requireApiAuth(req);
     
     const { id: paramId } = await params;
     const id = Number(paramId);
@@ -172,7 +173,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // ✅ SECURITY: Get authenticated user (throws if not authenticated)
-    const user = getAuthenticatedUser(req);
+    const user = await requireApiAuth(req);
     
     const { id: paramId } = await params;
     const id = Number(paramId);
