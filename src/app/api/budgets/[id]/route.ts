@@ -74,9 +74,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       }, { status: 404 });
     }
 
+      // Convert date strings to DateTime objects for Prisma
+    const updateData = {
+      ...parsed.data,
+      data_pedido: parsed.data.data_pedido ? new Date(parsed.data.data_pedido) : undefined,
+      data_entrega: parsed.data.data_entrega ? new Date(parsed.data.data_entrega) : undefined,
+    };
+
     const budget = await prisma.budget.update({
       where: { id },
-      data: parsed.data,
+      data: updateData,
     });
     
     return NextResponse.json({

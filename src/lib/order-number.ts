@@ -29,7 +29,7 @@ export async function generateNumeroPedido(prefix = "OP"): Promise<string> {
     ...orders.map((o) => extractSeq(o.numero_pedido, pref))
   );
   const next = (maxSeq + 1).toString().padStart(4, "0");
-  return `${next}${pref}`; // e.g., 0001/202501
+  return `${next}/${pref}`; // e.g., 0001/202501
 }
 
 export default generateNumeroPedido;

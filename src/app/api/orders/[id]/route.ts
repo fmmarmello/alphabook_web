@@ -184,15 +184,22 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const { budgetId: _budgetId, orderType: _orderType, status: _status, ...updateData } = parsed.data;
     void _budgetId; void _orderType; void _status; // Suppress unused variable warnings
 
+    // Convert date strings to DateTime objects for Prisma
+    const processedUpdateData = {
+      ...updateData,
+      data_pedido: updateData.data_pedido ? new Date(updateData.data_pedido) : undefined,
+      data_entrega: updateData.data_entrega ? new Date(updateData.data_entrega) : undefined,
+    };
+
     // Add audit trail for significant changes
     const timestamp = new Date().toISOString();
     const auditEntry = `[${timestamp}] Pedido atualizado por ${user.email}`;
     const newObs = currentOrder.obs ? `${currentOrder.obs}\n${auditEntry}` : auditEntry;
-    
-    const updated = await prisma.order.update({ 
-      where: { id }, 
+
+    const updated = await prisma.order.update({
+      where: { id },
       data: {
-        ...updateData,
+        ...processedUpdateData,
         obs: newObs
       }
     });
@@ -320,15 +327,22 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { budgetId: _budgetId, orderType: _orderType, status: _status, ...updateData } = parsed.data;
     void _budgetId; void _orderType; void _status; // Suppress unused variable warnings
 
+    // Convert date strings to DateTime objects for Prisma
+    const processedUpdateData = {
+      ...updateData,
+      data_pedido: updateData.data_pedido ? new Date(updateData.data_pedido) : undefined,
+      data_entrega: updateData.data_entrega ? new Date(updateData.data_entrega) : undefined,
+    };
+
     // Add audit trail for significant changes
     const timestamp = new Date().toISOString();
     const auditEntry = `[${timestamp}] Pedido parcialmente atualizado por ${user.email}`;
     const newObs = currentOrder.obs ? `${currentOrder.obs}\n${auditEntry}` : auditEntry;
 
-    const updated = await prisma.order.update({ 
-      where: { id }, 
+    const updated = await prisma.order.update({
+      where: { id },
       data: {
-        ...updateData,
+        ...processedUpdateData,
         obs: newObs
       }
     });
