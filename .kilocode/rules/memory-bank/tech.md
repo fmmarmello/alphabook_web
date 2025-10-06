@@ -217,12 +217,16 @@
 - **Cookie Debugging**: Browser dev tools for HttpOnly cookie verification
 - **Security Testing**: Regular penetration testing and security audits
 - **Key Rotation**: Manual JWT secret rotation procedures documented
+- **Performance Optimization**: Eliminated double token validation in API routes for improved performance
+- **Server-Side Authentication Helpers**: Enhanced server-side auth utilities for consistent token handling
 
 ### UI/UX Development
 - **Component Library**: Use shadcn/ui components for consistency
 - **Responsive Design**: Mobile-first approach with Tailwind breakpoints
 - **Accessibility**: WCAG compliance with Radix UI primitives
 - **Theme Support**: Light/dark mode with CSS custom properties
+- **Column Visibility Controls**: Advanced data table controls with reusable visibility management components
+- **Shared Logic Extraction**: Modularized common UI logic for better maintainability and code reuse
 
 ### API Development
 - **Route Protection**: Authentication → Authorization → Filtering pattern
