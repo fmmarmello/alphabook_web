@@ -47,3 +47,4 @@ next-env.d.ts
 
 # local helper scripts
 scripts/create-admin-user.js
+.claude/settings.json
