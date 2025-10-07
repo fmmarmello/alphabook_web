@@ -61,6 +61,7 @@ test.describe('Form Testing - Budget Forms', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/budgets/new');
   });
+  
 
   test('should successfully create a budget with valid data', async ({ page }) => {
     // Fill out the form with valid data

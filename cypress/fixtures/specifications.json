@@ -1,0 +1,26 @@
+{
+  "data": {
+    "Tipo de Papel miolo": [
+      "Offset 75g", "Offset 90g", "Offset 120g",
+      "Pólen Bold 70g", "Pólen Soft Natural 80g", "Pólen Bold 90g",
+      "Couchê 90g", "Couchê 115g", "Couchê 150g",
+      "Avena 70g", "Avena 80g"
+    ],
+    "Tipo de Papel de Capa": [
+      "Cartão Sup. Triplex 250g", "Cartão Sup. Triplex 300g",
+      "Couchê 150g", "Couchê 170g", "Cartão DuoDesing 300g"
+    ],
+    "Cor do miolo": ["4/0", "4/4", "1/0", "1/1"],
+    "Cor da capa": ["4/0", "4/4", "Sem capa", "Fichário"],
+    "Tipo de laminação": ["Brilho", "Fosca", "Verniz Localizado"],
+    "Tipo de acabamento": [
+      "Lombada colada", "Grampo e dobra", "wire-o", "espiral",
+      "espiral + Acetato", "Costurado e colado", "Capa Dura",
+      "corte reto", "sem acabamento"
+    ],
+    "Shrink": ["sim", "não"],
+    "Centro de Produção": ["2Print", "Dataprint BR One", "JMV"],
+    "Tipo de produto": ["Livro", "Revista", "Catálogo", "Manual", "Livro Didático"],
+    "Forma de pagamento": ["À vista", "30 dias", "30/60 dias", "Cartão de Crédito"]
+  }
+}

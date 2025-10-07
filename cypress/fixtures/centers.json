@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "2Print",
+      "type": "Impressão Digital",
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "Dataprint BR One", 
+      "type": "Impressão Offset",
+      "active": true
+    },
+    {
+      "id": 3,
+      "name": "JMV",
+      "type": "Acabamento",
+      "active": true
+    }
+  ]
+}
