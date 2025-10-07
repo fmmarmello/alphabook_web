@@ -12,11 +12,11 @@ class FeatureFlagManager {
 
   constructor() {
     this.flags = {
-      PRODUCTION_SPECIFICATIONS: this.getFlag('PRODUCTION_SPECIFICATIONS', this.getEnvDefault('PRODUCTION_SPECIFICATIONS', false)),
-      ENHANCED_VALIDATION: this.getFlag('ENHANCED_VALIDATION', this.getEnvDefault('ENHANCED_VALIDATION', false)),
-      SPECIFICATION_ANALYTICS: this.getFlag('SPECIFICATION_ANALYTICS', this.getEnvDefault('SPECIFICATION_ANALYTICS', false)),
-      CONDITIONAL_FIELDS: this.getFlag('CONDITIONAL_FIELDS', this.getEnvDefault('CONDITIONAL_FIELDS', false)),
-      FREIGHT_FIELD: this.getFlag('FREIGHT_FIELD', this.getEnvDefault('FREIGHT_FIELD', false)),
+      PRODUCTION_SPECIFICATIONS: this.getFlag('PRODUCTION_SPECIFICATIONS', this.getEnvDefault('PRODUCTION_SPECIFICATIONS', true)),
+      ENHANCED_VALIDATION: this.getFlag('ENHANCED_VALIDATION', this.getEnvDefault('ENHANCED_VALIDATION', true)),
+      SPECIFICATION_ANALYTICS: this.getFlag('SPECIFICATION_ANALYTICS', this.getEnvDefault('SPECIFICATION_ANALYTICS', true)),
+      CONDITIONAL_FIELDS: this.getFlag('CONDITIONAL_FIELDS', this.getEnvDefault('CONDITIONAL_FIELDS', true)),
+      FREIGHT_FIELD: this.getFlag('FREIGHT_FIELD', this.getEnvDefault('FREIGHT_FIELD', true)),
     };
   }
 
