@@ -264,76 +264,79 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
   };
 
   return (
-    <Card className="max-w-5xl w-full">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>{mode === 'create' ? 'Novo Orçamento' : 'Editar Orçamento'}</CardTitle>
-        {initialData && (
-          <StatusBadge status={currentStatus} type="budget" />
-        )}
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          {mode === 'create' ? 'Novo Orçamento' : 'Editar Orçamento'}
+          {initialData && (
+            <StatusBadge status={initialData.status} className="ml-2" />
+          )}
+        </CardTitle>
       </CardHeader>
+      
       <CardContent>
-        {serverError && <ErrorAlert message={serverError} className="mb-4" />}
+        {serverError && <ErrorAlert message={serverError} />}
         
         {/* Workflow Actions */}
         {mode === 'edit' && initialData && (
-          <div className="flex flex-wrap gap-2 mb-6 p-4 bg-muted/50 rounded-lg">
+          <div className="flex gap-2 mb-6 p-4 bg-gray-50 rounded-lg">
             {canSubmit && (
-              <Button 
+              <Button
                 type="button"
-                size="sm"
                 onClick={() => handleWorkflowAction('submit')}
                 disabled={isSubmittingWorkflow}
               >
-                <FileText className="h-4 w-4 mr-2" />
+                {isSubmittingWorkflow ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
                 Enviar para Aprovação
               </Button>
             )}
             {canApprove && (
               <>
-                <Button 
+                <Button
                   type="button"
-                  size="sm"
-                  variant="default"
                   onClick={() => handleWorkflowAction('approve')}
                   disabled={isSubmittingWorkflow}
+                  variant="default"
                 >
-                  <CheckCircle className="h-4 w-4 mr-2" />
+                  {isSubmittingWorkflow ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                   Aprovar
                 </Button>
-                <Button 
+                <Button
                   type="button"
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => {
-                    const reason = prompt('Motivo da rejeição:');
-                    if (reason) handleWorkflowAction('reject', { reason });
-                  }}
+                  onClick={() => handleWorkflowAction('reject')}
                   disabled={isSubmittingWorkflow}
+                  variant="destructive"
                 >
-                  <XCircle className="h-4 w-4 mr-2" />
+                  {isSubmittingWorkflow ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
                   Rejeitar
                 </Button>
               </>
             )}
             {canConvert && (
-              <Button 
+              <Button
                 type="button"
-                size="sm"
-                variant="secondary"
                 onClick={() => handleWorkflowAction('convert-to-order')}
                 disabled={isSubmittingWorkflow}
+                variant="outline"
               >
-                <Clock className="h-4 w-4 mr-2" />
+                {isSubmittingWorkflow ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clock className="w-4 h-4" />}
                 Converter em Pedido
               </Button>
             )}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          {/* Section 1: Client and Center Selection */}
+          
+          {/* SEÇÃO 1: Identificação (Quem & Onde) */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Cliente e Centro de Produção</h3>
+            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+              Identificação
+            </h3>
+            <p className="text-sm text-gray-600">
+              Cliente e centro responsável pelo projeto
+            </p>
+
             <FormGrid columns={2} gap="md">
               <FormField>
                 <Label htmlFor="clientId">Cliente *</Label>
@@ -347,11 +350,10 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
                       disabled={!canEdit}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={clientsLoading ? "Carregando..." : "Selecione um cliente"} />
+                        <SelectValue placeholder="Selecione um cliente" />
                       </SelectTrigger>
                       <SelectContent>
-                        <div className="flex items-center px-3 pb-2">
-                          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                        <div className="p-2">
                           <Input
                             placeholder="Buscar cliente..."
                             value={clientSearch}
@@ -361,11 +363,11 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
                         </div>
                         {clients.map((client) => (
                           <SelectItem key={client.id} value={client.id.toString()}>
-                            <div>
-                              <div className="font-medium">{client.name}</div>
-                              <div className="text-sm text-muted-foreground">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{client.name}</span>
+                              <span className="text-sm text-gray-500">
                                 {client.cnpjCpf} • {client.email}
-                              </div>
+                              </span>
                             </div>
                           </SelectItem>
                         ))}
@@ -373,7 +375,9 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
                     </Select>
                   )}
                 />
-                {errors.clientId?.message && <p className="text-sm text-destructive">{errors.clientId.message}</p>}
+                {errors.clientId?.message && (
+                  <span className="text-sm text-red-500">{errors.clientId.message}</span>
+                )}
               </FormField>
 
               <FormField>
@@ -388,11 +392,10 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
                       disabled={!canEdit}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={centersLoading ? "Carregando..." : "Selecione um centro"} />
+                        <SelectValue placeholder="Selecione um centro" />
                       </SelectTrigger>
                       <SelectContent>
-                        <div className="flex items-center px-3 pb-2">
-                          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                        <div className="p-2">
                           <Input
                             placeholder="Buscar centro..."
                             value={centerSearch}
@@ -402,9 +405,9 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
                         </div>
                         {centers.map((center) => (
                           <SelectItem key={center.id} value={center.id.toString()}>
-                            <div>
-                              <div className="font-medium">{center.name}</div>
-                              <div className="text-sm text-muted-foreground">{center.type}</div>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{center.name}</span>
+                              <span className="text-sm text-gray-500">{center.type}</span>
                             </div>
                           </SelectItem>
                         ))}
@@ -412,26 +415,36 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
                     </Select>
                   )}
                 />
-                {errors.centerId?.message && <p className="text-sm text-destructive">{errors.centerId.message}</p>}
+                {errors.centerId?.message && (
+                  <span className="text-sm text-red-500">{errors.centerId.message}</span>
+                )}
               </FormField>
             </FormGrid>
           </div>
 
-          {/* Section 2: Project Identification */}
+          {/* SEÇÃO 2: Projeto (O Quê) */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Identificação do Projeto</h3>
+            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+              Informações do Projeto
+            </h3>
+            <p className="text-sm text-gray-600">
+              Detalhes e identificação do material a ser produzido
+            </p>
+
             <FormField>
-              <Label htmlFor="titulo">Título *</Label>
-              <Input 
+              <Label htmlFor="titulo">Título do Projeto *</Label>
+              <Input
                 id="titulo" 
                 placeholder="Nome do projeto/orçamento" 
                 disabled={!canEdit}
                 {...register('titulo')} 
               />
-              {errors.titulo?.message && <p className="text-sm text-destructive">{errors.titulo.message}</p>}
+              {errors.titulo?.message && (
+                <span className="text-sm text-red-500">{errors.titulo.message}</span>
+              )}
             </FormField>
 
-            <FormGrid columns={3} gap="md">
+            <FormGrid columns={2} gap="md">
               <FormField>
                 <Label htmlFor="numero_pedido">Número do Pedido</Label>
                 <Input
@@ -440,136 +453,36 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
                   disabled={true}
                   {...register('numero_pedido')}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   O número do pedido será gerado automaticamente no formato 0001/202501
                 </p>
               </FormField>
 
               <FormField>
                 <Label htmlFor="solicitante">Solicitante</Label>
-                <Input 
+                <Input
                   id="solicitante" 
                   placeholder="Nome de quem solicitou" 
                   disabled={!canEdit}
                   {...register('solicitante')} 
                 />
               </FormField>
+            </FormGrid>
 
+            <FormGrid columns={2} gap="md">
               <FormField>
                 <Label htmlFor="documento">Documento</Label>
-                <Input 
+                <Input
                   id="documento" 
                   placeholder="CPF/CNPJ do solicitante" 
                   disabled={!canEdit}
                   {...register('documento')} 
                 />
               </FormField>
-            </FormGrid>
-          </div>
-
-          {/* Section 3: Basic Specifications */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Especificações Básicas</h3>
-            <FormGrid columns={4} gap="md">
-              <FormField>
-                <Label htmlFor="tiragem">Tiragem *</Label>
-                <Input 
-                  id="tiragem" 
-                  type="number" 
-                  min={1} 
-                  placeholder="1000" 
-                  disabled={!canEdit}
-                  {...register('tiragem', { valueAsNumber: true })} 
-                />
-                {errors.tiragem?.message && <p className="text-sm text-destructive">{errors.tiragem.message}</p>}
-              </FormField>
-
-              <FormField>
-                <Label htmlFor="formato">Formato *</Label>
-                {specifications?.["Formato Fechado"] ? (
-                  <Select 
-                    onValueChange={(value) => setValue('formato', value)} 
-                    defaultValue={initialData?.formato}
-                    disabled={!canEdit}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {specifications["Formato Fechado"].map((item: string) => (
-                        <SelectItem key={item} value={item}>{item}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input 
-                    id="formato" 
-                    placeholder="Ex: 21x28cm" 
-                    disabled={!canEdit}
-                    {...register('formato')} 
-                  />
-                )}
-                {errors.formato?.message && <p className="text-sm text-destructive">{errors.formato.message}</p>}
-              </FormField>
-
-              <FormField>
-                <Label htmlFor="total_pgs">Nº de Páginas Total *</Label>
-                <Input 
-                  id="total_pgs" 
-                  type="number" 
-                  min={1} 
-                  placeholder="100" 
-                  disabled={!canEdit}
-                  {...register('total_pgs', { valueAsNumber: true })} 
-                />
-                {errors.total_pgs?.message && <p className="text-sm text-destructive">{errors.total_pgs.message}</p>}
-              </FormField>
-
-              <FormField>
-                <Label htmlFor="pgs_colors">Nº de Páginas Coloridas</Label>
-                <Input 
-                  id="pgs_colors" 
-                  type="number" 
-                  min={0} 
-                  placeholder="20" 
-                  disabled={!canEdit}
-                  {...register('pgs_colors', { valueAsNumber: true })} 
-                />
-                {errors.pgs_colors?.message && <p className="text-sm text-destructive">{errors.pgs_colors.message}</p>}
-              </FormField>
-            </FormGrid>
-
-            <FormGrid columns={2} gap="md">
-              <FormField>
-                <Label htmlFor="tipo_produto">Tipo de Produto</Label>
-                {specifications?.["Tipo de produto"] ? (
-                  <Select 
-                    onValueChange={(value) => setValue('tipo_produto', value)} 
-                    defaultValue={initialData?.tipo_produto || undefined}
-                    disabled={!canEdit}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {specifications["Tipo de produto"].map((item: string) => (
-                        <SelectItem key={item} value={item}>{item}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input 
-                    id="tipo_produto" 
-                    placeholder="Tipo de produto" 
-                    disabled={!canEdit}
-                    {...register('tipo_produto')} 
-                  />
-                )}
-              </FormField>
 
               <FormField>
                 <Label htmlFor="editorial">Editorial</Label>
-                <Input 
+                <Input
                   id="editorial" 
                   placeholder="Grupo editorial" 
                   disabled={!canEdit}
@@ -577,75 +490,247 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
                 />
               </FormField>
             </FormGrid>
+
+            <FormField>
+              <Label htmlFor="tipo_produto">Tipo de Produto</Label>
+              {specifications?.["Tipo de produto"] ? (
+                <Select
+                  onValueChange={(value) => setValue('tipo_produto', value)} 
+                  defaultValue={initialData?.tipo_produto || undefined}
+                  disabled={!canEdit}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {specifications["Tipo de produto"].map((item: string) => (
+                      <SelectItem key={item} value={item}>{item}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id="tipo_produto" 
+                  placeholder="Tipo de produto" 
+                  disabled={!canEdit}
+                  {...register('tipo_produto')} 
+                />
+              )}
+            </FormField>
           </div>
 
-          {/* Section 4: Production Specifications - Feature Flagged */}
-          {featureFlags.isEnabled('PRODUCTION_SPECIFICATIONS') && (
-            <ProductionSpecificationsSection
-              control={control}
-              setValue={setValue}
-              watch={watch}
-              errors={errors}
-              specifications={specifications}
-              initialData={initialData}
-              disabled={mode === 'edit' && !canEdit}
-            />
-          )}
+          {/* SEÇÃO 3: Especificações Técnicas (Como) */}
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+                Especificações Técnicas
+              </h3>
+              <p className="text-sm text-gray-600 mt-2">
+                Características físicas e técnicas do material
+              </p>
+            </div>
 
-          {/* Section 5: Business Terms */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Condições Comerciais</h3>
-            <FormGrid columns={3} gap="md">
-              <FormField>
-                <Label htmlFor="preco_unitario">Valor Unitário * (R$)</Label>
-                <Controller
-                  name="preco_unitario"
-                  control={control}
-                  render={({ field }) => (
-                    <Input
-                      id="preco_unitario"
-                      type="text"
-                      inputMode="decimal"
-                      placeholder="0,00"
+            {/* Especificações Básicas */}
+            <div className="space-y-4">
+              <h4 className="text-md font-medium text-gray-800">
+                Dimensões e Quantidades
+              </h4>
+              
+              <FormGrid columns={2} gap="md">
+                <FormField>
+                  <Label htmlFor="tiragem">Tiragem *</Label>
+                  <Input
+                    id="tiragem" 
+                    type="number" 
+                    min={1} 
+                    placeholder="1000" 
+                    disabled={!canEdit}
+                    {...register('tiragem', { valueAsNumber: true })} 
+                  />
+                  {errors.tiragem?.message && (
+                    <span className="text-sm text-red-500">{errors.tiragem.message}</span>
+                  )}
+                </FormField>
+
+                <FormField>
+                  <Label htmlFor="formato">Formato *</Label>
+                  {specifications?.["Formato Fechado"] ? (
+                    <Select
+                      onValueChange={(value) => setValue('formato', value)} 
+                      defaultValue={initialData?.formato}
                       disabled={!canEdit}
-                      value={formatCurrencyBRL(Number(field.value) || 0)}
-                      onChange={(e) => {
-                        const num = parseCurrencyBRL(e.target.value);
-                        field.onChange(num);
-                      }}
-                    />
-                  )}
-                />
-                {errors.preco_unitario?.message && <p className="text-sm text-destructive">{errors.preco_unitario.message}</p>}
-              </FormField>
-
-              <FormField>
-                <Label htmlFor="preco_total">Valor Total (R$)</Label>
-                <Controller
-                  name="preco_total"
-                  control={control}
-                  render={({ field }) => (
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o formato" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {specifications["Formato Fechado"].map((item: string) => (
+                          <SelectItem key={item} value={item}>{item}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
                     <Input
-                      id="preco_total"
-                      type="text"
-                      readOnly
-                      className="bg-gray-50"
-                      value={formatCurrencyBRL(Number(field.value) || 0)}
+                      id="formato" 
+                      placeholder="Ex: 21x28cm" 
+                      disabled={!canEdit}
+                      {...register('formato')} 
                     />
                   )}
-                />
-              </FormField>
+                  {errors.formato?.message && (
+                    <span className="text-sm text-red-500">{errors.formato.message}</span>
+                  )}
+                </FormField>
+              </FormGrid>
+
+              <FormGrid columns={2} gap="md">
+                <FormField>
+                  <Label htmlFor="total_pgs">Nº de Páginas Total *</Label>
+                  <Input
+                    id="total_pgs" 
+                    type="number" 
+                    min={1} 
+                    placeholder="100" 
+                    disabled={!canEdit}
+                    {...register('total_pgs', { valueAsNumber: true })} 
+                  />
+                  {errors.total_pgs?.message && (
+                    <span className="text-sm text-red-500">{errors.total_pgs.message}</span>
+                  )}
+                </FormField>
+
+                <FormField>
+                  <Label htmlFor="pgs_colors">Nº de Páginas Coloridas</Label>
+                  <Input
+                    id="pgs_colors" 
+                    type="number" 
+                    min={0} 
+                    placeholder="20" 
+                    disabled={!canEdit}
+                    {...register('pgs_colors', { valueAsNumber: true })} 
+                  />
+                  {errors.pgs_colors?.message && (
+                    <span className="text-sm text-red-500">{errors.pgs_colors.message}</span>
+                  )}
+                </FormField>
+              </FormGrid>
+            </div>
+
+            {/* Especificações de Produção - Feature Flagged */}
+            {featureFlags.isEnabled('PRODUCTION_SPECIFICATIONS') && (
+              <ProductionSpecificationsSection
+                control={control}
+                setValue={setValue}
+                watch={watch}
+                errors={errors}
+                specifications={specifications}
+                initialData={initialData}
+                disabled={mode === 'edit' && !canEdit}
+              />
+            )}
+          </div>
+
+          {/* SEÇÃO 4: Comercial & Prazos (Quanto & Quando) */}
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+                Condições Comerciais e Prazos
+              </h3>
+              <p className="text-sm text-gray-600 mt-2">
+                Valores, pagamento e cronograma de entrega
+              </p>
+            </div>
+
+            {/* Valores */}
+            <div className="space-y-4">
+              <h4 className="text-md font-medium text-gray-800">
+                Valores
+              </h4>
+              
+              <FormGrid columns={3} gap="md">
+                <FormField>
+                  <Label htmlFor="preco_unitario">Valor Unitário * (R$)</Label>
+                  <Controller
+                    name="preco_unitario"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        id="preco_unitario"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0,00"
+                        disabled={!canEdit}
+                        value={formatCurrencyBRL(Number(field.value) || 0)}
+                        onChange={(e) => {
+                          const num = parseCurrencyBRL(e.target.value);
+                          field.onChange(num);
+                        }}
+                      />
+                    )}
+                  />
+                  {errors.preco_unitario?.message && (
+                    <span className="text-sm text-red-500">{errors.preco_unitario.message}</span>
+                  )}
+                </FormField>
+
+                <FormField>
+                  <Label htmlFor="preco_total">Valor Total (R$)</Label>
+                  <Controller
+                    name="preco_total"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        id="preco_total"
+                        type="text"
+                        readOnly
+                        className="bg-gray-50"
+                        value={formatCurrencyBRL(Number(field.value) || 0)}
+                      />
+                    )}
+                  />
+                </FormField>
+
+                {featureFlags.isEnabled('FREIGHT_FIELD') && (
+                  <FormField>
+                    <Label htmlFor="frete">Valor do Frete (R$)</Label>
+                    <Controller
+                      name="frete"
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          id="frete"
+                          type="text"
+                          inputMode="decimal"
+                          placeholder="0,00"
+                          disabled={!canEdit}
+                          value={field.value ? formatCurrencyBRL(parseCurrencyBRL(field.value)) : ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            field.onChange(value);
+                          }}
+                          data-testid="frete"
+                        />
+                      )}
+                    />
+                    {errors.frete && (
+                      <span className="text-sm text-red-500">
+                        {errors.frete.message}
+                      </span>
+                    )}
+                  </FormField>
+                )}
+              </FormGrid>
 
               <FormField>
                 <Label htmlFor="pagamento">Forma de Pagamento</Label>
                 {specifications?.["Forma de pagamento"] ? (
-                  <Select 
+                  <Select
                     onValueChange={(value) => setValue('pagamento', value)} 
                     defaultValue={initialData?.pagamento || undefined}
                     disabled={!canEdit}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione..." />
+                      <SelectValue placeholder="Selecione a forma de pagamento" />
                     </SelectTrigger>
                     <SelectContent>
                       {specifications["Forma de pagamento"].map((item: string) => (
@@ -654,7 +739,7 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
                     </SelectContent>
                   </Select>
                 ) : (
-                  <Input 
+                  <Input
                     id="pagamento" 
                     placeholder="Forma de pagamento" 
                     disabled={!canEdit}
@@ -662,93 +747,89 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
                   />
                 )}
               </FormField>
-            </FormGrid>
-          </div>
+            </div>
 
-          {/* Section 5: Timeline */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Prazos</h3>
-            <FormGrid columns={3} gap="md">
-              <FormField>
-                <Label htmlFor="data_pedido">Data do Pedido</Label>
-                <Input 
-                  id="data_pedido" 
-                  type="date" 
-                  disabled={!canEdit}
-                  {...register('data_pedido')} 
-                />
-              </FormField>
-
-              <FormField>
-                <Label htmlFor="data_entrega">Data de Entrega</Label>
-                <Input 
-                  id="data_entrega" 
-                  type="date" 
-                  disabled={!canEdit}
-                  {...register('data_entrega')} 
-                />
-              </FormField>
-
-              <FormField>
-                <Label htmlFor="prazo_producao">Prazo de Produção</Label>
-                <Input 
-                  id="prazo_producao" 
-                  type="date" 
-                  disabled={!canEdit}
-                  {...register('prazo_producao')} 
-                />
-              </FormField>
-            </FormGrid>
-          </div>
-
-          {/* Section 6: Additional Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Informações Adicionais</h3>
-            <FormGrid columns={1} gap="md">
-              <FormField>
-                <Label htmlFor="observacoes">Observações</Label>
-                <textarea
-                  id="observacoes"
-                  rows={3}
-                  placeholder="Observações gerais sobre o orçamento..."
-                  disabled={!canEdit}
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  {...register('observacoes')}
-                />
-              </FormField>
-
-              {featureFlags.isEnabled('FREIGHT_FIELD') && (
+            {/* Prazos */}
+            <div className="space-y-4">
+              <h4 className="text-md font-medium text-gray-800">
+                Cronograma
+              </h4>
+              
+              <FormGrid columns={3} gap="md">
                 <FormField>
-                  <Label htmlFor="frete">Frete</Label>
+                  <Label htmlFor="data_pedido">Data do Pedido</Label>
                   <Input
-                    id="frete"
-                    type="text"
-                    placeholder="Detalhes do frete (transportadora, prazo, etc.)"
+                    id="data_pedido" 
+                    type="date" 
                     disabled={!canEdit}
-                    {...register('frete')}
-                    data-testid="frete"
+                    {...register('data_pedido')} 
                   />
-                  {errors.frete && (
-                    <p className="text-sm text-red-600" data-testid="error-frete">
-                      {errors.frete.message}
-                    </p>
-                  )}
                 </FormField>
-              )}
-            </FormGrid>
+
+                <FormField>
+                  <Label htmlFor="data_entrega">Data de Entrega</Label>
+                  <Input
+                    id="data_entrega" 
+                    type="date" 
+                    disabled={!canEdit}
+                    {...register('data_entrega')} 
+                  />
+                </FormField>
+
+                <FormField>
+                  <Label htmlFor="prazo_producao">Prazo de Produção</Label>
+                  <Input
+                    id="prazo_producao" 
+                    type="date" 
+                    disabled={!canEdit}
+                    {...register('prazo_producao')} 
+                  />
+                </FormField>
+              </FormGrid>
+            </div>
           </div>
 
-          <div className="flex gap-2 pt-6 border-t">
-            <Button type="button" variant="outline" onClick={() => router.push('/budgets')} disabled={isSubmitting}>
-              Cancelar
-            </Button>
-            {canEdit && (
-              <Button type="submit" disabled={!isValid || isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {mode === 'create' ? 'Criar Orçamento' : 'Salvar Alterações'}
-              </Button>
-            )}
+          {/* SEÇÃO 5: Informações Complementares */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+              Informações Complementares
+            </h3>
+            <p className="text-sm text-gray-600">
+              Observações e informações adicionais sobre o projeto
+            </p>
+
+            <FormField>
+              <Label htmlFor="observacoes">Observações</Label>
+              <textarea
+                id="observacoes"
+                rows={4}
+                placeholder="Observações gerais sobre o orçamento..."
+                disabled={!canEdit}
+                className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                {...register('observacoes')}
+              />
+            </FormField>
           </div>
+
+          {/* Submit Button */}
+          {canEdit && (
+            <div className="flex justify-end pt-6">
+              <Button
+                type="submit"
+                disabled={!isValid || isSubmitting}
+                className="min-w-[120px]"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Salvando...
+                  </>
+                ) : (
+                  mode === 'create' ? 'Criar Orçamento' : 'Salvar Alterações'
+                )}
+              </Button>
+            </div>
+          )}
         </form>
       </CardContent>
     </Card>

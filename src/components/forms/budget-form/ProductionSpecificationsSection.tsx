@@ -279,7 +279,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             disabled={disabled}
             onChange={(value) => handleFieldChange("shrink", value)}
             error={(errors as any).shrink?.message}
-            placeholder="Embalagem shrink"
+            placeholder="-"
           />
         </FormGrid>
       </div>
