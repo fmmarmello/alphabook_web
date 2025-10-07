@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isBrazilPhone, isCpfOrCnpj, isEmail } from "./validators";
+import { SPECIFICATION_OPTIONS } from "./specifications-enums";
 
 // Budget status enum validation
 export const BudgetStatusSchema = z.enum([
@@ -79,6 +80,100 @@ export const OrderSchema = z.object({
   pagamento: z.string().optional(),
   frete: z.string().optional(),
 });
+
+// Production specification schemas with enum validation
+export const ProductionSpecificationsSchema = z.object({
+  cor_miolo: z.enum(SPECIFICATION_OPTIONS.COR_MIOLO).optional(),
+  papel_miolo: z.enum(SPECIFICATION_OPTIONS.PAPEL_MIOLO).optional(),
+  papel_capa: z.enum(SPECIFICATION_OPTIONS.PAPEL_CAPA).optional(),
+  cor_capa: z.enum(SPECIFICATION_OPTIONS.COR_CAPA).optional(),
+  laminacao: z.enum(SPECIFICATION_OPTIONS.LAMINACAO).optional(),
+  acabamento: z.enum(SPECIFICATION_OPTIONS.ACABAMENTO).optional(),
+  shrink: z.enum(SPECIFICATION_OPTIONS.SHRINK).optional(),
+  centro_producao: z.enum(SPECIFICATION_OPTIONS.CENTRO_PRODUCAO).optional(),
+}).refine(
+  (data) => {
+    // Business rule: If capa is "Sem capa", other capa fields should be empty
+    if (data.cor_capa === "Sem capa") {
+      return !data.papel_capa && !data.laminacao;
+    }
+    return true;
+  },
+  {
+    message: "Campos da capa devem estar vazios quando 'Sem capa' é selecionado",
+    path: ["cor_capa"],
+  }
+).refine(
+  (data) => {
+    // Business rule: If "Fichário" is selected for capa, lamination doesn't apply
+    if (data.cor_capa === "Fichário") {
+      return !data.laminacao;
+    }
+    return true;
+  },
+  {
+    message: "Laminação não se aplica quando 'Fichário' é selecionado",
+    path: ["laminacao"],
+  }
+);
+
+// Enhanced budget schema with production specification validation
+export const EnhancedBudgetSchema = z.object({
+  // Core fields
+  clientId: z.number().int().positive("Cliente é obrigatório"),
+  centerId: z.number().int().positive("Centro de produção é obrigatório"),
+  numero_pedido: z.string().optional(),
+  data_pedido: z.string().optional(),
+  data_entrega: z.string().optional(),
+  solicitante: z.string().optional(),
+  documento: z.string().optional(),
+  editorial: z.string().optional(),
+  tipo_produto: z.string().optional(),
+
+  // Required fields
+  titulo: z.string().min(1, "Título é obrigatório"),
+  tiragem: z.number().int().positive("Tiragem deve ser positiva"),
+  formato: z.string().min(1, "Formato é obrigatório"),
+  total_pgs: z.number().int().nonnegative("Número de páginas inválido"),
+  pgs_colors: z.number().int().nonnegative("Número de páginas inválido"),
+
+  // Production specifications with enhanced validation
+  ...ProductionSpecificationsSchema.shape,
+
+  // Other fields
+  observacoes: z.string().optional(),
+  preco_unitario: z.number().nonnegative("Valor inválido"),
+  preco_total: z.number().nonnegative("Valor inválido"),
+  prazo_producao: z.string().optional(),
+  pagamento: z.string().optional(),
+  frete: z.string().optional(),
+  status: BudgetStatusSchema.optional(),
+  approved: z.boolean().optional(),
+  orderId: z.number().int().optional(),
+}).refine(
+  (data) => {
+    // Business rule: Color pages cannot exceed total pages
+    if (data.pgs_colors > data.total_pgs) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Páginas coloridas não podem exceder o total de páginas",
+    path: ["pgs_colors"],
+  }
+).refine(
+  (data) => {
+    // Business rule: Total price should equal tiragem * preco_unitario
+    const calculatedTotal = data.tiragem * data.preco_unitario;
+    const tolerance = 0.01; // Small tolerance for floating point
+    return Math.abs(data.preco_total - calculatedTotal) <= tolerance;
+  },
+  {
+    message: "Preço total deve ser igual a tiragem multiplicada pelo preço unitário",
+    path: ["preco_total"],
+  }
+);
 
 // Enhanced schema for order creation with conditional validation
 export const OrderCreationSchema = z.object({
@@ -171,6 +266,8 @@ export const BudgetRejectSchema = z.object({
 });
 
 export type BudgetInput = z.infer<typeof BudgetSchema>;
+export type EnhancedBudgetInput = z.infer<typeof EnhancedBudgetSchema>;
+export type ProductionSpecificationsInput = z.infer<typeof ProductionSpecificationsSchema>;
 export type BudgetRejectInput = z.infer<typeof BudgetRejectSchema>;
 
 export type OrderInput = z.infer<typeof OrderSchema>;

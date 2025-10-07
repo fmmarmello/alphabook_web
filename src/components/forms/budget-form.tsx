@@ -17,6 +17,8 @@ import { Loader2, Search, CheckCircle, XCircle, FileText, Clock } from "lucide-r
 import { toast } from "sonner";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { formatCurrencyBRL, parseCurrencyBRL } from "@/lib/utils";
+import { ProductionSpecificationsSection } from "./budget-form/ProductionSpecificationsSection";
+import { featureFlags } from "@/lib/feature-flags";
 import type { Budget, Client, Center, BudgetStatus } from "@/types/models";
 
 interface BudgetFormProps {
@@ -577,7 +579,20 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
             </FormGrid>
           </div>
 
-          {/* Section 4: Business Terms */}
+          {/* Section 4: Production Specifications - Feature Flagged */}
+          {featureFlags.isEnabled('PRODUCTION_SPECIFICATIONS') && (
+            <ProductionSpecificationsSection
+              control={control}
+              setValue={setValue}
+              watch={watch}
+              errors={errors}
+              specifications={specifications}
+              initialData={initialData}
+              disabled={mode === 'edit' && !canEdit}
+            />
+          )}
+
+          {/* Section 5: Business Terms */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Condições Comerciais</h3>
             <FormGrid columns={3} gap="md">
@@ -689,17 +704,38 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
           {/* Section 6: Additional Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Informações Adicionais</h3>
-            <FormField>
-              <Label htmlFor="observacoes">Observações</Label>
-              <textarea
-                id="observacoes"
-                rows={3}
-                placeholder="Observações gerais sobre o orçamento..."
-                disabled={!canEdit}
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                {...register('observacoes')}
-              />
-            </FormField>
+            <FormGrid columns={1} gap="md">
+              <FormField>
+                <Label htmlFor="observacoes">Observações</Label>
+                <textarea
+                  id="observacoes"
+                  rows={3}
+                  placeholder="Observações gerais sobre o orçamento..."
+                  disabled={!canEdit}
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  {...register('observacoes')}
+                />
+              </FormField>
+
+              {featureFlags.isEnabled('PRODUCTION_SPECIFICATIONS') && (
+                <FormField>
+                  <Label htmlFor="frete">Frete</Label>
+                  <Input
+                    id="frete"
+                    type="text"
+                    placeholder="Detalhes do frete (transportadora, prazo, etc.)"
+                    disabled={!canEdit}
+                    {...register('frete')}
+                    data-testid="frete"
+                  />
+                  {errors.frete && (
+                    <p className="text-sm text-red-600" data-testid="error-frete">
+                      {errors.frete.message}
+                    </p>
+                  )}
+                </FormField>
+              )}
+            </FormGrid>
           </div>
 
           <div className="flex gap-2 pt-6 border-t">
