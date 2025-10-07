@@ -37,6 +37,9 @@
 - **vaul** - Drawer component for mobile-friendly navigation
 - **sonner** - Toast notification system
 
+### Data Fetching & Caching
+- **@tanstack/react-query** - Declarative server-state caching with retry logic and fallbacks for specification data
+
 ### Development & Build Tools
 - **Turbopack** - Fast bundler for Next.js development and builds
 - **ESLint 9** - Code linting with Next.js configuration

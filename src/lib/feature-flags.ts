@@ -21,12 +21,9 @@ class FeatureFlagManager {
   }
 
   private getEnvDefault(key: keyof FeatureFlags, defaultValue: boolean): boolean {
-    if (typeof window === 'undefined') {
-      // Server-side: check environment variable
-      const envValue = process.env[`NEXT_PUBLIC_${key}`];
-      return envValue !== undefined ? envValue === 'true' : defaultValue;
-    }
-    return defaultValue;
+    // Check NEXT_PUBLIC_ environment variables (available on both server and client)
+    const envValue = process.env[`NEXT_PUBLIC_${key}`];
+    return envValue !== undefined ? envValue === 'true' : defaultValue;
   }
 
   private getFlag(key: keyof FeatureFlags, defaultValue: boolean): boolean {

@@ -7,7 +7,7 @@ AlphaBook Web is a modern Next.js 15 application built with the App Router for m
 ### Technology Stack
 - **Frontend**: Next.js 15 with App Router, React 19, TypeScript
 - **UI Framework**: shadcn/ui + Tailwind CSS
-- **Database**: SQLite with Prisma ORM
+- **Database**: PostgreSQL with Prisma ORM (legacy SQLite kept only for local fallback workflows)
 - **Authentication**: JWT-based with refresh tokens
 - **Authorization**: Role-based access control (RBAC)
 - **Deployment**: Netlify with serverless functions
@@ -25,7 +25,7 @@ Presentation Layer (Next.js App Router)
 ├── Authentication Layer (JWT + RBAC)
 ├── Business Logic Layer (API Routes + State Machines)
 ├── Data Access Layer (Prisma ORM)
-└── Database Layer (SQLite)
+└── Database Layer (PostgreSQL)
 ```
 
 ## Source Code Paths
@@ -66,6 +66,10 @@ Presentation Layer (Next.js App Router)
   - `models.ts` - Database model types
   - `api.ts` - API response and request types
 
+#### Hooks and Utilities
+- **`src/hooks/`** - Custom React hooks
+  - `useSpecifications.ts` - Fetch specification data with fallback mechanism
+
 #### Configuration Files
 - **`prisma/schema.prisma`** - Database schema definition
 - **`middleware.ts`** - Route protection and security headers
@@ -98,8 +102,8 @@ Presentation Layer (Next.js App Router)
 - **Shared Logic Extraction**: Modularized common UI patterns for better maintainability
 
 ### Database Design
-- **SQLite for Development**: Simple setup and file-based database
-- **PostgreSQL for Production**: Robust, scalable relational database
+- **PostgreSQL (Primary)**: Production and staging database after the migration
+- **SQLite (Legacy/Fallback)**: Maintained for local/offline workflows when PostgreSQL is unavailable
 - **Prisma ORM**: Type-safe database access with schema migrations
 - **Audit Trail**: Automatic tracking of creation and modification timestamps
 - **Enhanced Enum System**: BudgetStatus, OrderStatus, and OrderType enums for state management
@@ -110,6 +114,9 @@ Presentation Layer (Next.js App Router)
 - **Role-Based Filtering**: Automatic data filtering based on user permissions
 - **Error Handling**: Centralized error processing with user-friendly messages
 - **State Machine APIs**: Budget workflow endpoints with transition validation
+- **Specification APIs**: Production specification data management with validation
+- **Analytics APIs**: Real-time tracking of field usage and validation patterns
+- **Feature Flag APIs**: Runtime configuration and feature management endpoints
 
 ## Design Patterns
 
@@ -133,12 +140,25 @@ Presentation Layer (Next.js App Router)
 - **Client State for UI**: Local component state for form interactions
 - **URL State**: Search parameters for filters and pagination
 - **Auth Context**: Global authentication state management
+- **React Query Caching**: @tanstack/react-query manages server state for specification data and handles invalidation
 - **State Machine Pattern**: Budget workflow with DRAFT → SUBMITTED → APPROVED → CONVERTED transitions
 
 ### Workflow Patterns
 - **Budget State Machine**: DRAFT → SUBMITTED → APPROVED → CONVERTED with validation at each step
 - **Order Status Management**: PENDING → IN_PRODUCTION → COMPLETED → DELIVERED with business logic validation
 - **Audit Trail Pattern**: Automatic timestamp and user tracking for all state changes
+
+### Production Specification Patterns
+- **Enum-Based Validation**: Predefined production options with type safety and business rule enforcement
+- **Conditional Field Logic**: Feature flag-controlled field visibility and validation based on job type
+- **Legacy Integration**: Seamless mapping between modern enums and legacy system terminology
+- **Specification Analytics**: Real-time tracking of field utilization and optimization opportunities
+
+### Feature Flag Patterns
+- **Runtime Configuration**: Environment and localStorage-based flag overrides
+- **Gradual Rollout**: Controlled feature activation with user targeting capabilities
+- **Development Utilities**: Debug tools and preset configurations for testing environments
+- **Production Safety**: Fallback mechanisms and dependency validation between features
 
 ## Component Relationships
 
@@ -200,7 +220,29 @@ API Routes
 ├── Authorization Layer (RBAC checks)
 ├── Business Logic Layer (Prisma queries + State Machine validation)
 ├── Audit Trail Layer (timestamp + user tracking)
+├── Specification Layer (production field validation)
+├── Analytics Layer (usage tracking and metrics)
 └── Response Layer (standardized formatting)
+```
+
+### Production Specification System
+```
+ProductionSpecificationsSection Component
+├── useSpecifications Hook (data fetching + fallback)
+├── Feature Flag Integration (controlled visibility)
+├── Specification Enums (validation + type safety)
+├── Analytics Tracking (field usage monitoring)
+└── Form Integration (React Hook Form + Zod)
+```
+
+### Feature Flag Management System
+```
+Feature Flag Manager
+├── Runtime Configuration (environment + localStorage)
+├── Development Utilities (debug tools + presets)
+├── Component Integration (conditional rendering)
+├── API Integration (feature-aware endpoints)
+└── Analytics Integration (feature usage tracking)
 ```
 
 ### Navigation System
@@ -244,6 +286,25 @@ Navigation Counts API (/api/navigation/counts)
 2. **Parallel API Calls** → Summary metrics + Recent data + Charts + Navigation counts
 3. **Data Aggregation** → Client-side processing → UI rendering
 4. **Real-time Updates** → Polling/WebSocket → State synchronization
+
+### Production Specification Workflow
+1. **Feature Flag Check** → ProductionSpecificationsSection visibility
+2. **Data Fetching** → useSpecifications hook → API fallback to enums
+3. **Field Validation** → Zod schema + enum validation → Real-time feedback
+4. **Analytics Tracking** → Field usage events → Validation error tracking
+5. **Form Submission** → Enhanced validation → Database storage with audit trail
+
+### Order Number Generation
+1. **Order Creation** → Automatic number generation → Format 0001/YYYYMM
+2. **Database Query** → Latest order number → Increment calculation
+3. **Uniqueness Check** → Collision prevention → Atomic transaction
+4. **Assignment** → Read-only field population → User display
+
+### Feature Flag Operations
+1. **Flag Evaluation** → Environment check → localStorage override → Default value
+2. **Component Rendering** → Conditional display → Feature-specific behavior
+3. **Runtime Changes** → Event dispatch → Component re-render
+4. **Development Debug** → Console utilities → State inspection → Preset application
 
 ### Report Generation
 1. **Report Request** → Date range validation → Permission check

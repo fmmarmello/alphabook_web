@@ -1,28 +1,20 @@
 # Current Context
 
 ## Work Focus
-- Production specification system implementation: ✅ COMPLETED
-- Order management enhancement with auto-generation: ✅ COMPLETED
-- Feature flag system for controlled rollout: ✅ COMPLETED
-- Budget analytics and validation system: ✅ COMPLETED
-- System is production-ready with comprehensive workflow validation and advanced production features
+- Roll out the production specification section in the budget form through feature flags
+- Stabilize the specifications API and analytics instrumentation for the new fields
+- QA budget and order workflows to confirm persistence and validation of production specs
 
 ## Recent Changes (Latest Updates)
-- **Production Specification System**: Added comprehensive production specification fields to budget forms with 8 new specification categories (paper types, colors, finishing, production center)
-- **Feature Flag Implementation**: Complete feature flag system for controlled rollout of new functionality with runtime configuration and development utilities
-- **Budget Analytics System**: Advanced analytics tracking for field usage, validation errors, and user behavior with comprehensive API endpoints
-- **Enhanced Order Management**: Auto-generated order numbers in format 0001/202501, expanded form fields (dates, editorial, product type), and improved status translations
-- **Specification Validation**: Business rule validation for production fields with predefined enums based on legacy system specifications
-- **PostgreSQL Migration**: Database migration from SQLite to PostgreSQL for production scalability with comprehensive migration documentation
-- **Performance Optimizations**: Improved authentication performance and eliminated double token validation
-- **UI/UX Enhancements**: Customized navigation components, removed unused features, and enhanced data table controls
-- **Date Handling Fixes**: Proper date conversion for Prisma in budget and order updates to prevent timezone issues
-- **Navigation System Upgrade**: Real-time navigation counts API for pending budgets and active orders with role-based visibility
-- **Security Enhancements**: Prevented HSTS header in development to avoid redirect loops and improved server-side authentication helpers
-- **Comprehensive Testing Suite**: 36 tests across 5 scenarios covering API endpoints, database integrity, business rules, performance validation, and security controls
+- **Production Specifications Integration**: `BudgetForm` now mounts `ProductionSpecificationsSection` with eight legacy fields, conditional logic, and analytics hooks
+- **Specifications Delivery**: `/api/specifications` serves JSON-backed options with admin POST support and the `useSpecifications` hook handles caching plus fallbacks
+- **Validation & Business Rules**: `BudgetSchema` adds enum-based validation, capa rules, and pricing tolerances while feature flags gained presets and persistence helpers
+- **Instrumentation**: `analytics.ts` captures specification usage, validation errors, abandonment, and performance metrics gated by the analytics flag
+- **Documentation Alignment**: `docs/BUDGET_CORRECTION.md` and `docs/MIGRATION_ARCHITECTURE.md` outline the migration path and confirm no database changes are required
+- **Feature Flag Utilities**: Development presets toggle all production-related flags for QA and store overrides in localStorage for quick testing sessions
 
 ## Next Steps
-- Monitor production specification feature adoption and user feedback
-- Consider implementing notification system for budget approvals with production alerts
-- Evaluate analytics data for specification field optimization
-- Continue iterative improvements based on user feedback and production metrics
+- Run regression tests pre-release and enable `PRODUCTION_SPECIFICATIONS` plus `ENHANCED_VALIDATION` in staging
+- Clean UTF-8 issues in specification JSON and fallback data before turning the feature on for users
+- Add automated coverage for the specifications API, budget form validation, and analytics triggers
+- Plan follow-up work on enum tables and indexing once adoption metrics justify Phase 2 data modeling
