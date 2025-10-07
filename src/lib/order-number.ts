@@ -1,36 +1,53 @@
-import prisma from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 
-function prefixForNow(prefix = "OP") {
-  const d = new Date();
-  const yyyy = String(d.getFullYear());
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  return `${prefix}-${yyyy}${mm}/`;
+export async function generateNumeroPedido(type: 'BUDGET' | 'ORDER' = 'ORDER'): Promise<string> {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  
+  if (type === 'ORDER') {
+    // Find the last order number for current month
+    const lastOrder = await prisma.order.findFirst({
+      where: {
+        numero_pedido: {
+          startsWith: 'ORD-'
+        }
+      },
+      orderBy: {
+        numero_pedido: 'desc'
+      }
+    });
+
+    let nextNumber = 1;
+    if (lastOrder) {
+      const match = lastOrder.numero_pedido.match(/ORD-(\d+)/);
+      if (match) {
+        nextNumber = parseInt(match[1]) + 1;
+      }
+    }
+
+    return `ORD-${nextNumber.toString().padStart(4, '0')}/${year}${month}`;
+  } else {
+    // Budget number generation (existing logic)
+    const lastBudget = await prisma.budget.findFirst({
+      where: {
+        numero_pedido: {
+          not: null
+        }
+      },
+      orderBy: {
+        numero_pedido: 'desc'
+      }
+    });
+
+    let nextNumber = 1;
+    if (lastBudget && lastBudget.numero_pedido) {
+      const match = lastBudget.numero_pedido.match(/(\d+)/);
+      if (match) {
+        nextNumber = parseInt(match[1]) + 1;
+      }
+    }
+
+    return `${nextNumber.toString().padStart(4, '0')}/${year}${month}`;
+  }
 }
-
-function extractSeq(value?: string | null, pref = ""): number {
-  if (!value) return 0;
-  if (pref && !value.startsWith(pref)) return 0;
-  const parts = value.split("/");
-  const last = parts[parts.length - 1] ?? "";
-  const n = parseInt(last.replace(/\D+/g, ""), 10);
-  return Number.isFinite(n) ? n : 0;
-}
-
-export async function generateNumeroPedido(prefix = "OP"): Promise<string> {
-  const pref = prefixForNow(prefix); // e.g., 202501/
-  // Fetch existing order numbers for this prefix from both budgets and orders
-  const [budgets, orders] = await Promise.all([
-    prisma.budget.findMany({ select: { numero_pedido: true }, where: { numero_pedido: { startsWith: pref } } }),
-    prisma.order.findMany({ select: { numero_pedido: true }, where: { numero_pedido: { startsWith: pref } } }),
-  ]);
-  const maxSeq = Math.max(
-    0,
-    ...budgets.map((b) => extractSeq(b.numero_pedido, pref)),
-    ...orders.map((o) => extractSeq(o.numero_pedido, pref))
-  );
-  const next = (maxSeq + 1).toString().padStart(4, "0");
-  return `${next}/${pref}`; // e.g., 0001/202501
-}
-
-export default generateNumeroPedido;
-

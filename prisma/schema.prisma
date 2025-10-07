@@ -50,7 +50,6 @@ model Client {
   updatedAt DateTime @default(now()) @updatedAt
   
   // Relationships
-  orders    Order[]
   budgets   Budget[]
   
   @@index([cnpjCpf])
@@ -68,7 +67,6 @@ model Center {
   updatedAt DateTime @default(now()) @updatedAt
   
   // Relationships
-  orders    Order[]
   budgets   Budget[]
   
   @@index([active])
@@ -76,58 +74,41 @@ model Center {
 }
 
 model Order {
-  id                  Int         @id @default(autoincrement())
-  clientId            Int
-  centerId            Int
-  budgetId            Int?        @unique
-  orderType           OrderType   @default(DIRECT_ORDER)
-  title               String
-  tiragem             Int
-  formato             String
-  numPaginasTotal     Int
-  numPaginasColoridas Int
-  valorUnitario       Float
-  valorTotal          Float
-  prazoEntrega        String
-  obs                 String
-  date                DateTime    @default(now())
-  status              OrderStatus @default(PENDING)
+  id                    Int         @id @default(autoincrement())
+  budgetId              Int         @unique // 🔥 REQUIRED - Strong 1:1 relationship
+  orderType             OrderType   @default(BUDGET_DERIVED)
   
-  // Extended fields
-  numero_pedido       String?
-  data_pedido         DateTime?
-  data_entrega        DateTime?
-  solicitante         String?
-  documento           String?
-  editorial           String?
-  tipo_produto        String?
-  cor_miolo           String?
-  papel_miolo         String?
-  papel_capa          String?
-  cor_capa            String?
-  laminacao           String?
-  acabamento          String?
-  shrink              String?
-  pagamento           String?
-  frete               String?
+  // Order-specific metadata ONLY
+  numero_pedido         String      @unique // Auto-generated: ORDER-0001/202510
+  data_pedido           DateTime    @default(now())
+  data_entrega_real     DateTime?   // Actual delivery date (vs planned in budget)
+  status                OrderStatus @default(PENDING)
+  
+  // Production-specific fields (not in budget)
+  data_inicio_producao  DateTime?   // Production started
+  data_fim_producao     DateTime?   // Production completed  
+  obs_producao          String?     // Internal production notes
+  frete_real            Float?      // Actual freight cost (vs estimated in budget)
+  custo_adicional       Float?      // Unexpected additional costs
+  responsavel_producao  String?     // Production manager assigned
+  
+  // Audit
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
   
   // Relationships
-  client              Client   @relation(fields: [clientId], references: [id])
-  center              Center   @relation(fields: [centerId], references: [id])
-  budget              Budget?  @relation(fields: [budgetId], references: [id])
+  budget                Budget      @relation(fields: [budgetId], references: [id], onDelete: Restrict)
   
-  @@index([clientId])
-  @@index([centerId])
   @@index([budgetId])
   @@index([status])
-  @@index([orderType])
-  @@index([date])
+  @@index([data_pedido])
+  @@index([numero_pedido])
 }
 
 model Budget {
   id                  Int          @id @default(autoincrement())
-  clientId            Int?
-  centerId            Int?
+  clientId            Int
+  centerId            Int
   status              BudgetStatus @default(DRAFT)
   
   // Core fields
@@ -171,11 +152,11 @@ model Budget {
   approved            Boolean      @default(false)
   
   // Relationships
-  client              Client?      @relation(fields: [clientId], references: [id])
-  center              Center?      @relation(fields: [centerId], references: [id])
+  client              Client      @relation(fields: [clientId], references: [id])
+  center              Center      @relation(fields: [centerId], references: [id])
   order               Order?
-  approvedBy          User?        @relation("BudgetApprovedBy", fields: [approvedById], references: [id])
-  rejectedBy          User?        @relation("BudgetRejectedBy", fields: [rejectedById], references: [id])
+  approvedBy            User?        @relation("BudgetApprovedBy", fields: [approvedById], references: [id])
+  rejectedBy            User?        @relation("BudgetRejectedBy", fields: [rejectedById], references: [id])
   
   @@index([clientId])
   @@index([centerId])
