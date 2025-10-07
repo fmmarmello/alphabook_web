@@ -4,18 +4,22 @@ import { SpecificationData } from '@/lib/specifications-enums';
 
 // Fallback specification data from legacy system (normalized, UTF-8)
 const FALLBACK_SPECIFICATIONS: SpecificationData = {
-  "Tipo de Papel miolo": [
-    "offset 75g",
-    "offset 90g",
-    "pólen Soft Nat 80g",
-    "pólen Bold 90g",
-    "pólen Bold 70g",
-    "couchê 90g",
-    "couchê 115g",
-    "couchê 150g",
+   "Tipo de Papel miolo": [
+    // Offset - Papéis básicos para impressão geral
+    "Offset 75g",
+    "Offset 90g", 
+    "Offset 120g",    
+    // Pólen - Papéis ecológicos/reciclados
+    "Pólen Bold 70g",
+    "Pólen Soft Natural 80g",
+    "Pólen Bold 90g",    
+    // Couchê - Papéis revestidos para alta qualidade
+    "Couchê 90g",
+    "Couchê 115g",
+    "Couchê 150g",    
+    // Especialidades - Papéis premium/especiais
     "Avena 70g",
-    "Avena 80g",
-    "off set 120g"
+    "Avena 80g"
   ],
   "Tipo de Papel de Capa": [
     "Cartão Sup. Triplex 250g",

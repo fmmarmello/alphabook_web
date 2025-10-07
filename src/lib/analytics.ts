@@ -1,418 +1,340 @@
-interface AnalyticsEvent {
-  event: string;
-  properties: Record<string, any>;
-  timestamp: string;
-  userId?: string;
+'use client';
+
+import { useRef, useCallback } from 'react';
+
+// Types for analytics events
+interface SpecificationFieldUsedEvent {
+  fieldName: string;
+  value: string;
+  budgetId?: number;
+  timestamp: number;
   sessionId: string;
-  url?: string;
-  userAgent?: string;
 }
 
-interface SpecificationUsageEvent extends AnalyticsEvent {
-  event: 'specification_field_used';
-  properties: {
-    field_name: string;
-    field_value: string;
-    budget_id?: number;
-    form_step: 'production_specifications';
-  };
+interface SpecificationSectionCompletedEvent {
+  specifications: Record<string, string>;
+  completedFields: number;
+  totalFields: number;
+  completionRate: number;
+  timestamp: number;
+  sessionId: string;
 }
 
-interface SpecificationCompletionEvent extends AnalyticsEvent {
-  event: 'specification_section_completed';
-  properties: {
-    fields_filled: number;
-    field_names: string[];
-    completion_time: number;
-    total_specification_fields: number;
-  };
+interface SpecificationValidationErrorEvent {
+  fieldName: string;
+  errorMessage: string;
+  attemptedValue?: string;
+  timestamp: number;
+  sessionId: string;
 }
 
-interface ValidationErrorEvent extends AnalyticsEvent {
-  event: 'specification_validation_error';
-  properties: {
-    field_name: string;
-    error_message: string;
-    validation_rule: string;
-  };
+interface BudgetFormSubmissionEvent {
+  budgetId?: number;
+  hasSpecifications: boolean;
+  specificationCount: number;
+  submissionTime: number;
+  timestamp: number;
+  sessionId: string;
 }
 
-interface FormAbandonmentEvent extends AnalyticsEvent {
-  event: 'budget_form_abandoned';
-  properties: {
-    abandonment_step: string;
-    fields_filled: string[];
-    total_fields: number;
-    time_spent: number;
-  };
-}
-
-class SpecificationAnalytics {
+// Analytics service class
+class SpecificationAnalyticsService {
   private sessionId: string;
-  private userId?: string;
-  private isEnabled: boolean;
-  private eventQueue: AnalyticsEvent[] = [];
-  private flushInterval: number = 5000; // 5 seconds
-  private flushTimer?: NodeJS.Timeout;
+  private events: Array<
+    SpecificationFieldUsedEvent |
+    SpecificationSectionCompletedEvent |
+    SpecificationValidationErrorEvent |
+    BudgetFormSubmissionEvent
+  > = [];
 
   constructor() {
     this.sessionId = this.generateSessionId();
-    this.userId = this.getUserId();
-    this.isEnabled = this.isAnalyticsEnabled();
-
-    if (this.isEnabled) {
-      this.startFlushTimer();
-      this.trackSessionStart();
-    }
   }
 
   private generateSessionId(): string {
-    let sessionId = '';
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
 
-    if (typeof window !== 'undefined') {
-      sessionId = sessionStorage.getItem('analytics_session_id') || '';
+  private logEvent(event: any): void {
+    this.events.push(event);
+    
+    // In development, log to console
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📊 Specification Analytics:', event);
+    }
 
-      if (!sessionId) {
-        sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        sessionStorage.setItem('analytics_session_id', sessionId);
+    // In production, send to analytics service (implement as needed)
+    if (process.env.NODE_ENV === 'production') {
+      this.sendToAnalyticsService(event);
+    }
+  }
+
+  private sendToAnalyticsService(event: any): void {
+    // Implement your analytics service integration here
+    // Examples: Google Analytics, Mixpanel, PostHog, etc.
+    try {
+      // Example implementation:
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'specification_interaction', {
+          event_category: 'Budget Form',
+          event_label: event.type,
+          custom_parameters: event,
+        });
       }
+    } catch (error) {
+      console.warn('Failed to send analytics event:', error);
     }
-
-    return sessionId;
   }
 
-  private getUserId(): string | undefined {
-    // This would typically come from your auth context
-    // For now, return undefined - you can integrate with your auth system
-    return undefined;
-  }
-
-  private isAnalyticsEnabled(): boolean {
-    if (typeof window === 'undefined') return false;
-
-    // Check if analytics is enabled via environment variable or feature flag
-    const envEnabled = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true';
-    const featureFlagEnabled = false; // Would come from your feature flag system
-
-    return envEnabled && featureFlagEnabled;
-  }
-
-  private startFlushTimer(): void {
-    if (typeof window === 'undefined') return;
-
-    this.flushTimer = setInterval(() => {
-      this.flushEvents();
-    }, this.flushInterval);
-  }
-
-  private trackSessionStart(): void {
-    this.track('session_start', {
+  trackSpecificationFieldUsed(
+    fieldName: string,
+    value: string,
+    budgetId?: number
+  ): void {
+    const event: SpecificationFieldUsedEvent = {
+      fieldName,
+      value,
+      budgetId,
       timestamp: Date.now(),
-      user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
-      url: typeof window !== 'undefined' ? window.location.href : undefined,
-    });
-  }
-
-  private createBaseEvent(event: string, properties: Record<string, any> = {}): AnalyticsEvent {
-    return {
-      event,
-      properties,
-      timestamp: new Date().toISOString(),
-      userId: this.userId,
       sessionId: this.sessionId,
-      url: typeof window !== 'undefined' ? window.location.href : undefined,
-      userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
-    };
-  }
-
-  track(event: string, properties: Record<string, any> = {}): void {
-    if (!this.isEnabled) return;
-
-    const analyticsEvent = this.createBaseEvent(event, properties);
-    this.eventQueue.push(analyticsEvent);
-
-    // Flush immediately for critical events
-    if (this.isCriticalEvent(event)) {
-      this.flushEvents();
-    }
-  }
-
-  trackSpecificationFieldUsed(fieldName: string, value: string, budgetId?: number): void {
-    if (!this.isEnabled) return;
-
-    const event: SpecificationUsageEvent = {
-      ...this.createBaseEvent('specification_field_used'),
-      properties: {
-        field_name: fieldName,
-        field_value: value,
-        budget_id: budgetId,
-        form_step: 'production_specifications',
-      },
     };
 
-    this.eventQueue.push(event);
+    this.logEvent({
+      ...event,
+      type: 'specification_field_used',
+    });
   }
 
   trackSpecificationSectionCompleted(
-    specifications: Record<string, string>,
-    startTime: number
+    specifications: Record<string, string>
   ): void {
-    if (!this.isEnabled) return;
+    const completedFields = Object.values(specifications).filter(
+      value => value && value.trim() !== ''
+    ).length;
+    
+    const totalFields = Object.keys(specifications).length;
+    const completionRate = totalFields > 0 ? (completedFields / totalFields) * 100 : 0;
 
-    const fieldNames = Object.keys(specifications);
-    const filledFields = fieldNames.filter(name => specifications[name]);
-
-    const event: SpecificationCompletionEvent = {
-      ...this.createBaseEvent('specification_section_completed'),
-      properties: {
-        fields_filled: filledFields.length,
-        field_names: filledFields,
-        completion_time: Date.now() - startTime,
-        total_specification_fields: fieldNames.length,
-      },
+    const event: SpecificationSectionCompletedEvent = {
+      specifications,
+      completedFields,
+      totalFields,
+      completionRate,
+      timestamp: Date.now(),
+      sessionId: this.sessionId,
     };
 
-    this.eventQueue.push(event);
-  }
-
-  trackValidationError(fieldName: string, errorMessage: string, validationRule?: string): void {
-    if (!this.isEnabled) return;
-
-    const event: ValidationErrorEvent = {
-      ...this.createBaseEvent('specification_validation_error'),
-      properties: {
-        field_name: fieldName,
-        error_message: errorMessage,
-        validation_rule: validationRule || 'unknown',
-      },
-    };
-
-    this.eventQueue.push(event);
-  }
-
-  trackFormAbandonment(step: string, filledFields: string[], totalFields: number, startTime: number): void {
-    if (!this.isEnabled) return;
-
-    const event: FormAbandonmentEvent = {
-      ...this.createBaseEvent('budget_form_abandoned'),
-      properties: {
-        abandonment_step: step,
-        fields_filled: filledFields,
-        total_fields: totalFields,
-        time_spent: Date.now() - startTime,
-      },
-    };
-
-    this.eventQueue.push(event);
-  }
-
-  trackFormSubmission(success: boolean, error?: string, submissionTime?: number): void {
-    this.track('budget_form_submission', {
-      success,
-      error,
-      submission_time: submissionTime,
+    this.logEvent({
+      ...event,
+      type: 'specification_section_completed',
     });
   }
 
-  trackFormPerformance(metrics: {
-    loadTime: number;
-    validationTime: number;
-    submissionTime: number;
-  }): void {
-    this.track('budget_form_performance', metrics);
+  trackSpecificationValidationError(
+    fieldName: string,
+    errorMessage: string,
+    attemptedValue?: string
+  ): void {
+    const event: SpecificationValidationErrorEvent = {
+      fieldName,
+      errorMessage,
+      attemptedValue,
+      timestamp: Date.now(),
+      sessionId: this.sessionId,
+    };
+
+    this.logEvent({
+      ...event,
+      type: 'specification_validation_error',
+    });
   }
 
-  private isCriticalEvent(event: string): boolean {
-    const criticalEvents = [
-      'specification_validation_error',
-      'budget_form_submission',
-      'budget_form_abandoned',
-    ];
-    return criticalEvents.includes(event);
+  trackBudgetFormSubmission(
+    budgetId: number | undefined,
+    specifications: Record<string, string>,
+    submissionStartTime: number
+  ): void {
+    const specificationEntries = Object.entries(specifications).filter(
+      ([, value]) => value && value.trim() !== ''
+    );
+
+    const event: BudgetFormSubmissionEvent = {
+      budgetId,
+      hasSpecifications: specificationEntries.length > 0,
+      specificationCount: specificationEntries.length,
+      submissionTime: Date.now() - submissionStartTime,
+      timestamp: Date.now(),
+      sessionId: this.sessionId,
+    };
+
+    this.logEvent({
+      ...event,
+      type: 'budget_form_submission',
+    });
   }
 
-  private async flushEvents(): Promise<void> {
-    if (this.eventQueue.length === 0) return;
-
-    const events = [...this.eventQueue];
-    this.eventQueue = [];
-
-    try {
-      await this.sendEvents(events);
-    } catch (error) {
-      console.error('Analytics flush failed:', error);
-      // Re-queue events for retry
-      this.eventQueue.unshift(...events);
-    }
+  getEvents(): Array<any> {
+    return [...this.events];
   }
 
-  private async sendEvents(events: AnalyticsEvent[]): Promise<void> {
-    if (!this.isEnabled || events.length === 0) return;
-
-    try {
-      const response = await fetch('/api/analytics', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ events }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error('Failed to send analytics events:', error);
-      throw error;
-    }
-  }
-
-  // Public methods for manual control
-  flush(): Promise<void> {
-    return this.flushEvents();
-  }
-
-  enable(): void {
-    this.isEnabled = true;
-    this.startFlushTimer();
-    this.trackSessionStart();
-  }
-
-  disable(): void {
-    this.isEnabled = false;
-    if (this.flushTimer) {
-      clearInterval(this.flushTimer);
-    }
-  }
-
-  setUserId(userId: string): void {
-    this.userId = userId;
+  clearEvents(): void {
+    this.events = [];
   }
 
   getSessionId(): string {
     return this.sessionId;
   }
 
-  // Cleanup method for when component unmounts
-  destroy(): void {
-    if (this.flushTimer) {
-      clearInterval(this.flushTimer);
-    }
-    this.flushEvents();
+  exportAnalytics(): string {
+    return JSON.stringify({
+      sessionId: this.sessionId,
+      events: this.events,
+      summary: this.generateSummary(),
+    }, null, 2);
+  }
+
+  private generateSummary() {
+    const fieldUsageEvents = this.events.filter(e => (e as any).type === 'specification_field_used');
+    const errorEvents = this.events.filter(e => (e as any).type === 'specification_validation_error');
+    const completionEvents = this.events.filter(e => (e as any).type === 'specification_section_completed');
+
+    return {
+      totalFieldInteractions: fieldUsageEvents.length,
+      totalValidationErrors: errorEvents.length,
+      totalSectionCompletions: completionEvents.length,
+      averageCompletionRate: completionEvents.length > 0
+        ? completionEvents.reduce((sum, event) => sum + (event as any).completionRate, 0) / completionEvents.length
+        : 0,
+      mostUsedFields: this.getMostUsedFields(fieldUsageEvents),
+      commonErrors: this.getCommonErrors(errorEvents),
+    };
+  }
+
+  private getMostUsedFields(events: any[]): Array<{ field: string; count: number }> {
+    const fieldCounts: Record<string, number> = {};
+    events.forEach(event => {
+      const fieldName = event.fieldName;
+      fieldCounts[fieldName] = (fieldCounts[fieldName] || 0) + 1;
+    });
+
+    return Object.entries(fieldCounts)
+      .map(([field, count]) => ({ field, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  }
+
+  private getCommonErrors(events: any[]): Array<{ error: string; count: number }> {
+    const errorCounts: Record<string, number> = {};
+    events.forEach(event => {
+      const error = event.errorMessage;
+      errorCounts[error] = (errorCounts[error] || 0) + 1;
+    });
+
+    return Object.entries(errorCounts)
+      .map(([error, count]) => ({ error, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3);
   }
 }
 
-// Export singleton instance
-export const specificationAnalytics = new SpecificationAnalytics();
+// Singleton instance
+export const specificationAnalytics = new SpecificationAnalyticsService();
+
+// Error tracker utility
+export class ErrorTracker {
+  private static errors: Array<{
+    error: Error;
+    context: string;
+    timestamp: number;
+  }> = [];
+
+  static trackError(error: Error, context: string): void {
+    this.errors.push({
+      error,
+      context,
+      timestamp: Date.now(),
+    });
+
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`🚨 Error in ${context}:`, error);
+    }
+
+    // Send to error tracking service in production
+    if (process.env.NODE_ENV === 'production') {
+      this.sendToErrorService(error, context);
+    }
+  }
+
+  private static sendToErrorService(error: Error, context: string): void {
+    // Implement your error tracking service here
+    // Examples: Sentry, Bugsnag, etc.
+    try {
+      if (typeof window !== 'undefined' && (window as any).Sentry) {
+        (window as any).Sentry.captureException(error, {
+          tags: { context },
+        });
+      }
+    } catch (trackingError) {
+      console.warn('Failed to send error to tracking service:', trackingError);
+    }
+  }
+
+  static getErrors(): Array<any> {
+    return [...this.errors];
+  }
+
+  static clearErrors(): void {
+    this.errors = [];
+  }
+}
 
 // Hook for using analytics in components
 export function useSpecificationAnalytics() {
-  const startTime = React.useRef(Date.now());
+  const startTime = useRef(Date.now());
 
-  const trackFieldUsage = React.useCallback((fieldName: string, value: string, budgetId?: number) => {
+  const trackFieldUsage = useCallback((fieldName: string, value: string, budgetId?: number) => {
     specificationAnalytics.trackSpecificationFieldUsed(fieldName, value, budgetId);
   }, []);
 
-  const trackSectionCompletion = React.useCallback((specifications: Record<string, string>) => {
-    specificationAnalytics.trackSpecificationSectionCompleted(specifications, startTime.current);
+  const trackValidationError = useCallback((fieldName: string, errorMessage: string, attemptedValue?: string) => {
+    specificationAnalytics.trackSpecificationValidationError(fieldName, errorMessage, attemptedValue);
   }, []);
 
-  const trackValidationError = React.useCallback((fieldName: string, errorMessage: string) => {
-    specificationAnalytics.trackValidationError(fieldName, errorMessage);
+  const trackSectionCompletion = useCallback((specifications: Record<string, string>) => {
+    specificationAnalytics.trackSpecificationSectionCompleted(specifications);
   }, []);
 
-  const trackFormAbandonment = React.useCallback((step: string, filledFields: string[], totalFields: number) => {
-    specificationAnalytics.trackFormAbandonment(step, filledFields, totalFields, startTime.current);
+  const trackFormSubmission = useCallback((budgetId: number | undefined, specifications: Record<string, string>) => {
+    specificationAnalytics.trackBudgetFormSubmission(budgetId, specifications, startTime.current);
   }, []);
 
   return {
     trackFieldUsage,
-    trackSectionCompletion,
     trackValidationError,
-    trackFormAbandonment,
-    flush: specificationAnalytics.flush.bind(specificationAnalytics),
+    trackSectionCompletion,
+    trackFormSubmission,
+    getSessionId: () => specificationAnalytics.getSessionId(),
+    exportAnalytics: () => specificationAnalytics.exportAnalytics(),
   };
 }
 
-// Performance monitoring utilities
-export class PerformanceMonitor {
-  private metrics: Record<string, number> = {};
-  private timers: Record<string, number> = {};
-
-  startTimer(name: string): void {
-    this.timers[name] = Date.now();
-  }
-
-  endTimer(name: string): number {
-    const startTime = this.timers[name];
-    if (!startTime) {
-      console.warn(`Timer '${name}' was not started`);
-      return 0;
+// Utility functions for development
+export const analyticsDevUtils = {
+  exportEvents: () => specificationAnalytics.exportAnalytics(),
+  clearEvents: () => specificationAnalytics.clearEvents(),
+  getEventCount: () => specificationAnalytics.getEvents().length,
+  logSummary: () => {
+    if (process.env.NODE_ENV === 'development') {
+      console.table(specificationAnalytics.getEvents());
     }
+  },
+};
 
-    const duration = Date.now() - startTime;
-    this.metrics[name] = duration;
-    delete this.timers[name];
-
-    return duration;
-  }
-
-  getMetric(name: string): number | undefined {
-    return this.metrics[name];
-  }
-
-  getAllMetrics(): Record<string, number> {
-    return { ...this.metrics };
-  }
-
-  clear(): void {
-    this.metrics = {};
-    this.timers = {};
-  }
-
-  // Track form-specific performance
-  trackFormPerformance(): {
-    loadTime: number;
-    validationTime: number;
-    submissionTime: number;
-  } {
-    return {
-      loadTime: this.metrics.form_load || 0,
-      validationTime: this.metrics.form_validation || 0,
-      submissionTime: this.metrics.form_submission || 0,
-    };
-  }
+// Make analytics available in development console
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  (window as any).specificationAnalytics = {
+    service: specificationAnalytics,
+    devUtils: analyticsDevUtils,
+    ErrorTracker,
+  };
 }
-
-export const performanceMonitor = new PerformanceMonitor();
-
-// Error tracking utilities
-export class ErrorTracker {
-  static trackError(error: Error, context?: Record<string, any>): void {
-    console.error('Tracked error:', error, context);
-
-    // Send to analytics
-    specificationAnalytics.track('error_occurred', {
-      error_message: error.message,
-      error_stack: error.stack,
-      error_name: error.name,
-      context,
-    });
-
-    // You could also send to a service like Sentry here
-    if (typeof window !== 'undefined' && (window as any).Sentry) {
-      (window as any).Sentry.captureException(error, {
-        tags: {
-          component: 'budget_form',
-        },
-        extra: context,
-      });
-    }
-  }
-
-  static trackValidationError(field: string, error: string, value?: any): void {
-    specificationAnalytics.trackValidationError(field, error);
-  }
-}
-
-export { ErrorTracker };

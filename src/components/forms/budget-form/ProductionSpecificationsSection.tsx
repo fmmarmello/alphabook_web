@@ -1,5 +1,6 @@
-"use client";
+// src/components/forms/budget-form/ProductionSpecificationsSection.tsx
 
+"use client";
 import React, { useEffect } from "react";
 import { Control, UseFormSetValue, UseFormWatch, FieldErrors } from "react-hook-form";
 import { FormField, FormGrid } from "@/components/ui/form-grid";
@@ -33,21 +34,29 @@ const SpecificationField: React.FC<{
   placeholder?: string;
 }> = ({ label, name, value, options, disabled, onChange, error, placeholder }) => {
   const hasOptions = options && options.length > 0;
-
+  
   return (
     <FormField>
-      <Label htmlFor={name} className="text-sm font-medium text-gray-700">
-        {label}
-      </Label>
+      <Label htmlFor={name}>{label}</Label>
       {hasOptions ? (
-        <Select value={value || ""} onValueChange={onChange} disabled={disabled}>
-          <SelectTrigger id={name} className={error ? "border-red-500" : ""} data-testid={`${name}-select`}>
+        <Select
+          value={value || "all"}  // ✅ Use empty string as fallback
+          onValueChange={(selectedValue) => {
+            // ✅ Convert 'all' string selection back to empty for clearing
+            onChange(selectedValue === "all" ? "" : selectedValue);
+          }}
+          disabled={disabled}
+        >
+          <SelectTrigger>
             <SelectValue placeholder={placeholder || "Selecione..."} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Nenhum</SelectItem>
+            {/* ✅ First option for clearing - use meaningful value */}
+            <SelectItem value="all">
+              {placeholder || "Selecione..."}
+            </SelectItem>
             {options.map((option) => (
-              <SelectItem key={option} value={option} data-value={option}>
+              <SelectItem key={option} value={option}>
                 {option}
               </SelectItem>
             ))}
@@ -65,9 +74,9 @@ const SpecificationField: React.FC<{
         />
       )}
       {error && (
-        <p className="text-sm text-red-600" data-testid={`error-${name}`}>
+        <span className="text-sm text-red-500">
           {error}
-        </p>
+        </span>
       )}
     </FormField>
   );
@@ -97,6 +106,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
       shrink: watch("shrink"),
       centro_producao: watch("centro_producao"),
     };
+
     return () => {
       if (featureFlags.isEnabled('SPECIFICATION_ANALYTICS')) {
         trackSectionCompletion(currentSpecifications as any);
@@ -131,6 +141,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
 
   const handleFieldChange = (fieldName: keyof BudgetInput, value: string) => {
     setValue(fieldName, value as any, { shouldValidate: true });
+
     if (featureFlags.isEnabled('SPECIFICATION_ANALYTICS') && value) {
       try {
         trackFieldUsage(fieldName as string, value);
@@ -138,6 +149,8 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
         console.warn('Analytics tracking failed:', error);
       }
     }
+
+    // ✅ Clear related fields when "Sem capa" is selected
     if (fieldName === 'cor_capa' && value === 'Sem capa') {
       setValue('papel_capa', "");
       setValue('laminacao', "");
@@ -153,9 +166,8 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
 
   if (isLoading && !specs) {
     return (
-      <div className="space-y-4 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded w-48"></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-4">
+        <div className="animate-pulse space-y-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="h-10 bg-gray-200 rounded"></div>
           ))}
@@ -166,14 +178,20 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
 
   return (
     <div className="space-y-6">
-      <div className="border-b border-gray-200 pb-2">
-        <h3 className="text-lg font-semibold text-gray-900">Especificações de Produção</h3>
-        <p className="text-sm text-gray-600 mt-1">Detalhes técnicos para produção do material</p>
+      <div className=" pb-4">
+        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+          Especificações de Produção
+        </h3>
+        {/* <p className="text-sm text-gray-600 mt-2">
+          Detalhes técnicos para produção do material
+        </p> */}
       </div>
 
       {/* Row 1: Paper Types */}
       <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-800">Tipos de Papel</h4>
+        <h4 className="text-md font-medium text-gray-800 border-b pb-1">
+          Tipos de Papel
+        </h4>
         <FormGrid columns={2} gap="md">
           <SpecificationField
             label="Tipo de Papel do Miolo"
@@ -185,7 +203,6 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             error={(errors as any).papel_miolo?.message}
             placeholder="Selecione o tipo de papel"
           />
-
           <SpecificationField
             label="Tipo de Papel da Capa"
             name="papel_capa"
@@ -201,7 +218,9 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
 
       {/* Row 2: Colors */}
       <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-800">Cores</h4>
+        <h4 className="text-md font-medium text-gray-800 border-b pb-1">
+          Cores
+        </h4>
         <FormGrid columns={2} gap="md">
           <SpecificationField
             label="Cor do Miolo"
@@ -213,7 +232,6 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             error={(errors as any).cor_miolo?.message}
             placeholder="Selecione a cor do miolo"
           />
-
           <SpecificationField
             label="Cor da Capa"
             name="cor_capa"
@@ -229,7 +247,9 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
 
       {/* Row 3: Finishing */}
       <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-800">Acabamento</h4>
+        <h4 className="text-md font-medium text-gray-800 border-b pb-1">
+          Acabamento
+        </h4>
         <FormGrid columns={3} gap="md">
           <SpecificationField
             label="Laminação"
@@ -241,7 +261,6 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             error={(errors as any).laminacao?.message}
             placeholder="Tipo de laminação"
           />
-
           <SpecificationField
             label="Acabamento"
             name="acabamento"
@@ -252,7 +271,6 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             error={(errors as any).acabamento?.message}
             placeholder="Tipo de acabamento"
           />
-
           <SpecificationField
             label="Shrink"
             name="shrink"
@@ -268,7 +286,9 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
 
       {/* Row 4: Production Center */}
       <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-800">Produção</h4>
+        <h4 className="text-md font-medium text-gray-800 border-b pb-1">
+          Produção
+        </h4>
         <FormGrid columns={1} gap="md">
           <SpecificationField
             label="Centro de Produção"
@@ -287,7 +307,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
       {isCapaDisabled && (
         <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
           <p className="text-sm text-blue-800">
-            <span className="font-medium">Nota:</span> Como "Sem capa" foi selecionado,
+            <strong>Nota:</strong> Como "Sem capa" foi selecionado, 
             os campos relacionados à capa (tipo de papel e laminação) foram desabilitados.
           </p>
         </div>
@@ -295,4 +315,3 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
     </div>
   );
 };
-
