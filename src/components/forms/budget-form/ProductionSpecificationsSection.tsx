@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSpecifications } from "@/hooks/useSpecifications";
 import { useSpecificationAnalytics, ErrorTracker } from "@/lib/analytics";
 import { featureFlags } from "@/lib/feature-flags";
-import { getSpecificationDisplayName, getFieldName } from "@/lib/specifications-enums";
 import type { BudgetInput } from "@/lib/validation";
 
 interface ProductionSpecificationsSectionProps {
@@ -22,7 +21,7 @@ interface ProductionSpecificationsSectionProps {
   disabled?: boolean;
 }
 
-// Helper component for specification field
+// Helper component for a single specification field
 const SpecificationField: React.FC<{
   label: string;
   name: keyof BudgetInput;
@@ -41,16 +40,8 @@ const SpecificationField: React.FC<{
         {label}
       </Label>
       {hasOptions ? (
-        <Select
-          value={value || ""}
-          onValueChange={onChange}
-          disabled={disabled}
-        >
-          <SelectTrigger
-            id={name}
-            className={error ? "border-red-500" : ""}
-            data-testid={`${name}-select`}
-          >
+        <Select value={value || ""} onValueChange={onChange} disabled={disabled}>
+          <SelectTrigger id={name} className={error ? "border-red-500" : ""} data-testid={`${name}-select`}>
             <SelectValue placeholder={placeholder || "Selecione..."} />
           </SelectTrigger>
           <SelectContent>
@@ -93,9 +84,8 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
 }) => {
   const { specifications, isLoading, getOptionsWithFallback } = useSpecifications();
   const { trackFieldUsage, trackValidationError, trackSectionCompletion } = useSpecificationAnalytics();
-  const startTime = React.useRef(Date.now());
 
-  // Track section completion when component unmounts or when values change
+  // Track section completion when component unmounts
   useEffect(() => {
     const currentSpecifications = {
       cor_miolo: watch("cor_miolo"),
@@ -107,10 +97,9 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
       shrink: watch("shrink"),
       centro_producao: watch("centro_producao"),
     };
-
     return () => {
       if (featureFlags.isEnabled('SPECIFICATION_ANALYTICS')) {
-        trackSectionCompletion(currentSpecifications);
+        trackSectionCompletion(currentSpecifications as any);
       }
     };
   }, [watch, trackSectionCompletion]);
@@ -120,32 +109,28 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
     if (featureFlags.isEnabled('SPECIFICATION_ANALYTICS')) {
       Object.entries(errors).forEach(([fieldName, error]) => {
         if (error && isSpecificationField(fieldName)) {
-          trackValidationError(fieldName, error.message || 'Unknown validation error');
+          trackValidationError(fieldName, (error as any).message || 'Unknown validation error');
         }
       });
     }
   }, [errors, trackValidationError]);
 
-  // Check if a field is a specification field
   const isSpecificationField = (fieldName: string): boolean => {
     const specificationFields = [
-      'cor_miolo', 'papel_miolo', 'papel_capa', 'cor_capa',
-      'laminacao', 'acabamento', 'shrink', 'centro_producao'
+      'cor_miolo', 'papel_miolo', 'papel_capa', 'cor_capa', 'laminacao', 'acabamento', 'shrink', 'centro_producao'
     ];
     return specificationFields.includes(fieldName);
   };
 
-  // Use prop specifications if provided, otherwise use hook data
+  // Prefer prop specifications if provided (SSR), else hook data
   const specs = propSpecifications || specifications;
 
-  // Watch for changes in cor_capa to implement conditional logic
+  // Conditional logic: Capa selection
   const corCapaValue = watch("cor_capa");
+  const isCapaDisabled = corCapaValue === "Sem capa";
 
-  // Handle field change
   const handleFieldChange = (fieldName: keyof BudgetInput, value: string) => {
     setValue(fieldName, value as any, { shouldValidate: true });
-
-    // Track field usage analytics
     if (featureFlags.isEnabled('SPECIFICATION_ANALYTICS') && value) {
       try {
         trackFieldUsage(fieldName as string, value);
@@ -153,21 +138,15 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
         console.warn('Analytics tracking failed:', error);
       }
     }
-
-    // Apply conditional logic
-    if (fieldName === "cor_capa") {
-      if (value === "Sem capa") {
-        // Clear capa-related fields when "Sem capa" is selected
-        setValue("papel_capa", "");
-        setValue("laminacao", "");
-      }
+    if (fieldName === 'cor_capa' && value === 'Sem capa') {
+      setValue('papel_capa', "");
+      setValue('laminacao', "");
     }
   };
 
-  // Get field options with fallback
   const getOptions = (category: string): string[] => {
-    if (specs && specs[category]) {
-      return specs[category];
+    if (specs && (specs as any)[category]) {
+      return (specs as any)[category];
     }
     return getOptionsWithFallback(category as any);
   };
@@ -185,17 +164,11 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
     );
   }
 
-  const isCapaDisabled = corCapaValue === "Sem capa";
-
   return (
     <div className="space-y-6">
       <div className="border-b border-gray-200 pb-2">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Especificações de Produção
-        </h3>
-        <p className="text-sm text-gray-600 mt-1">
-          Detalhes técnicos para produção do material
-        </p>
+        <h3 className="text-lg font-semibold text-gray-900">Especificações de Produção</h3>
+        <p className="text-sm text-gray-600 mt-1">Detalhes técnicos para produção do material</p>
       </div>
 
       {/* Row 1: Paper Types */}
@@ -209,7 +182,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Tipo de Papel miolo")}
             disabled={disabled}
             onChange={(value) => handleFieldChange("papel_miolo", value)}
-            error={errors.papel_miolo?.message}
+            error={(errors as any).papel_miolo?.message}
             placeholder="Selecione o tipo de papel"
           />
 
@@ -220,7 +193,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Tipo de Papel de Capa")}
             disabled={disabled || isCapaDisabled}
             onChange={(value) => handleFieldChange("papel_capa", value)}
-            error={errors.papel_capa?.message}
+            error={(errors as any).papel_capa?.message}
             placeholder="Selecione o tipo de papel da capa"
           />
         </FormGrid>
@@ -237,7 +210,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Cor do miolo")}
             disabled={disabled}
             onChange={(value) => handleFieldChange("cor_miolo", value)}
-            error={errors.cor_miolo?.message}
+            error={(errors as any).cor_miolo?.message}
             placeholder="Selecione a cor do miolo"
           />
 
@@ -248,7 +221,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Cor da capa")}
             disabled={disabled}
             onChange={(value) => handleFieldChange("cor_capa", value)}
-            error={errors.cor_capa?.message}
+            error={(errors as any).cor_capa?.message}
             placeholder="Selecione a cor da capa"
           />
         </FormGrid>
@@ -265,7 +238,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Tipo de laminação")}
             disabled={disabled || isCapaDisabled}
             onChange={(value) => handleFieldChange("laminacao", value)}
-            error={errors.laminacao?.message}
+            error={(errors as any).laminacao?.message}
             placeholder="Tipo de laminação"
           />
 
@@ -276,7 +249,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Tipo de acabamento")}
             disabled={disabled}
             onChange={(value) => handleFieldChange("acabamento", value)}
-            error={errors.acabamento?.message}
+            error={(errors as any).acabamento?.message}
             placeholder="Tipo de acabamento"
           />
 
@@ -287,7 +260,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Shrink")}
             disabled={disabled}
             onChange={(value) => handleFieldChange("shrink", value)}
-            error={errors.shrink?.message}
+            error={(errors as any).shrink?.message}
             placeholder="Embalagem shrink"
           />
         </FormGrid>
@@ -304,7 +277,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Centro de Produção")}
             disabled={disabled}
             onChange={(value) => handleFieldChange("centro_producao", value)}
-            error={errors.centro_producao?.message}
+            error={(errors as any).centro_producao?.message}
             placeholder="Selecione o centro de produção"
           />
         </FormGrid>
@@ -322,3 +295,4 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
     </div>
   );
 };
+

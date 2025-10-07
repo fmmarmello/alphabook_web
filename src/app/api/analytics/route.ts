@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       const enrichedEvent: AnalyticsEvent = {
         ...event,
         timestamp: event.timestamp || new Date().toISOString(),
-        userId: user.id, // Override with server-side user ID
+        userId: ''+user.userId, // Override with server-side user ID
         // Add server-side metadata
         properties: {
           ...event.properties,

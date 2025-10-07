@@ -45,13 +45,15 @@ The application features an intuitive sidebar navigation that provides quick acc
 ### Daily Operations
 **Client Management**: Users can quickly add new clients with CNPJ/CPF validation, contact information, and relationship history. The system prevents duplicate entries and maintains data integrity.
 
-**Order Processing**: Creating orders involves selecting clients, choosing specifications from predefined templates, and auto-calculating pricing. Users can track order status through clear visual indicators and receive updates on production progress.
+**Order Processing**: Creating orders involves selecting clients, choosing specifications from predefined templates, and auto-calculating pricing. Enhanced with automatic order number generation in format 0001/202501, expanded form fields including delivery dates, editorial information, and product types. Users can track order status through clear visual indicators and receive updates on production progress with improved Portuguese status translations.
 
-**Budget Workflows**: Users submit budget proposals with detailed specifications through a comprehensive state machine system. Budgets flow through DRAFT → SUBMITTED → APPROVED → CONVERTED states with built-in validation and role-based permissions. Moderators review and approve budgets, with clear audit trails and status notifications.
+**Budget Workflows**: Users submit budget proposals with detailed specifications through a comprehensive state machine system. Budgets flow through DRAFT → SUBMITTED → APPROVED → CONVERTED states with built-in validation and role-based permissions. Moderators review and approve budgets, with clear audit trails and status notifications. Enhanced with production specification fields including paper types, colors, finishing options, and production center selection for comprehensive print job configuration.
 
-**Production Coordination**: The system connects orders to appropriate production centers, enabling efficient resource allocation and progress tracking.
+**Production Coordination**: The system connects orders to appropriate production centers, enabling efficient resource allocation and progress tracking. Enhanced with production center analytics and specification-based center assignment optimization.
 
-**Reporting**: Users access comprehensive reports on financial performance, production metrics, and client analytics, with filtering and export capabilities.
+**Reporting**: Users access comprehensive reports on financial performance, production metrics, and client analytics, with filtering and export capabilities. Enhanced with budget specification analytics, field usage patterns, and validation error tracking for production optimization.
+
+**Feature Management**: Administrators can control feature rollout through a comprehensive feature flag system, enabling gradual deployment of new production specification features, analytics tracking, and enhanced validation. Development utilities provide debugging capabilities and preset configurations for different environments.
 
 ### Role-Based Experience
 - **Users** focus on their assigned tasks with read/write access to owned resources
@@ -82,11 +84,15 @@ The application features an intuitive sidebar navigation that provides quick acc
 - **Automation**: Auto-calculation of prices, validation of business rules, and workflow automation
 - **Real-Time Feedback**: Immediate validation, error messages, and success notifications
 - **Smart Defaults**: Pre-populated forms and intelligent suggestions based on user history
+- **Production Intelligence**: Automated specification field suggestions based on job type and historical patterns
+- **Order Number Automation**: Automatic generation of sequential order numbers with year-based formatting
 
 ### Data-Driven Decision Making
 - **Interactive Dashboards**: Visual charts and metrics for quick business insights
 - **Comprehensive Reporting**: Financial, production, and client analytics with export capabilities
 - **Historical Tracking**: Complete audit trails for compliance and analysis
+- **Specification Analytics**: Real-time tracking of production field usage patterns and optimization opportunities
+- **Performance Metrics**: Detailed analytics on budget conversion rates, order processing times, and validation patterns
 
 ### User Empowerment
 - **Role-Appropriate Access**: Users see only relevant features and data for their responsibilities

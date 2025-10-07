@@ -97,6 +97,10 @@ export const isValidSpecificationValue = (
   category: keyof SpecificationData,
   value: string
 ): boolean => {
-  return SPECIFICATION_OPTIONS[getFieldName(category).toUpperCase() as keyof typeof SPECIFICATION_OPTIONS]
-    ?.includes(value as any) || false;
+  return (
+    SPECIFICATION_OPTIONS[
+      getFieldName(category).toUpperCase() as keyof typeof SPECIFICATION_OPTIONS
+    ]?.includes(value as any) || false
+  );
 };
+

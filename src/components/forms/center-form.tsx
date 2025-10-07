@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
@@ -50,6 +50,7 @@ export function CenterForm({ mode, initialData }: CenterFormProps) {
     register, 
     handleSubmit, 
     setValue,
+    register: rhfRegister,
     formState: { errors, isValid, isSubmitting } 
   } = useForm<CenterFormValues, undefined, CenterInput>({
     resolver: zodResolver(CenterSchema),
@@ -57,6 +58,11 @@ export function CenterForm({ mode, initialData }: CenterFormProps) {
     reValidateMode: "onChange",
     defaultValues: formDefaultValues,
   });
+
+  // Ensure RHF knows about the 'type' field even though we use a custom Select
+  useEffect(() => {
+    rhfRegister('type');
+  }, [rhfRegister]);
 
   const onSubmit = async (data: CenterInput) => {
     setServerError("");
@@ -104,7 +110,7 @@ export function CenterForm({ mode, initialData }: CenterFormProps) {
             <Select
               onValueChange={(value) => {
                 const nextType = isCenterType(value) ? value : "Outro";
-                setValue('type', nextType);
+                setValue('type', nextType, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
               }}
               defaultValue={formDefaultValues?.type}
             >
@@ -123,8 +129,8 @@ export function CenterForm({ mode, initialData }: CenterFormProps) {
           </FormField>
 
           <FormField>
-            <Label htmlFor="obs">Observações *</Label>
-            <Input id="obs" placeholder="Observações sobre o centro" {...register('obs')} />
+            <Label htmlFor="obs">Observações</Label>
+            <Input id="obs" placeholder="Observações sobre o centro (opcional)" {...register('obs')} />
             {errors.obs?.message && <p className="text-sm text-destructive">{errors.obs.message}</p>}
           </FormField>
 

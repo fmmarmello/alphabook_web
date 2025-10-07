@@ -717,7 +717,7 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
                 />
               </FormField>
 
-              {featureFlags.isEnabled('PRODUCTION_SPECIFICATIONS') && (
+              {featureFlags.isEnabled('FREIGHT_FIELD') && (
                 <FormField>
                   <Label htmlFor="frete">Frete</Label>
                   <Input

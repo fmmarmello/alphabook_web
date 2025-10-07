@@ -15,8 +15,8 @@
 
 ### Database & ORM
 - **SQLite** - File-based database for development environment
-- **PostgreSQL** - Production database for scalability and robustness
-- **Prisma 6.16** - Type-safe ORM with schema migrations and query building
+- **PostgreSQL** - Production database for scalability and robustness with comprehensive migration support
+- **Prisma 6.16** - Type-safe ORM with schema migrations, enhanced enum support, and query building
 
 ### Authentication & Security
 - **JWT (jsonwebtoken + jose)** - Token-based authentication with refresh rotation
@@ -48,6 +48,12 @@
 - **clsx + tailwind-merge** - Conditional CSS class management
 - **class-variance-authority** - Component variant styling
 - **tailwindcss-animate** - Animation utilities for Tailwind
+
+### Production Management
+- **Production Specification System** - Comprehensive production field management with validation
+- **Feature Flag System** - Runtime configuration and controlled rollout of new functionality
+- **Budget Analytics** - Advanced tracking of field usage, validation errors, and user behavior
+- **Auto-Generation System** - Automatic order number generation with configurable formats
 
 ## Development Setup
 
@@ -153,6 +159,13 @@
 - `@prisma/client@6.16.2` - Database client and query builder
 - `prisma@6.16.2` - Database toolkit and migrations
 
+### Internal Libraries & Systems
+- **specifications-enums.ts** - Production specification enums and validation helpers
+- **feature-flags.ts** - Feature flag management system with runtime configuration
+- **analytics.ts** - Budget analytics and field usage tracking
+- **order-number.ts** - Automatic order number generation with formatting
+- **useSpecifications.ts** - React hook for fetching specification data with fallback
+
 ### Authentication & Security
 - `jsonwebtoken@9.0.2` - JWT token creation and verification
 - `jose@6.1.0` - Modern JWT library with better TypeScript support
@@ -240,6 +253,13 @@
 - **Business Logic Validation**: State machine constraints prevent invalid transitions
 - **Audit Trail Implementation**: Automatic tracking of state changes with timestamps and user IDs
 
+### Production Specification Management
+- **Specification Enums**: Predefined production options based on legacy system specifications
+- **Field Validation**: Business rule validation for production specification fields
+- **Conditional Logic**: Feature flag-controlled conditional field visibility and validation
+- **Analytics Tracking**: Real-time tracking of specification field usage and validation patterns
+- **Legacy Integration**: Seamless integration with existing production workflows and terminology
+
 ### Testing Infrastructure
 - **Comprehensive Test Suite**: 36 tests across 5 scenarios
 - **Scenario Coverage**: Happy path, rejection workflow, permissions, error handling, database integrity
@@ -253,6 +273,18 @@
 - **API-Level Validation**: State transition checks, role-based permission validation
 - **Frontend Validation**: React Hook Form + Zod integration with real-time feedback
 - **Database Constraints**: Unique constraints on budget-to-order relationships
+
+### Feature Flag Management
+- **Runtime Configuration**: Environment-based and localStorage feature flag overrides
+- **Development Utilities**: Debug tools, preset configurations, and state import/export
+- **Controlled Rollout**: Gradual feature activation with user-specific targeting
+- **Production Safety**: Fallback mechanisms and feature dependency validation
+
+### Analytics and Monitoring
+- **Field Usage Tracking**: Real-time monitoring of specification field utilization
+- **Validation Error Analytics**: Pattern analysis for form validation failures
+- **User Behavior Metrics**: Interaction tracking for production specification features
+- **Performance Analytics**: API response times and database query optimization
 
 ### Deployment Workflow
 - **Build Process**: Turbopack for fast builds, Netlify for hosting

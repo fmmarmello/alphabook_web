@@ -42,7 +42,8 @@ Presentation Layer (Next.js App Router)
 #### Component Architecture
 - **`src/components/`** - React components organized by functionality
   - `ui/` - shadcn/ui base components (button, card, table, etc.)
-  - `forms/` - Business form components (budget-form, client-form, etc.)
+  - `forms/` - Business form components (budget-form, client-form, order-form, etc.)
+  - `forms/budget-form/` - Specialized budget form components including ProductionSpecificationsSection
   - `auth/` - Authentication-related components
   - `layout/` - Layout and navigation components
   - `dashboard/` - Dashboard-specific components
@@ -55,6 +56,10 @@ Presentation Layer (Next.js App Router)
   - `server-auth.ts` - Server-side authentication helpers
   - `validation.ts` - Zod schema validation
   - `utils.ts` - Shared utility functions
+  - `specifications-enums.ts` - Production specification enums and validation
+  - `feature-flags.ts` - Feature flag management system
+  - `analytics.ts` - Budget analytics and tracking
+  - `order-number.ts` - Automatic order number generation
 
 #### Type Definitions
 - **`src/types/`** - TypeScript type definitions

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { SpecificationData } from '@/lib/specifications-enums';
 
-// Fallback specification data from legacy system
+// Fallback specification data from legacy system (normalized, UTF-8)
 const FALLBACK_SPECIFICATIONS: SpecificationData = {
   "Tipo de Papel miolo": [
     "offset 75g",
@@ -86,7 +86,7 @@ export function useSpecifications() {
     const apiOptions = getOptions(category);
     const fallbackOptions = FALLBACK_SPECIFICATIONS[category];
 
-    // Merge API options with fallback to ensure we always have options
+    // Ensure we always have options
     return apiOptions.length > 0 ? apiOptions : fallbackOptions;
   };
 
@@ -95,7 +95,6 @@ export function useSpecifications() {
   };
 
   const preloadSpecifications = () => {
-    // Preload specifications in the background
     queryClient.prefetchQuery({
       queryKey: ['specifications'],
       queryFn: async (): Promise<SpecificationData> => {
@@ -161,7 +160,7 @@ export function useSpecificationField(
     setIsDirty(false);
   };
 
-  const isValid = value ? options.includes(value) : true; // Empty value is valid (optional field)
+  const isValid = value ? options.includes(value) : true;
 
   return {
     value,
@@ -175,3 +174,4 @@ export function useSpecificationField(
     reset,
   };
 }
+
