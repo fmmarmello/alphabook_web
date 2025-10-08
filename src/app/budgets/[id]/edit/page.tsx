@@ -1,8 +1,10 @@
+// src/app/budgets/[id]/edit/page.tsx - CORRIGIR IMPORTS
 
 import { notFound } from 'next/navigation';
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma"; // ✅ CORRETO - destructured
 import { getSpecifications } from "@/lib/specifications";
 import EditBudgetForm from "./form";
+import { AuthenticatedRoute } from "@/components/auth/ProtectedRoute"; // ✅ ADICIONAR
 
 interface EditBudgetPageProps {
   params: {
@@ -14,10 +16,20 @@ async function getBudget(id: number) {
   if (isNaN(id) || id <= 0) {
     return null;
   }
-  return await prisma.budget.findUnique({
-    where: { id },
-    include: { order: true }, // Include related order data as in the original form
-  });
+  
+  try {
+    return await prisma.budget.findUnique({
+      where: { id },
+      include: { 
+        order: true,
+        client: true, // ✅ ADICIONAR
+        center: true  // ✅ ADICIONAR
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching budget:', error);
+    return null;
+  }
 }
 
 export default async function EditBudgetPage({ params }: EditBudgetPageProps) {
@@ -32,5 +44,9 @@ export default async function EditBudgetPage({ params }: EditBudgetPageProps) {
     notFound();
   }
 
-  return <EditBudgetForm budget={budget} specifications={specifications} />;
+  return (
+    <AuthenticatedRoute>
+      <EditBudgetForm budget={budget} specifications={specifications} />
+    </AuthenticatedRoute>
+  );
 }

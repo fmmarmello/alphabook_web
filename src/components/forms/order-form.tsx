@@ -21,7 +21,7 @@ import { formatCurrencyBRL } from "@/lib/utils";
 import { z } from "zod";
 // import type { Order, Budget } from "@/types/models";
 // ✅ Use Prisma generated types instead of models.ts
-import type { Order, Budget } from "@/generated/prisma";
+import type { Order, Budget, Client, Center, User } from "@/generated/prisma";
 
 
 const OrderSchema = z.object({
@@ -39,7 +39,13 @@ type OrderInput = z.infer<typeof OrderSchema>;
 
 interface OrderFormProps {
   mode: 'create' | 'edit';
-  initialData?: Order & { budget: Budget & { client: any; center: any } };
+  initialData?: Order & { 
+    budget: Budget & { 
+      client: Client; 
+      center: Center;
+      approvedBy?: User | null;
+    } 
+  };
   budgetId?: number;
 }
 

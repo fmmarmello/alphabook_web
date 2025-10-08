@@ -1,77 +1,76 @@
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-import type { OrderStatus, BudgetStatus } from "@/types/models"
+// src/components/ui/status-badge.tsx - UPDATE INTERFACE
+
+import { cn } from "@/lib/utils";
 
 interface StatusBadgeProps {
-  status: OrderStatus | BudgetStatus | string
-  className?: string
-  type?: 'order' | 'budget'
+  status: string;
+  label?: string; // ✅ ADD this prop
+  className?: string;
 }
 
-// Order status translations from enum values to Portuguese labels
-const orderStatusLabels: Record<OrderStatus, string> = {
-  PENDING: "Pendente",
-  IN_PRODUCTION: "Em produção",
-  COMPLETED: "Concluído",
-  DELIVERED: "Entregue",
-  CANCELLED: "Cancelado",
-  ON_HOLD: "Em Andamento"
-}
-
-const orderStatusStyles: Record<string, string> = {
-  'Pendente': 'bg-yellow-500/10 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400',
-  'Em produção': 'bg-blue-500/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
-  'Finalizado': 'bg-green-500/10 text-green-700 dark:bg-green-500/20 dark:text-green-400',
-  'Entregue': 'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400',
-  'Cancelado': 'bg-red-500/10 text-red-700 dark:bg-red-500/20 dark:text-red-400',
-  'Concluído': 'bg-green-500/10 text-green-700 dark:bg-green-500/20 dark:text-green-400',
-  'Em Andamento': 'bg-blue-500/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
-}
-
-const budgetStatusStyles: Record<string, string> = {
-  'DRAFT': 'bg-gray-500/10 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400',
-  'SUBMITTED': 'bg-blue-500/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
-  'APPROVED': 'bg-green-500/10 text-green-700 dark:bg-green-500/20 dark:text-green-400',
-  'REJECTED': 'bg-red-500/10 text-red-700 dark:bg-red-500/20 dark:text-red-400',
-  'CONVERTED': 'bg-purple-500/10 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400',
-  'CANCELLED': 'bg-red-500/10 text-red-700 dark:bg-red-500/20 dark:text-red-400',
-}
-
-const budgetStatusLabels: Record<string, string> = {
-  'DRAFT': 'Rascunho',
-  'SUBMITTED': 'Enviado',
-  'APPROVED': 'Aprovado',
-  'REJECTED': 'Rejeitado',
-  'CONVERTED': 'Convertido',
-  'CANCELLED': 'Cancelado',
-}
-
-export function StatusBadge({ status, className, type = 'order' }: StatusBadgeProps) {
-  let label: string
-  let style: string
-
-  if (type === 'budget') {
-    label = budgetStatusLabels[status] || status
-    style = budgetStatusStyles[status] || 'bg-gray-500/10 text-gray-700 dark:bg-gray-500/20'
-  } else {
-    // For orders, translate enum values to Portuguese labels first
-    label = orderStatusLabels[status as OrderStatus] || status
-    style = orderStatusStyles[label] || orderStatusStyles['Pendente'] || 'bg-yellow-500/10 text-yellow-700 dark:bg-yellow-500/20'
-
-    // Debug logging in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[StatusBadge] Order status:', {
-        original: status,
-        translated: label,
-        styleFound: !!orderStatusStyles[label],
-        finalStyle: style
-      })
+export function StatusBadge({ status, label, className }: StatusBadgeProps) {
+  const getStatusStyles = (status: string) => {
+    // Budget statuses
+    switch (status) {
+      case 'DRAFT':
+        return 'bg-gray-100 text-gray-800';
+      case 'SUBMITTED':
+        return 'bg-blue-100 text-blue-800';
+      case 'APPROVED':
+        return 'bg-green-100 text-green-800';
+      case 'REJECTED':
+        return 'bg-red-100 text-red-800';
+      case 'CONVERTED':
+        return 'bg-purple-100 text-purple-800';
+      case 'CANCELLED':
+        return 'bg-gray-100 text-gray-800';
+        
+      // Order statuses
+      case 'PENDING':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'IN_PRODUCTION':
+        return 'bg-blue-100 text-blue-800';
+      case 'COMPLETED':
+        return 'bg-green-100 text-green-800';
+      case 'DELIVERED':
+        return 'bg-green-100 text-green-800 border border-green-200';
+      case 'ON_HOLD':
+        return 'bg-orange-100 text-orange-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
+
+  const getStatusLabel = (status: string) => {
+    // ✅ Default labels if no custom label provided
+    const defaultLabels = {
+      // Budget
+      'DRAFT': 'Rascunho',
+      'SUBMITTED': 'Enviado',
+      'APPROVED': 'Aprovado',
+      'REJECTED': 'Rejeitado',
+      'CONVERTED': 'Convertido',
+      'CANCELLED': 'Cancelado',
+      // Order
+      'PENDING': 'Pendente',
+      'IN_PRODUCTION': 'Em Produção',
+      'COMPLETED': 'Concluída',
+      'DELIVERED': 'Entregue',
+      'ON_HOLD': 'Em Espera'
+    };
+    
+    return defaultLabels[status as keyof typeof defaultLabels] || status;
+  };
 
   return (
-    <Badge variant="outline" className={cn(style, 'font-medium', className)}>
-      {label}
-    </Badge>
-  )
+    <span
+      className={cn(
+        'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
+        getStatusStyles(status),
+        className
+      )}
+    >
+      {label || getStatusLabel(status)}
+    </span>
+  );
 }

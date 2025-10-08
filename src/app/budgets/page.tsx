@@ -15,12 +15,13 @@ import { ErrorAlert } from "@/components/ui/error-alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable, type VisibilityState } from "@tanstack/react-table";
-import { formatCurrencyBRL } from "@/lib/utils";
+import { formatCurrencyBRL, formatDateBR } from "@/lib/utils";
 import { Book, Columns2 } from "lucide-react";
 import type { Budget } from "@/types/models";
 import type { PaginatedResponse } from "@/types/api";
 import { toast } from "sonner";
 import { AuthenticatedRoute } from "@/components/auth/ProtectedRoute";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 function BudgetsContent() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -36,8 +37,23 @@ function BudgetsContent() {
   const [pageCount, setPageCount] = useState(1);
   const [total, setTotal] = useState(0);
 
+
   // DataTable (shadcn + TanStack) columns and state
   const tableColumns: ColumnDef<Budget, unknown>[] = [
+    {
+      accessorKey: "numero_pedido",
+      header: "Numero do Pedido",
+      meta: { label: "Numero do Pedido", className: "w-[11rem]" },
+      cell: ({ row }) => row.original.numero_pedido ?? "-",
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      meta: { label: "Status", className: "w-[11rem]" },
+      cell: ({ row }) => (
+        <StatusBadge status={row.original.status} />
+      ),
+    },
     {
       accessorKey: "titulo",
       header: "Titulo",
@@ -46,16 +62,11 @@ function BudgetsContent() {
         <div className="max-w-[18rem] truncate">{row.original.titulo}</div>
       ),
     },
-    {
-      accessorKey: "numero_pedido",
-      header: "Numero do Pedido",
-      meta: { label: "Numero do Pedido", className: "w-[11rem]" },
-      cell: ({ row }) => row.original.numero_pedido ?? "-",
-    },
+
     { accessorKey: "tiragem", header: "Tiragem", meta: { label: "Tiragem" } },
     { accessorKey: "formato", header: "Formato", meta: { label: "Formato" } },
     { accessorKey: "total_pgs", header: "Num paginas total", meta: { label: "Num paginas total" } },
-    { accessorKey: "pgs_colors", header: "Num paginas coloridas", meta: { label: "Num paginas coloridas" } },
+    // { accessorKey: "pgs_colors", header: "Num paginas coloridas", meta: { label: "Num paginas coloridas" } },
     {
       accessorKey: "preco_unitario",
       header: "Valor Unitario",
@@ -68,7 +79,14 @@ function BudgetsContent() {
       meta: { label: "Valor Total" },
       cell: ({ row }) => formatCurrencyBRL(Number(row.original.preco_total) || 0),
     },
-    { accessorKey: "prazo_producao", header: "Prazo de producao", meta: { label: "Prazo de producao" } },
+    {
+      accessorKey: "data_pedido", header: "Data Pedido", meta: { label: "Data Pedido" },
+      cell: ({ row }) => formatDateBR(row.original.data_pedido)
+    },
+    {
+      accessorKey: "data_entrega", header: "Data Entrega", meta: { label: "Data Entrega" },
+      cell: ({ row }) => formatDateBR(row.original.data_entrega)
+    },
     {
       accessorKey: "observacoes",
       header: "Observacoes",
@@ -83,6 +101,7 @@ function BudgetsContent() {
       enableHiding: false,
       cell: ({ row }) => {
         const budget = row.original as Budget;
+        console.log(row);
         return (
           <div className="flex gap-2">
             <Button asChild variant="outline" size="sm">
@@ -127,67 +146,18 @@ function BudgetsContent() {
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
   });
-  
-  type ColKey =
-    | "titulo"
-    | "numero_pedido"
-    | "tiragem"
-    | "formato"
-    | "total_pgs"
-    | "pgs_colors"
-    | "preco_unitario"
-    | "preco_total"
-    | "prazo_producao"
-    | "observacoes";
 
-  const columns: { key: ColKey; label: string; className?: string; render: (b: Budget) => ReactNode }[] = [
-    { key: "titulo", label: "Título", className: "w-[11rem]", render: (b) => (<div className="max-w-[18rem] truncate">{b.titulo}</div>) },
-    { key: "numero_pedido", label: "Número do Pedido", className: "w-[11rem]", render: (b) => (b.numero_pedido ?? "-") },
-    { key: "tiragem", label: "Tiragem", render: (b) => b.tiragem },
-    { key: "formato", label: "Formato", render: (b) => b.formato },
-    { key: "total_pgs", label: "Nº páginas total", render: (b) => b.total_pgs },
-    { key: "pgs_colors", label: "Nº páginas coloridas", render: (b) => b.pgs_colors },
-    { key: "preco_unitario", label: "Valor Unitário", render: (b) => formatCurrencyBRL(Number(b.preco_unitario) || 0) },
-    { key: "preco_total", label: "Valor Total", render: (b) => formatCurrencyBRL(Number(b.preco_total) || 0) },
-    { key: "prazo_producao", label: "Prazo de produção", render: (b) => b.prazo_producao },
-    {
-      key: "observacoes",
-      label: "Observações",
-      className: "w-[18rem]",
-      render: (b) => <div className="max-w-[20rem] break-words">{b.observacoes}</div>,
-    },
-  ];
 
-  const defaultVisibility = Object.fromEntries(columns.map((c) => [c.key, true])) as Record<ColKey, boolean>;
-  const [visibleColumns, setVisibleColumns] = useState<Record<ColKey, boolean>>(defaultVisibility);
 
-  // Load/save column visibility in localStorage
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("budgets.columnsVisibility");
-      if (saved) {
-        const parsed = JSON.parse(saved) as Partial<Record<ColKey, boolean>>;
-        setVisibleColumns({ ...defaultVisibility, ...parsed });
-      }
-    } catch {
-      // ignore
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem("budgets.columnsVisibility", JSON.stringify(visibleColumns));
-    } catch {
-      // ignore
-    }
-  }, [visibleColumns]);
+
+
+
+
 
   // legacy manual column toggle handler removed (unused)
 
-  const hiddenIndexes = columns
-    .map((c, idx) => (!visibleColumns[c.key] ? idx + 1 : null))
-    .filter((v): v is number => v !== null);
+
 
   const fetchBudgets = async () => {
     setLoading(true);
@@ -277,7 +247,7 @@ function BudgetsContent() {
                   <SelectItem value="preco_unitario">Valor Unitário</SelectItem>
                   <SelectItem value="preco_total">Valor Total</SelectItem>
                   <SelectItem value="total_pgs">Páginas Total</SelectItem>
-                  <SelectItem value="pgs_colors">Páginas Coloridas</SelectItem>
+                  {/* <SelectItem value="pgs_colors">Páginas Coloridas</SelectItem> */}
                   <SelectItem value="prazo_producao">Prazo</SelectItem>
                   <SelectItem value="numero_pedido">Número do Pedido</SelectItem>
                   <SelectItem value="data_pedido">Data</SelectItem>
@@ -346,9 +316,9 @@ function BudgetsContent() {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -396,98 +366,6 @@ function BudgetsContent() {
               )}
             </TableBody>
           </Table>
-          {false && (<Table data-budget-table="true" className="w-full table-fixed">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[11rem]">Título</TableHead>
-                  <TableHead className="w-[11rem]">Número do Pedido</TableHead>
-                  <TableHead>Tiragem</TableHead>
-                  <TableHead>Formato</TableHead>
-                  <TableHead>Nº páginas total</TableHead>
-                  <TableHead>Nº páginas coloridas</TableHead>
-                  <TableHead>Valor Unitário</TableHead>
-                  <TableHead >Valor Total</TableHead>
-                  <TableHead >Prazo de produção</TableHead>
-                  <TableHead className="w-[18rem]">Observações</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  Array.from({ length: pageSize }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : budgets.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={11} className="h-64">
-                      <EmptyState
-                        icon={Book}
-                        title="Nenhum orçamento encontrado"
-                        description="Comece criando seu primeiro orçamento."
-                        action={
-                          <Button asChild>
-                            <Link href="/budgets/new">Criar Primeiro Orçamento</Link>
-                          </Button>
-                        }
-                      />
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  budgets.map((budget) => (
-                    <TableRow key={budget.id}>
-                      <TableCell className="whitespace-normal break-words">
-                        <div className="max-w-[18rem] truncate">{budget.titulo}</div>
-                      </TableCell>
-                      <TableCell>{budget.numero_pedido ?? "-"}</TableCell>
-                      <TableCell>{budget.tiragem}</TableCell>
-                      <TableCell>{budget.formato}</TableCell>
-                      <TableCell>{budget.total_pgs}</TableCell>
-                      <TableCell>{budget.pgs_colors}</TableCell>
-                      <TableCell>{formatCurrencyBRL(Number(budget.preco_unitario) || 0)}</TableCell>
-                      <TableCell>{formatCurrencyBRL(Number(budget.preco_total) || 0)}</TableCell>
-                      <TableCell>{budget.prazo_producao}</TableCell>
-                      <TableCell className="whitespace-normal break-words">
-                        <div className="max-w-[20rem] break-words">
-                          {budget.observacoes}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={`/budgets/${budget.id}/edit`}>Editar</Link>
-                          </Button>
-                          <ConfirmDialog
-                            title="Excluir orçamento"
-                            description="Esta ação não pode ser desfeita."
-                            confirmLabel="Excluir"
-                            confirmVariant="destructive"
-                            onConfirm={() => handleDelete(budget.id)}
-                            trigger={<Button variant="destructive">Excluir</Button>}
-                          />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )))
-                }
-              </TableBody>
-            </Table>)}
-          {false && (
-            <style jsx global>{`
-              ${hiddenIndexes.map((i) => `table[data-budget-table] tr > *:nth-child(${i}) { display: none; }`).join('\n')}
-            `}</style>
-          )}
           <div className="mt-4">
             <Pagination
               page={page}

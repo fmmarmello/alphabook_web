@@ -1,16 +1,27 @@
+"use client";
 import { OrderForm } from "@/components/forms/order-form";
+import {  useSearchParams } from 'next/navigation';
+import { AuthenticatedRoute } from "@/components/auth/ProtectedRoute";
+import { redirect } from "next/navigation";
 
 interface NewOrderPageProps {
   searchParams: Promise<{ budgetId?: string }>;
 }
 
-export default async function NewOrderPage({ searchParams }: NewOrderPageProps) {
-  const params = await searchParams;
-  const budgetId = params.budgetId;
+// src/app/orders/new/page.tsx - DEVE SER ATUALIZADO
+
+export default function NewOrderPage() {
+  const searchParams = useSearchParams();
+  const budgetId = searchParams.get("budgetId");
+
+  // ✅ ADICIONAR: Validação obrigatória
+  if (!budgetId) {
+    redirect('/budgets?status=APPROVED');
+  }
 
   return (
-    <div className="space-y-6">
-      <OrderForm mode="create" budgetId={budgetId} />
-    </div>
+    <AuthenticatedRoute>
+      <OrderForm mode="create" budgetId={parseInt(budgetId)} />
+    </AuthenticatedRoute>
   );
 }
