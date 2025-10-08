@@ -68,7 +68,7 @@ function OrdersContent() {
       meta: { label: "Nº Ordem", className: "w-[120px]" },
       cell: ({ row }) => (
         <Link
-          href={`/orders/${row.original.id}`}
+          href={`/orders/${row.original.id}/edit`}
           className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
         >
           {row.original.numero_pedido}
