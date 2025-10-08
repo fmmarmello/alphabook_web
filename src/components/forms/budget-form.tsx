@@ -231,7 +231,11 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
     }
   };
 
-  const handleWorkflowAction = async (action: string, data?: any) => {
+  type WorkflowAction = 'submit' | 'approve' | 'reject' | 'convert-to-order';
+  const handleWorkflowAction = async (
+    action: WorkflowAction,
+    data?: Record<string, unknown>
+  ) => {
     if (!initialData?.id) return;
     
     setIsSubmittingWorkflow(true);
@@ -247,14 +251,14 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
         throw new Error(err?.error?.message || `Erro ao executar ação.`);
       }
 
-      const actionLabels = {
+      const actionLabels: Record<WorkflowAction, string> = {
         submit: 'enviado para aprovação',
         approve: 'aprovado',
         reject: 'rejeitado',
         'convert-to-order': 'convertido em pedido'
       };
 
-      toast.success(`Orçamento ${actionLabels[action as keyof typeof actionLabels] || 'atualizado'} com sucesso!`);
+      toast.success(`Orçamento ${actionLabels[action]} com sucesso!`);
       router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao executar ação.');
@@ -619,12 +623,10 @@ export function BudgetForm({ mode, initialData, specifications }: BudgetFormProp
             {/* Especificações de Produção - Feature Flagged */}
             {featureFlags.isEnabled('PRODUCTION_SPECIFICATIONS') && (
               <ProductionSpecificationsSection
-                control={control}
                 setValue={setValue}
                 watch={watch}
                 errors={errors}
                 specifications={specifications}
-                initialData={initialData}
                 disabled={mode === 'edit' && !canEdit}
               />
             )}

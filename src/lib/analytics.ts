@@ -2,6 +2,12 @@
 
 import { useRef, useCallback } from 'react';
 
+type GtagFunction = (command: string, eventName: string, params?: Record<string, unknown>) => void;
+
+interface SentryGlobal {
+  captureException?: (error: Error, context?: { tags?: Record<string, string> }) => void;
+}
+
 // Types for analytics events
 interface SpecificationFieldUsedEvent {
   fieldName: string;
@@ -37,15 +43,41 @@ interface BudgetFormSubmissionEvent {
   sessionId: string;
 }
 
+type SpecificationFieldUsedAnalyticsEvent = SpecificationFieldUsedEvent & {
+  type: 'specification_field_used';
+};
+
+type SpecificationSectionCompletedAnalyticsEvent = SpecificationSectionCompletedEvent & {
+  type: 'specification_section_completed';
+};
+
+type SpecificationValidationErrorAnalyticsEvent = SpecificationValidationErrorEvent & {
+  type: 'specification_validation_error';
+};
+
+type BudgetFormSubmissionAnalyticsEvent = BudgetFormSubmissionEvent & {
+  type: 'budget_form_submission';
+};
+
+type SpecificationAnalyticsEvent =
+  | SpecificationFieldUsedAnalyticsEvent
+  | SpecificationSectionCompletedAnalyticsEvent
+  | SpecificationValidationErrorAnalyticsEvent
+  | BudgetFormSubmissionAnalyticsEvent;
+
+interface SpecificationAnalyticsSummary {
+  totalFieldInteractions: number;
+  totalValidationErrors: number;
+  totalSectionCompletions: number;
+  averageCompletionRate: number;
+  mostUsedFields: Array<{ field: string; count: number }>;
+  commonErrors: Array<{ error: string; count: number }>;
+}
+
 // Analytics service class
 class SpecificationAnalyticsService {
   private sessionId: string;
-  private events: Array<
-    SpecificationFieldUsedEvent |
-    SpecificationSectionCompletedEvent |
-    SpecificationValidationErrorEvent |
-    BudgetFormSubmissionEvent
-  > = [];
+  private events: SpecificationAnalyticsEvent[] = [];
 
   constructor() {
     this.sessionId = this.generateSessionId();
@@ -55,7 +87,7 @@ class SpecificationAnalyticsService {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private logEvent(event: any): void {
+  private logEvent(event: SpecificationAnalyticsEvent): void {
     this.events.push(event);
     
     // In development, log to console
@@ -69,17 +101,17 @@ class SpecificationAnalyticsService {
     }
   }
 
-  private sendToAnalyticsService(event: any): void {
+  private sendToAnalyticsService(event: SpecificationAnalyticsEvent): void {
     // Implement your analytics service integration here
     // Examples: Google Analytics, Mixpanel, PostHog, etc.
     try {
-      // Example implementation:
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', 'specification_interaction', {
+      if (typeof window !== 'undefined' && window.gtag) {
+        const payload: Record<string, unknown> = {
           event_category: 'Budget Form',
           event_label: event.type,
           custom_parameters: event,
-        });
+        };
+        window.gtag('event', 'specification_interaction', payload);
       }
     } catch (error) {
       console.warn('Failed to send analytics event:', error);
@@ -99,10 +131,12 @@ class SpecificationAnalyticsService {
       sessionId: this.sessionId,
     };
 
-    this.logEvent({
+    const analyticsEvent: SpecificationFieldUsedAnalyticsEvent = {
       ...event,
       type: 'specification_field_used',
-    });
+    };
+
+    this.logEvent(analyticsEvent);
   }
 
   trackSpecificationSectionCompleted(
@@ -124,10 +158,12 @@ class SpecificationAnalyticsService {
       sessionId: this.sessionId,
     };
 
-    this.logEvent({
+    const analyticsEvent: SpecificationSectionCompletedAnalyticsEvent = {
       ...event,
       type: 'specification_section_completed',
-    });
+    };
+
+    this.logEvent(analyticsEvent);
   }
 
   trackSpecificationValidationError(
@@ -143,10 +179,12 @@ class SpecificationAnalyticsService {
       sessionId: this.sessionId,
     };
 
-    this.logEvent({
+    const analyticsEvent: SpecificationValidationErrorAnalyticsEvent = {
       ...event,
       type: 'specification_validation_error',
-    });
+    };
+
+    this.logEvent(analyticsEvent);
   }
 
   trackBudgetFormSubmission(
@@ -167,13 +205,15 @@ class SpecificationAnalyticsService {
       sessionId: this.sessionId,
     };
 
-    this.logEvent({
+    const analyticsEvent: BudgetFormSubmissionAnalyticsEvent = {
       ...event,
       type: 'budget_form_submission',
-    });
+    };
+
+    this.logEvent(analyticsEvent);
   }
 
-  getEvents(): Array<any> {
+  getEvents(): SpecificationAnalyticsEvent[] {
     return [...this.events];
   }
 
@@ -193,24 +233,33 @@ class SpecificationAnalyticsService {
     }, null, 2);
   }
 
-  private generateSummary() {
-    const fieldUsageEvents = this.events.filter(e => (e as any).type === 'specification_field_used');
-    const errorEvents = this.events.filter(e => (e as any).type === 'specification_validation_error');
-    const completionEvents = this.events.filter(e => (e as any).type === 'specification_section_completed');
+  private generateSummary(): SpecificationAnalyticsSummary {
+    const fieldUsageEvents = this.events.filter(
+      (event): event is SpecificationFieldUsedAnalyticsEvent =>
+        event.type === 'specification_field_used'
+    );
+    const errorEvents = this.events.filter(
+      (event): event is SpecificationValidationErrorAnalyticsEvent =>
+        event.type === 'specification_validation_error'
+    );
+    const completionEvents = this.events.filter(
+      (event): event is SpecificationSectionCompletedAnalyticsEvent =>
+        event.type === 'specification_section_completed'
+    );
 
     return {
       totalFieldInteractions: fieldUsageEvents.length,
       totalValidationErrors: errorEvents.length,
       totalSectionCompletions: completionEvents.length,
       averageCompletionRate: completionEvents.length > 0
-        ? completionEvents.reduce((sum, event) => sum + (event as any).completionRate, 0) / completionEvents.length
+        ? completionEvents.reduce((sum, event) => sum + event.completionRate, 0) / completionEvents.length
         : 0,
       mostUsedFields: this.getMostUsedFields(fieldUsageEvents),
       commonErrors: this.getCommonErrors(errorEvents),
     };
   }
 
-  private getMostUsedFields(events: any[]): Array<{ field: string; count: number }> {
+  private getMostUsedFields(events: SpecificationFieldUsedAnalyticsEvent[]): Array<{ field: string; count: number }> {
     const fieldCounts: Record<string, number> = {};
     events.forEach(event => {
       const fieldName = event.fieldName;
@@ -223,7 +272,7 @@ class SpecificationAnalyticsService {
       .slice(0, 5);
   }
 
-  private getCommonErrors(events: any[]): Array<{ error: string; count: number }> {
+  private getCommonErrors(events: SpecificationValidationErrorAnalyticsEvent[]): Array<{ error: string; count: number }> {
     const errorCounts: Record<string, number> = {};
     events.forEach(event => {
       const error = event.errorMessage;
@@ -269,8 +318,8 @@ export class ErrorTracker {
     // Implement your error tracking service here
     // Examples: Sentry, Bugsnag, etc.
     try {
-      if (typeof window !== 'undefined' && (window as any).Sentry) {
-        (window as any).Sentry.captureException(error, {
+      if (typeof window !== 'undefined' && window.Sentry?.captureException) {
+        window.Sentry.captureException(error, {
           tags: { context },
         });
       }
@@ -279,7 +328,7 @@ export class ErrorTracker {
     }
   }
 
-  static getErrors(): Array<any> {
+  static getErrors(): Array<{ error: Error; context: string; timestamp: number }> {
     return [...this.errors];
   }
 
@@ -331,8 +380,22 @@ export const analyticsDevUtils = {
 };
 
 // Make analytics available in development console
+type SpecificationAnalyticsDevGlobal = {
+  service: SpecificationAnalyticsService;
+  devUtils: typeof analyticsDevUtils;
+  ErrorTracker: typeof ErrorTracker;
+};
+
+declare global {
+  interface Window {
+    gtag?: GtagFunction;
+    Sentry?: SentryGlobal;
+    specificationAnalytics?: SpecificationAnalyticsDevGlobal;
+  }
+}
+
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  (window as any).specificationAnalytics = {
+  window.specificationAnalytics = {
     service: specificationAnalytics,
     devUtils: analyticsDevUtils,
     ErrorTracker,

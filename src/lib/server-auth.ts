@@ -253,11 +253,11 @@ export async function requireApiRole(request: NextRequest, requiredRole: Role): 
 /**
  * Performance monitoring helper to measure auth overhead
  */
-export function measureAuthPerformance<T extends (...args: any[]) => Promise<any>>(
+export function measureAuthPerformance<T extends (...args: unknown[]) => Promise<unknown>>(
   name: string,
   fn: T
 ): T {
-  return (async (...args: any[]) => {
+  return (async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     if (process.env.NODE_ENV === 'development') {
       const start = performance.now();
       const result = await fn(...args);

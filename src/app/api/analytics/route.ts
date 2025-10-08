@@ -2,9 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireApiAuth } from '@/lib/server-auth';
 import { handleApiError } from '@/lib/api-auth';
 
+type AnalyticsEventProperties = Record<string, unknown> & {
+  field_name?: string;
+  error_message?: string;
+  success?: boolean;
+  error?: string;
+  abandonment_step?: string;
+};
+
 interface AnalyticsEvent {
   event: string;
-  properties: Record<string, any>;
+  properties: AnalyticsEventProperties;
   timestamp: string;
   userId?: string;
   sessionId: string;
@@ -147,15 +155,56 @@ export async function GET(req: NextRequest) {
   }
 }
 
-function isValidEvent(event: any): event is AnalyticsEvent {
-  return (
-    typeof event === 'object' &&
-    typeof event.event === 'string' &&
-    event.event.length > 0 &&
-    typeof event.properties === 'object' &&
-    typeof event.sessionId === 'string' &&
-    event.sessionId.length > 0
-  );
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isValidEvent(event: unknown): event is AnalyticsEvent {
+  if (!isRecord(event)) return false;
+
+  if (typeof event.event !== 'string' || event.event.length === 0) {
+    return false;
+  }
+
+  if (!isRecord(event.properties)) {
+    return false;
+  }
+
+  if (typeof event.sessionId !== 'string' || event.sessionId.length === 0) {
+    return false;
+  }
+
+  if (
+    event.timestamp !== undefined &&
+    typeof event.timestamp !== 'string'
+  ) {
+    return false;
+  }
+
+  if (event.userId !== undefined && typeof event.userId !== 'string') {
+    return false;
+  }
+
+  if (event.url !== undefined && typeof event.url !== 'string') {
+    return false;
+  }
+
+  if (event.userAgent !== undefined && typeof event.userAgent !== 'string') {
+    return false;
+  }
+
+  return true;
+}
+
+interface AnalyticsSummary {
+  total_events: number;
+  unique_sessions: number;
+  recent_events_24h: number;
+  event_type_counts: Record<string, number>;
+  specification_field_usage: Record<string, number>;
+  specification_validation_errors: Record<string, number>;
+  storage_size: number;
+  last_updated: string;
 }
 
 function storeEvents(events: AnalyticsEvent[]): void {
@@ -176,20 +225,35 @@ function logImportantEvents(events: AnalyticsEvent[]): void {
   for (const event of events) {
     // Log errors and important business events
     if (event.event === 'specification_validation_error') {
-      console.warn(`Validation error in field: ${event.properties.field_name} - ${event.properties.error_message}`);
+      const fieldName = typeof event.properties.field_name === 'string'
+        ? event.properties.field_name
+        : 'unknown';
+      const errorMessage = typeof event.properties.error_message === 'string'
+        ? event.properties.error_message
+        : 'unknown error';
+      console.warn(`Validation error in field: ${fieldName} - ${errorMessage}`);
     }
 
-    if (event.event === 'budget_form_submission' && !event.properties.success) {
-      console.error(`Form submission failed: ${event.properties.error}`);
+    if (
+      event.event === 'budget_form_submission' &&
+      event.properties.success === false
+    ) {
+      const errorMessage = typeof event.properties.error === 'string'
+        ? event.properties.error
+        : 'Unknown error';
+      console.error(`Form submission failed: ${errorMessage}`);
     }
 
     if (event.event === 'budget_form_abandoned') {
-      console.info(`Form abandoned at step: ${event.properties.abandonment_step}`);
+      const abandonmentStep = typeof event.properties.abandonment_step === 'string'
+        ? event.properties.abandonment_step
+        : 'unknown';
+      console.info(`Form abandoned at step: ${abandonmentStep}`);
     }
   }
 }
 
-function generateSummary(events: AnalyticsEvent[]): Record<string, any> {
+function generateSummary(events: AnalyticsEvent[]): AnalyticsSummary {
   const totalEvents = events.length;
   const uniqueSessions = new Set(events.map(e => e.sessionId)).size;
   const eventTypeCounts: Record<string, number> = {};
@@ -205,12 +269,18 @@ function generateSummary(events: AnalyticsEvent[]): Record<string, any> {
 
   for (const event of events) {
     if (event.event === 'specification_field_used') {
-      const fieldName = event.properties.field_name;
+      const fieldName = typeof event.properties.field_name === 'string'
+        ? event.properties.field_name
+        : undefined;
+      if (!fieldName) continue;
       specificationFieldUsage[fieldName] = (specificationFieldUsage[fieldName] || 0) + 1;
     }
 
     if (event.event === 'specification_validation_error') {
-      const fieldName = event.properties.field_name;
+      const fieldName = typeof event.properties.field_name === 'string'
+        ? event.properties.field_name
+        : undefined;
+      if (!fieldName) continue;
       specificationErrors[fieldName] = (specificationErrors[fieldName] || 0) + 1;
     }
   }

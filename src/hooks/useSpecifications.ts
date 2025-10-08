@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { SpecificationData } from '@/lib/specifications-enums';
 
@@ -178,4 +178,3 @@ export function useSpecificationField(
     reset,
   };
 }
-

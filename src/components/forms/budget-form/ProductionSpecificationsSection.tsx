@@ -2,23 +2,59 @@
 
 "use client";
 import React, { useEffect } from "react";
-import { Control, UseFormSetValue, UseFormWatch, FieldErrors } from "react-hook-form";
+import { UseFormSetValue, UseFormWatch, FieldError, FieldErrors } from "react-hook-form";
 import { FormField, FormGrid } from "@/components/ui/form-grid";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSpecifications } from "@/hooks/useSpecifications";
-import { useSpecificationAnalytics, ErrorTracker } from "@/lib/analytics";
+import { useSpecificationAnalytics } from "@/lib/analytics";
 import { featureFlags } from "@/lib/feature-flags";
 import type { BudgetInput } from "@/lib/validation";
+import type { SpecificationData } from "@/lib/specifications-enums";
+
+type SpecificationCategory = keyof SpecificationData;
+type SpecificationFieldName =
+  | "cor_miolo"
+  | "papel_miolo"
+  | "papel_capa"
+  | "cor_capa"
+  | "laminacao"
+  | "acabamento"
+  | "shrink"
+  | "centro_producao";
+
+const SPECIFICATION_FIELD_NAMES: SpecificationFieldName[] = [
+  "cor_miolo",
+  "papel_miolo",
+  "papel_capa",
+  "cor_capa",
+  "laminacao",
+  "acabamento",
+  "shrink",
+  "centro_producao",
+];
+
+const isFieldErrorObject = (value: unknown): value is FieldError => {
+  return Boolean(value) && typeof value === "object" && "message" in (value as Record<string, unknown>);
+};
+
+const resolveFieldErrorMessage = (
+  fieldErrors: FieldErrors<BudgetInput>,
+  fieldName: SpecificationFieldName
+): string | undefined => {
+  const fieldError = fieldErrors[fieldName];
+  if (isFieldErrorObject(fieldError) && typeof fieldError.message === "string") {
+    return fieldError.message;
+  }
+  return undefined;
+};
 
 interface ProductionSpecificationsSectionProps {
-  control: Control<BudgetInput>;
   setValue: UseFormSetValue<BudgetInput>;
   watch: UseFormWatch<BudgetInput>;
   errors: FieldErrors<BudgetInput>;
-  specifications?: Record<string, string[]>;
-  initialData?: Partial<BudgetInput>;
+  specifications?: Partial<Record<SpecificationCategory, string[]>>;
   disabled?: boolean;
 }
 
@@ -83,12 +119,10 @@ const SpecificationField: React.FC<{
 };
 
 export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsSectionProps> = ({
-  control,
   setValue,
   watch,
   errors,
   specifications: propSpecifications,
-  initialData,
   disabled = false,
 }) => {
   const { specifications, isLoading, getOptionsWithFallback } = useSpecifications();
@@ -96,55 +130,52 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
 
   // Track section completion when component unmounts
   useEffect(() => {
-    const currentSpecifications = {
-      cor_miolo: watch("cor_miolo"),
-      papel_miolo: watch("papel_miolo"),
-      papel_capa: watch("papel_capa"),
-      cor_capa: watch("cor_capa"),
-      laminacao: watch("laminacao"),
-      acabamento: watch("acabamento"),
-      shrink: watch("shrink"),
-      centro_producao: watch("centro_producao"),
+    const currentSpecifications: Record<SpecificationFieldName, string> = {
+      cor_miolo: watch("cor_miolo") ?? "",
+      papel_miolo: watch("papel_miolo") ?? "",
+      papel_capa: watch("papel_capa") ?? "",
+      cor_capa: watch("cor_capa") ?? "",
+      laminacao: watch("laminacao") ?? "",
+      acabamento: watch("acabamento") ?? "",
+      shrink: watch("shrink") ?? "",
+      centro_producao: watch("centro_producao") ?? "",
     };
 
     return () => {
       if (featureFlags.isEnabled('SPECIFICATION_ANALYTICS')) {
-        trackSectionCompletion(currentSpecifications as any);
+        trackSectionCompletion(currentSpecifications);
       }
     };
   }, [watch, trackSectionCompletion]);
 
   // Track validation errors
   useEffect(() => {
-    if (featureFlags.isEnabled('SPECIFICATION_ANALYTICS')) {
-      Object.entries(errors).forEach(([fieldName, error]) => {
-        if (error && isSpecificationField(fieldName)) {
-          trackValidationError(fieldName, (error as any).message || 'Unknown validation error');
-        }
-      });
+    if (!featureFlags.isEnabled('SPECIFICATION_ANALYTICS')) {
+      return;
     }
+
+    SPECIFICATION_FIELD_NAMES.forEach((fieldName) => {
+      const message = resolveFieldErrorMessage(errors, fieldName);
+      if (message) {
+        trackValidationError(fieldName, message);
+      }
+    });
   }, [errors, trackValidationError]);
 
-  const isSpecificationField = (fieldName: string): boolean => {
-    const specificationFields = [
-      'cor_miolo', 'papel_miolo', 'papel_capa', 'cor_capa', 'laminacao', 'acabamento', 'shrink', 'centro_producao'
-    ];
-    return specificationFields.includes(fieldName);
-  };
-
   // Prefer prop specifications if provided (SSR), else hook data
-  const specs = propSpecifications || specifications;
+  const specs: Partial<Record<SpecificationCategory, string[]>> | undefined =
+    propSpecifications ?? specifications;
 
   // Conditional logic: Capa selection
   const corCapaValue = watch("cor_capa");
   const isCapaDisabled = corCapaValue === "Sem capa";
 
-  const handleFieldChange = (fieldName: keyof BudgetInput, value: string) => {
-    setValue(fieldName, value as any, { shouldValidate: true });
+  const handleFieldChange = (fieldName: SpecificationFieldName, value: string) => {
+    setValue(fieldName, value, { shouldValidate: true });
 
     if (featureFlags.isEnabled('SPECIFICATION_ANALYTICS') && value) {
       try {
-        trackFieldUsage(fieldName as string, value);
+        trackFieldUsage(fieldName, value);
       } catch (error) {
         console.warn('Analytics tracking failed:', error);
       }
@@ -157,11 +188,12 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
     }
   };
 
-  const getOptions = (category: string): string[] => {
-    if (specs && (specs as any)[category]) {
-      return (specs as any)[category];
+  const getOptions = (category: SpecificationCategory): string[] => {
+    const providedOptions = specs?.[category];
+    if (providedOptions && providedOptions.length > 0) {
+      return providedOptions;
     }
-    return getOptionsWithFallback(category as any);
+    return getOptionsWithFallback(category);
   };
 
   if (isLoading && !specs) {
@@ -200,7 +232,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Tipo de Papel miolo")}
             disabled={disabled}
             onChange={(value) => handleFieldChange("papel_miolo", value)}
-            error={(errors as any).papel_miolo?.message}
+            error={resolveFieldErrorMessage(errors, "papel_miolo")}
             placeholder="Selecione o tipo de papel"
           />
           <SpecificationField
@@ -210,7 +242,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Tipo de Papel de Capa")}
             disabled={disabled || isCapaDisabled}
             onChange={(value) => handleFieldChange("papel_capa", value)}
-            error={(errors as any).papel_capa?.message}
+            error={resolveFieldErrorMessage(errors, "papel_capa")}
             placeholder="Selecione o tipo de papel da capa"
           />
         </FormGrid>
@@ -229,7 +261,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Cor do miolo")}
             disabled={disabled}
             onChange={(value) => handleFieldChange("cor_miolo", value)}
-            error={(errors as any).cor_miolo?.message}
+            error={resolveFieldErrorMessage(errors, "cor_miolo")}
             placeholder="Selecione a cor do miolo"
           />
           <SpecificationField
@@ -239,7 +271,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Cor da capa")}
             disabled={disabled}
             onChange={(value) => handleFieldChange("cor_capa", value)}
-            error={(errors as any).cor_capa?.message}
+            error={resolveFieldErrorMessage(errors, "cor_capa")}
             placeholder="Selecione a cor da capa"
           />
         </FormGrid>
@@ -258,7 +290,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Tipo de laminação")}
             disabled={disabled || isCapaDisabled}
             onChange={(value) => handleFieldChange("laminacao", value)}
-            error={(errors as any).laminacao?.message}
+            error={resolveFieldErrorMessage(errors, "laminacao")}
             placeholder="Tipo de laminação"
           />
           <SpecificationField
@@ -268,7 +300,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Tipo de acabamento")}
             disabled={disabled}
             onChange={(value) => handleFieldChange("acabamento", value)}
-            error={(errors as any).acabamento?.message}
+            error={resolveFieldErrorMessage(errors, "acabamento")}
             placeholder="Tipo de acabamento"
           />
           <SpecificationField
@@ -278,7 +310,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Shrink")}
             disabled={disabled}
             onChange={(value) => handleFieldChange("shrink", value)}
-            error={(errors as any).shrink?.message}
+            error={resolveFieldErrorMessage(errors, "shrink")}
             placeholder="-"
           />
         </FormGrid>
@@ -297,7 +329,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
             options={getOptions("Centro de Produção")}
             disabled={disabled}
             onChange={(value) => handleFieldChange("centro_producao", value)}
-            error={(errors as any).centro_producao?.message}
+            error={resolveFieldErrorMessage(errors, "centro_producao")}
             placeholder="Selecione o centro de produção"
           />
         </FormGrid>
@@ -307,7 +339,7 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
       {isCapaDisabled && (
         <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
           <p className="text-sm text-blue-800">
-            <strong>Nota:</strong> Como "Sem capa" foi selecionado, 
+            <strong>Nota:</strong> Como &quot;Sem capa&quot; foi selecionado, 
             os campos relacionados à capa (tipo de papel e laminação) foram desabilitados.
           </p>
         </div>

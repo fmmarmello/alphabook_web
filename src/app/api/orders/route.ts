@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { Prisma, OrderStatus } from '@/generated/prisma';
 import { requireApiAuth } from '@/lib/server-auth';
 import { handleApiError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
@@ -101,15 +102,13 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get('status');
     const search = searchParams.get('q');
 
-    const where: any = {};
-    
-    if (status) where.status = status;
+    const where: Prisma.OrderWhereInput = {};
+
+    if (status && isValidOrderStatus(status)) {
+      where.status = status;
+    }
     if (search) {
-      where.OR = [
-        { numero_pedido: { contains: search, mode: 'insensitive' } },
-        { budget: { titulo: { contains: search, mode: 'insensitive' } } },
-        { budget: { client: { name: { contains: search, mode: 'insensitive' } } } }
-      ];
+      where.OR = buildOrderSearchFilters(search);
     }
 
     const orders = await prisma.order.findMany({
@@ -143,4 +142,16 @@ export async function GET(req: NextRequest) {
     const { error: apiError, status } = handleApiError(error);
     return NextResponse.json(apiError, { status });
   }
+}
+
+function isValidOrderStatus(value: string): value is OrderStatus {
+  return (Object.values(OrderStatus) as string[]).includes(value);
+}
+
+function buildOrderSearchFilters(search: string): Prisma.OrderWhereInput[] {
+  return [
+    { numero_pedido: { contains: search, mode: 'insensitive' } },
+    { budget: { titulo: { contains: search, mode: 'insensitive' } } },
+    { budget: { client: { name: { contains: search, mode: 'insensitive' } } } }
+  ];
 }

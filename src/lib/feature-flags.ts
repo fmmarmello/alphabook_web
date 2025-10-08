@@ -221,8 +221,20 @@ export const developmentUtils = {
 
 // Make development utilities available in console for debugging
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  (window as any).featureFlags = {
-    ...featureFlags,
+  const debugWindow = window as typeof window & { featureFlags?: FeatureFlagDebugApi };
+  debugWindow.featureFlags = {
+    manager: featureFlags,
     devUtils: developmentUtils,
   };
+}
+
+type FeatureFlagDebugApi = {
+  manager: FeatureFlagManager;
+  devUtils: typeof developmentUtils;
+};
+
+declare global {
+  interface Window {
+    featureFlags?: FeatureFlagDebugApi;
+  }
 }

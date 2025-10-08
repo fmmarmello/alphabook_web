@@ -1,9 +1,24 @@
 // src/components/orders/order-details.tsx
 import { StatusBadge } from "@/components/ui/status-badge";
 import Link from "next/link";
+import type { OrderStatus } from "@prisma/client";
+
+interface BudgetSummary {
+  id: number;
+  numero_pedido: string;
+  titulo: string;
+  tiragem: number;
+  preco_total: number;
+  client: { name: string };
+  center: { name: string };
+}
 
 interface OrderDetailsProps {
-  order: any; // Order with budget included
+  order: {
+    numero_pedido: string;
+    status: OrderStatus;
+    budget: BudgetSummary;
+  };
 }
 
 export function OrderDetails({ order }: OrderDetailsProps) {
