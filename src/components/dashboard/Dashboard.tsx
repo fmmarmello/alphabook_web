@@ -8,6 +8,7 @@ import { RevenueChart } from "./RevenueChart";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ErrorAlert } from "@/components/ui/error-alert";
 import type { DashboardSummary, RecentOrder, RecentClient } from "@/types/models";
+import { formatCurrencyBRL } from "@/lib/utils";
 
 export function Dashboard() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
@@ -179,16 +180,26 @@ export function Dashboard() {
                     </TableRow>
                   ))
                 ) : (
-                  recentOrders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium">{order.client.name}</TableCell>
-                      <TableCell>{order.title}</TableCell>
-                      <TableCell className="font-medium">R$ {order.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={order.status || 'Pendente'} />
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  recentOrders.map((order) => {
+                    const budget = order.budget;
+                    const clientName = budget?.client?.name ?? "—";
+                    const title = budget?.titulo ?? "—";
+                    const value =
+                      budget && typeof budget.preco_total === "number"
+                        ? formatCurrencyBRL(budget.preco_total)
+                        : "Restrito";
+
+                    return (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">{clientName}</TableCell>
+                        <TableCell>{title}</TableCell>
+                        <TableCell className="font-medium">{value}</TableCell>
+                        <TableCell>
+                          <StatusBadge status={order.status} />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>

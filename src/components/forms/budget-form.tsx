@@ -19,11 +19,11 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { formatCurrencyBRL, parseCurrencyBRL } from "@/lib/utils";
 import { ProductionSpecificationsSection } from "./budget-form/ProductionSpecificationsSection";
 import { featureFlags } from "@/lib/feature-flags";
-import type { Budget, Client, Center, BudgetStatus } from "@/types/models";
+import type { BudgetWithRelations } from "@/types/models";
 
 interface BudgetFormProps {
   mode: 'create' | 'edit';
-  initialData?: Budget;
+  initialData?: BudgetWithRelations;
   specifications?: Record<string, string[]>;
 }
 
@@ -59,7 +59,7 @@ const toDateInputValue = (value: Date | string | null | undefined) => {
   return "";
 };
 
-const mapBudgetDefaults = (budget: Budget): BudgetInput => ({
+const mapBudgetDefaults = (budget: BudgetWithRelations): BudgetInput => ({
   clientId: budget.clientId || 0, // Fallback to 0 if null, will be handled by form validation
   centerId: budget.centerId || 0, // Fallback to 0 if null, will be handled by form validation
   numero_pedido: budget.numero_pedido ?? undefined,

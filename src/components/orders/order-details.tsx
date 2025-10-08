@@ -51,7 +51,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
         </div>
         
         <div className="mt-4">
-          <Link href={`/budgets/${budget.id}`} className="text-blue-600 hover:underline">
+          <Link href={`/budgets/${budget.id}/edit`} className="text-blue-600 hover:underline">
             → Ver orçamento completo
           </Link>
         </div>

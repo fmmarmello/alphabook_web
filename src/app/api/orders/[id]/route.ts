@@ -6,15 +6,26 @@ import { requireApiAuth } from '@/lib/server-auth';
 import { handleApiError } from '@/lib/api-auth';
 import { z } from 'zod';
 
+const dateField = z.coerce.date().optional().nullable();
+
 const UpdateOrderSchema = z.object({
-  status: z.enum(['PENDING', 'IN_PRODUCTION', 'COMPLETED', 'DELIVERED', 'CANCELLED', 'ON_HOLD']).optional(),
-  data_entrega_real: z.string().datetime().optional().nullable(),
-  data_inicio_producao: z.string().datetime().optional().nullable(),
-  data_fim_producao: z.string().datetime().optional().nullable(),
+  status: z
+    .enum([
+      'PENDING',
+      'IN_PRODUCTION',
+      'COMPLETED',
+      'DELIVERED',
+      'CANCELLED',
+      'ON_HOLD',
+    ])
+    .optional(),
+  data_entrega_real: dateField,
+  data_inicio_producao: dateField,
+  data_fim_producao: dateField,
   obs_producao: z.string().optional().nullable(),
   frete_real: z.number().optional().nullable(),
   custo_adicional: z.number().optional().nullable(),
-  responsavel_producao: z.string().optional().nullable()
+  responsavel_producao: z.string().optional().nullable(),
 });
 
 export async function GET(
@@ -25,15 +36,16 @@ export async function GET(
     await requireApiAuth(req);
     
     const order = await prisma.order.findUnique({
-      where: { id: parseInt(params.id) },
+      where: { id: Number.parseInt(params.id, 10) },
       include: {
         budget: {
           include: {
             client: true,
             center: true,
-            approvedBy: true
-          }
-        }
+            approvedBy: true,
+            rejectedBy: true,
+          },
+        },
       }
     });
 
@@ -61,28 +73,18 @@ export async function PUT(
     const body = await req.json();
     const updateData = UpdateOrderSchema.parse(body);
 
-    // Convert date strings to Date objects
-    const processedData: any = { ...updateData };
-    if (processedData.data_entrega_real) {
-      processedData.data_entrega_real = new Date(processedData.data_entrega_real);
-    }
-    if (processedData.data_inicio_producao) {
-      processedData.data_inicio_producao = new Date(processedData.data_inicio_producao);
-    }
-    if (processedData.data_fim_producao) {
-      processedData.data_fim_producao = new Date(processedData.data_fim_producao);
-    }
-
     const order = await prisma.order.update({
-      where: { id: parseInt(params.id) },
-      data: processedData,
+      where: { id: Number.parseInt(params.id, 10) },
+      data: updateData,
       include: {
         budget: {
           include: {
             client: true,
-            center: true
-          }
-        }
+            center: true,
+            approvedBy: true,
+            rejectedBy: true,
+          },
+        },
       }
     });
 
@@ -110,7 +112,7 @@ export async function DELETE(
     }
 
     await prisma.order.delete({
-      where: { id: parseInt(params.id) }
+      where: { id: Number.parseInt(params.id, 10) },
     });
 
     return NextResponse.json({ success: true });

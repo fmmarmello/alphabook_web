@@ -8,11 +8,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { BudgetForm } from "@/components/forms/budget-form";
 import { Package, CheckCircle, Loader2 } from "lucide-react";
-import type { Budget } from "@/types/models";
+import type { BudgetWithRelations } from "@/types/models";
 import type { Specifications } from "@/lib/specifications";
 
 interface EditBudgetFormProps {
-  budget: Budget;
+  budget: BudgetWithRelations;
   specifications: Specifications | null;
 }
 
@@ -90,7 +90,7 @@ export default function EditBudgetForm({ budget, specifications }: EditBudgetFor
             variant="outline"
             size="sm"
             className="ml-4"
-            onClick={() => router.push(`/orders/${budget.order.id}`)}
+            onClick={() => router.push(`/orders/${budget.order.id}/edit`)}
           >
             Ver Ordem
           </Button>

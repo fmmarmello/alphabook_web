@@ -1,69 +1,92 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 import { requireApiAuth } from '@/lib/server-auth';
 import { handleApiError } from '@/lib/api-auth';
 import { Role } from '@/lib/rbac';
+import { Prisma } from '@/generated/prisma';
+
+const ORDER_WITH_RELATIONS = {
+  budget: {
+    include: {
+      client: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+        },
+      },
+      center: {
+        select: {
+          id: true,
+          name: true,
+          type: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.OrderInclude;
 
 export async function GET(req: NextRequest) {
   try {
-    // ✅ SECURITY: Get authenticated user (throws if not authenticated)
     const user = await requireApiAuth(req);
-    
+
     const { searchParams } = new URL(req.url);
-    const limit = parseInt(searchParams.get("limit") ?? "5");
+    const limit = Number.parseInt(searchParams.get('limit') ?? '5', 10);
 
     const recentOrders = await prisma.order.findMany({
-      take: limit,
+      take: Number.isNaN(limit) || limit <= 0 ? 5 : limit,
       orderBy: {
-        date: "desc",
+        data_pedido: 'desc',
       },
-      include: {
-        client: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
-        center: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
+      include: ORDER_WITH_RELATIONS,
     });
 
-    // ✅ SECURITY: Role-based data filtering for recent orders
     const data = recentOrders.map((order) => {
-      const baseData = {
+      const budget = order.budget;
+
+      const basePayload = {
         id: order.id,
-        title: order.title,
-        status: order.status,
-        date: order.date,
         numero_pedido: order.numero_pedido,
-        client: order.client,
-        center: order.center,
+        status: order.status,
+        data_pedido: order.data_pedido,
+        budget: budget
+          ? {
+              id: budget.id,
+              titulo: budget.titulo,
+              preco_total: budget.preco_total,
+              preco_unitario: budget.preco_unitario,
+              client: budget.client,
+              center: budget.center,
+              status: budget.status,
+              data_entrega: budget.data_entrega,
+            }
+          : null,
       };
 
-      // Financial data only for ADMIN and MODERATOR
       if (user.role === Role.ADMIN || user.role === Role.MODERATOR) {
-        return {
-          ...baseData,
-          valorTotal: order.valorTotal,
-        };
+        return basePayload;
       }
 
-      // Users don't see financial data
-      return baseData;
+      if (!basePayload.budget) {
+        return basePayload;
+      }
+
+      const {
+        preco_total: _ignorePrecoTotal,
+        preco_unitario: _ignorePrecoUnitario,
+        ...safeBudget
+      } = basePayload.budget;
+      return {
+        ...basePayload,
+        budget: safeBudget,
+      };
     });
 
     return NextResponse.json({
       data,
-      error: null
+      error: null,
     });
-    
   } catch (error) {
     const { error: apiError, status } = handleApiError(error);
     return NextResponse.json(apiError, { status });

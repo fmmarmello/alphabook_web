@@ -1,5 +1,3 @@
-// src/components/forms/order-form.tsx - CREATE NEW FILE
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -19,9 +17,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { formatCurrencyBRL } from "@/lib/utils";
 import { z } from "zod";
-// import type { Order, Budget } from "@/types/models";
-// ✅ Use Prisma generated types instead of models.ts
-import type { Order, Budget, Client, Center, User } from "@/generated/prisma";
+import type { OrderWithBudget, BudgetWithRelations } from "@/types/models";
 
 
 const OrderSchema = z.object({
@@ -39,13 +35,7 @@ type OrderInput = z.infer<typeof OrderSchema>;
 
 interface OrderFormProps {
   mode: 'create' | 'edit';
-  initialData?: Order & { 
-    budget: Budget & { 
-      client: Client; 
-      center: Center;
-      approvedBy?: User | null;
-    } 
-  };
+  initialData?: OrderWithBudget;
   budgetId?: number;
 }
 
@@ -73,12 +63,12 @@ const toDateInputValue = (value: Date | string | null | undefined) => {
 
 const mapOrderDefaults = (order: OrderFormProps['initialData']): OrderInput => ({
   status: order?.status || 'PENDING',
-  data_entrega_real: toDateInputValue(order?.data_entrega_real),
-  data_inicio_producao: toDateInputValue(order?.data_inicio_producao),
-  data_fim_producao: toDateInputValue(order?.data_fim_producao),
+  data_entrega_real: toDateInputValue(order?.data_entrega_real ?? null),
+  data_inicio_producao: toDateInputValue(order?.data_inicio_producao ?? null),
+  data_fim_producao: toDateInputValue(order?.data_fim_producao ?? null),
   obs_producao: order?.obs_producao || "",
-  frete_real: order?.frete_real || undefined,
-  custo_adicional: order?.custo_adicional || undefined,
+  frete_real: order?.frete_real ?? undefined,
+  custo_adicional: order?.custo_adicional ?? undefined,
   responsavel_producao: order?.responsavel_producao || ""
 });
 
@@ -86,7 +76,7 @@ export function OrderForm({ mode, initialData, budgetId }: OrderFormProps) {
   const router = useRouter();
   const { user } = useAuth();
   const [serverError, setServerError] = useState("");
-  const [budget, setBudget] = useState<Budget & { client: any; center: any } | null>(null);
+  const [budget, setBudget] = useState<BudgetWithRelations | null>(null);
   const [budgetLoading, setBudgetLoading] = useState(!!budgetId);
 
   const formDefaultValues = mode === 'edit' && initialData
@@ -112,7 +102,7 @@ export function OrderForm({ mode, initialData, budgetId }: OrderFormProps) {
           const response = await fetch(`/api/budgets/${budgetId}`);
           if (response.ok) {
             const data = await response.json();
-            setBudget(data.data);
+            setBudget(data.data as BudgetWithRelations);
           } else {
             toast.error('Erro ao carregar orçamento');
             router.push('/budgets');
@@ -134,13 +124,25 @@ export function OrderForm({ mode, initialData, budgetId }: OrderFormProps) {
   const onSubmit = async (data: OrderInput) => {
     setServerError("");
     try {
+      const normalizedPayload = {
+        ...data,
+        frete_real:
+          data.frete_real !== undefined && !Number.isNaN(data.frete_real)
+            ? data.frete_real
+            : undefined,
+        custo_adicional:
+          data.custo_adicional !== undefined && !Number.isNaN(data.custo_adicional)
+            ? data.custo_adicional
+            : undefined,
+      };
+
       const url = mode === 'create'
         ? '/api/orders'
         : `/api/orders/${initialData?.id}`;
       
       const payload = mode === 'create'
-        ? { ...data, budgetId }
-        : data;
+        ? { ...normalizedPayload, budgetId }
+        : normalizedPayload;
 
       const response = await fetch(url, {
         method: mode === 'create' ? 'POST' : 'PUT',
@@ -198,7 +200,9 @@ export function OrderForm({ mode, initialData, budgetId }: OrderFormProps) {
                 <FormField>
                   <Label>Cliente</Label>
                   <div className="font-medium text-gray-900">{displayBudget.client?.name}</div>
-                  <div className="text-sm text-gray-600">{displayBudget.client?.cnpjCpf}</div>
+                  {displayBudget.client?.cnpjCpf && (
+                    <div className="text-sm text-gray-600">{displayBudget.client.cnpjCpf}</div>
+                  )}
                 </FormField>
 
                 <FormField>
@@ -220,7 +224,9 @@ export function OrderForm({ mode, initialData, budgetId }: OrderFormProps) {
                 <FormField>
                   <Label>Valor Total</Label>
                   <div className="font-medium text-gray-900">
-                    {formatCurrencyBRL(displayBudget.preco_total)}
+                    {typeof displayBudget.preco_total === 'number'
+                      ? formatCurrencyBRL(displayBudget.preco_total)
+                      : 'Restrito'}
                   </div>
                 </FormField>
 
@@ -239,7 +245,7 @@ export function OrderForm({ mode, initialData, budgetId }: OrderFormProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => router.push(`/budgets/${displayBudget.id}`)}
+                  onClick={() => router.push(`/budgets/${displayBudget.id}/edit`)}
                 >
                   Ver orçamento completo →
                 </Button>

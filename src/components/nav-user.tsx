@@ -49,7 +49,7 @@ export function NavUser({
   const displayUser = authUser ? {
     name: authUser.name,
     email: authUser.email,
-    avatar: fallbackUser?.avatar || "/avatars/default.jpg",
+    avatar: fallbackUser?.avatar || "/avatars/default.svg",
   } : fallbackUser;
 
   const handleLogout = async () => {

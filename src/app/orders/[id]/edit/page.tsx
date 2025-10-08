@@ -1,19 +1,18 @@
 import { OrderForm } from "@/components/forms/order-form";
 import { notFound } from "next/navigation";
-import type { Order } from "@/types/models";
+import type { OrderWithBudget } from "@/types/models";
 import { serverApiCall } from "@/lib/server-auth";
 
-async function getOrder(id: string): Promise<Order | null> {
-  return await serverApiCall<Order>(`/api/orders/${id}`);
+async function getOrder(id: string): Promise<OrderWithBudget | null> {
+  return await serverApiCall<OrderWithBudget>(`/api/orders/${id}`);
 }
 
 export default async function EditOrderPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: { id: string }
 }) {
-  const { id } = await params;
-  const order = await getOrder(id);
+  const order = await getOrder(params.id);
   
   if (!order) {
     notFound();

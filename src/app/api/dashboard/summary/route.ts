@@ -15,12 +15,17 @@ export async function GET(request: NextRequest) {
     switch (user.role) {
       case Role.ADMIN:
         // Admins see complete dashboard with financial data
-        const [clientsCount, ordersCount, totalRevenue, pendingOrdersCount] = await Promise.all([
+        const [clientsCount, ordersCount, revenueAggregate, pendingOrdersCount] = await Promise.all([
           prisma.client.count(),
           prisma.order.count(),
-          prisma.order.aggregate({
+          prisma.budget.aggregate({
+            where: {
+              order: {
+                isNot: null,
+              },
+            },
             _sum: {
-              valorTotal: true,
+              preco_total: true,
             },
           }),
           prisma.order.count({
@@ -33,7 +38,7 @@ export async function GET(request: NextRequest) {
         data = {
           totalClients: clientsCount,
           totalOrders: ordersCount,
-          totalRevenue: totalRevenue._sum.valorTotal ?? 0, // Financial data visible to admins
+          totalRevenue: revenueAggregate._sum.preco_total ?? 0, // Financial data visible to admins
           pendingOrders: pendingOrdersCount,
         };
         break;

@@ -23,7 +23,9 @@ async function getBudget(id: number) {
       include: { 
         order: true,
         client: true, // ✅ ADICIONAR
-        center: true  // ✅ ADICIONAR
+        center: true,  // ✅ ADICIONAR
+        approvedBy: true,
+        rejectedBy: true,
       },
     });
   } catch (error) {

@@ -3,6 +3,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireApiAuth } from '@/lib/server-auth';
+import { handleApiError } from '@/lib/api-auth';
+import { Role } from '@/lib/rbac';
 import { generateNumeroPedido } from '@/lib/order-number';
 import { z } from 'zod';
 
@@ -15,6 +17,13 @@ const CreateOrderSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const user = await requireApiAuth(req);
+
+    if (user.role === Role.USER) {
+      return NextResponse.json(
+        { error: { message: 'Acesso negado. Apenas moderadores ou administradores podem criar ordens.' } },
+        { status: 403 }
+      );
+    }
     const body = await req.json();
     const { budgetId, obs_producao, responsavel_producao } = CreateOrderSchema.parse(body);
 
@@ -26,21 +35,21 @@ export async function POST(req: NextRequest) {
 
     if (!budget) {
       return NextResponse.json(
-        { error: { message: 'Orçamento não encontrado' } },
+        { error: { message: 'Orcamento nao encontrado' } },
         { status: 404 }
       );
     }
 
     if (budget.status !== 'APPROVED') {
       return NextResponse.json(
-        { error: { message: 'Apenas orçamentos aprovados podem ser convertidos em ordens' } },
+        { error: { message: 'Apenas orcamentos aprovados podem ser convertidos em ordens' } },
         { status: 400 }
       );
     }
 
     if (budget.order) {
       return NextResponse.json(
-        { error: { message: 'Este orçamento já possui uma ordem associada' } },
+        { error: { message: 'Este orcamento ja possui uma ordem associada' } },
         { status: 400 }
       );
     }
