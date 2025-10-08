@@ -47,6 +47,7 @@ Presentation Layer (Next.js App Router)
   - `auth/` - Authentication-related components
   - `layout/` - Layout and navigation components
   - `dashboard/` - Dashboard-specific components
+  - `providers/` - Cross-cutting providers such as `QueryProvider` for React Query context
 
 #### Core Libraries
 - **`src/lib/`** - Utilities and business logic
@@ -105,6 +106,7 @@ Presentation Layer (Next.js App Router)
 - **PostgreSQL (Primary)**: Production and staging database after the migration
 - **SQLite (Legacy/Fallback)**: Maintained for local/offline workflows when PostgreSQL is unavailable
 - **Prisma ORM**: Type-safe database access with schema migrations
+- **Order-Budget Relationship**: Orders require a unique `budgetId`, removing duplicated fields and storing only production-specific metadata
 - **Audit Trail**: Automatic tracking of creation and modification timestamps
 - **Enhanced Enum System**: BudgetStatus, OrderStatus, and OrderType enums for state management
 
@@ -115,6 +117,7 @@ Presentation Layer (Next.js App Router)
 - **Error Handling**: Centralized error processing with user-friendly messages
 - **State Machine APIs**: Budget workflow endpoints with transition validation
 - **Specification APIs**: Production specification data management with validation
+- **Order APIs**: `/api/orders` enforces approved budgets, returns data via `include: { budget }`, and autogenerates `ORD-XXXX/YYYYMM` numbers
 - **Analytics APIs**: Real-time tracking of field usage and validation patterns
 - **Feature Flag APIs**: Runtime configuration and feature management endpoints
 
@@ -140,13 +143,14 @@ Presentation Layer (Next.js App Router)
 - **Client State for UI**: Local component state for form interactions
 - **URL State**: Search parameters for filters and pagination
 - **Auth Context**: Global authentication state management
-- **React Query Caching**: @tanstack/react-query manages server state for specification data and handles invalidation
+- **React Query Caching**: `QueryProvider` wraps the app with @tanstack/react-query to manage server state and handle invalidation
 - **State Machine Pattern**: Budget workflow with DRAFT → SUBMITTED → APPROVED → CONVERTED transitions
 
 ### Workflow Patterns
 - **Budget State Machine**: DRAFT → SUBMITTED → APPROVED → CONVERTED with validation at each step
 - **Order Status Management**: PENDING → IN_PRODUCTION → COMPLETED → DELIVERED with business logic validation
 - **Audit Trail Pattern**: Automatic timestamp and user tracking for all state changes
+- **Budget-to-Order Conversion**: Requires APPROVED budgets and enforces a unique `budgetId` when creating orders
 
 ### Production Specification Patterns
 - **Enum-Based Validation**: Predefined production options with type safety and business rule enforcement
@@ -295,7 +299,7 @@ Navigation Counts API (/api/navigation/counts)
 5. **Form Submission** → Enhanced validation → Database storage with audit trail
 
 ### Order Number Generation
-1. **Order Creation** → Automatic number generation → Format 0001/YYYYMM
+1. **Order Creation** -> Automatic number generation with format ORD-0001/YYYYMM
 2. **Database Query** → Latest order number → Increment calculation
 3. **Uniqueness Check** → Collision prevention → Atomic transaction
 4. **Assignment** → Read-only field population → User display
@@ -319,8 +323,8 @@ Navigation Counts API (/api/navigation/counts)
 4. **Environment Setup** → Variable configuration → Health checks
 
 ### Testing and Validation Pipeline
-1. **Comprehensive Test Suite** → 36 tests across 5 scenarios
-2. **Database Integrity** → Foreign key validation → Relationship testing
-3. **API Endpoint Testing** → Authentication + Authorization + Business logic
-4. **Performance Validation** → Sub-20ms database operations → Concurrent access testing
-5. **Security Testing** → Role-based access controls → State machine validation
+1. **Automated Test Suite** - Vitest unit coverage, Cypress budget-form e2e flows, and Playwright regression smoke tests
+2. **Database Integrity** - Foreign key validation and relationship testing
+3. **API Endpoint Testing** - Authentication, authorization, and business-logic validation
+4. **Performance Validation** - Sub-20ms database operations and concurrent access testing
+5. **Security Testing** - Role-based access controls and state machine validation

@@ -39,12 +39,14 @@
 
 ### Data Fetching & Caching
 - **@tanstack/react-query** - Declarative server-state caching with retry logic and fallbacks for specification data
+- **QueryProvider** - Custom provider wrapping the app with React Query defaults (30 min stale time, 60 min cache) and optional devtools
 
 ### Development & Build Tools
 - **Turbopack** - Fast bundler for Next.js development and builds
 - **ESLint 9** - Code linting with Next.js configuration
 - **Vitest 2.1** - Fast unit testing framework
 - **Playwright 1.55** - End-to-end testing for web applications
+- **Cypress 15** - End-to-end regression suite with authenticated fixtures for budget workflows
 - **PostCSS + Autoprefixer** - CSS processing and vendor prefixing
 
 ### Utility Libraries
@@ -57,6 +59,7 @@
 - **Feature Flag System** - Runtime configuration and controlled rollout of new functionality
 - **Budget Analytics** - Advanced tracking of field usage, validation errors, and user behavior
 - **Auto-Generation System** - Automatic order number generation with configurable formats
+- **Order Management Refactor** - Orders depend on approved budgets, store production-only metadata, and use `ORD-0001/YYYYMM` formatting
 
 ## Development Setup
 
@@ -114,6 +117,9 @@
 - `pnpm run lint` - Run ESLint code analysis
 - `pnpm run test` - Run unit tests with Vitest
 - `pnpm run e2e` - Run end-to-end tests with Playwright
+- `pnpm run test:e2e` - Execute Cypress regression suite
+- `pnpm run test:component` - Launch Vitest UI for interactive component testing
+- `pnpm run test:watch` - Watch mode for unit tests
 - `pnpm run prisma:generate` - Generate Prisma client
 
 ### Development Environment
@@ -264,12 +270,13 @@
 - **Legacy Integration**: Seamless integration with existing production workflows and terminology
 
 ### Testing Infrastructure
-- **Comprehensive Test Suite**: 36 tests across 5 scenarios
-- **Scenario Coverage**: Happy path, rejection workflow, permissions, error handling, database integrity
-- **Performance Testing**: Sub-20ms database operations, concurrent access validation
+- **Cypress E2E Suite**: `cypress/e2e/budget-form.cy.ts` covers premium, minimal, and validation flows with authenticated fixtures
+- **Playwright Smoke Tests**: Navigation, accessibility, and feature-flag regression checks for key routes
+- **Vitest Unit & Component Tests**: 36 scenarios across validation, state machines, and analytics helpers
+- **Performance Testing**: Sub-20ms database operations with concurrent access validation
 - **Database Fallback Testing**: Automated fallback when API authentication fails
-- **Business Rules Testing**: State machine validation, role-based access controls
-- **API Endpoint Testing**: Authentication + Authorization + Business logic validation
+- **Business Rules Testing**: State machine validation and role-based access controls
+- **API Endpoint Testing**: Authentication, authorization, and business logic validation
 
 ### Enhanced Validation Patterns
 - **Prisma Schema Enhancements**: Foreign key relationships, enum constraints, audit trail fields

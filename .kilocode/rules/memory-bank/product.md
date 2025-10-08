@@ -45,7 +45,7 @@ The application features an intuitive sidebar navigation that provides quick acc
 ### Daily Operations
 **Client Management**: Users can quickly add new clients with CNPJ/CPF validation, contact information, and relationship history. The system prevents duplicate entries and maintains data integrity.
 
-**Order Processing**: Creating orders involves selecting clients, choosing specifications from predefined templates, and auto-calculating pricing. Enhanced with automatic order number generation in format 0001/202501, expanded form fields including delivery dates, editorial information, and product types. Users can track order status through clear visual indicators and receive updates on production progress with improved Portuguese status translations.
+**Order Processing**: Creating orders involves selecting clients, choosing specifications from predefined templates, and auto-calculating pricing. Orders now originate from approved budgets, guaranteeing a single source of truth while production teams capture actual start/end dates, freight, and additional costs. Enhanced with automatic order number generation in format 0001/202501, expanded form fields including delivery dates, editorial information, and product types. Users can track order status through clear visual indicators and receive updates on production progress with improved Portuguese status translations.
 
 **Budget Workflows**: Users submit budget proposals with detailed specifications through a comprehensive state machine system. Budgets flow through DRAFT → SUBMITTED → APPROVED → CONVERTED states with built-in validation and role-based permissions. Moderators review and approve budgets, with clear audit trails and status notifications. Enhanced with production specification fields including paper types, colors, finishing options, and production center selection for comprehensive print job configuration.
 
@@ -100,3 +100,4 @@ The application features an intuitive sidebar navigation that provides quick acc
 - **Learning Support**: Contextual help, tooltips, and guided workflows for new users
 
 The ultimate goal is to transform complex printing production management from a burden of manual processes into an empowering, efficient, and secure digital experience that drives business growth and operational excellence.
+
