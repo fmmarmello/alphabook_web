@@ -43,7 +43,7 @@ export default function EditBudgetForm({ budget, specifications }: EditBudgetFor
 
       const { data } = await response.json();
       toast.success('Ordem criada com sucesso!');
-      router.push(`/orders/${data.id}`);
+      router.push(`/orders/${data.id}/edit`);
     } catch (error) {
       console.error('Convert error:', error);
       toast.error(error instanceof Error ? error.message : 'Erro ao converter orçamento');
