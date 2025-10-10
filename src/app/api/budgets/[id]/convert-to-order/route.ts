@@ -8,11 +8,19 @@ import { generateNumeroPedido } from '@/lib/order-number';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireApiAuth(req);
-    const budgetId = parseInt(params.id);
+    const { id } = await context.params;
+    const budgetId = parseInt(id, 10);
+
+    if (Number.isNaN(budgetId)) {
+      return NextResponse.json(
+        { error: { message: 'Identificador do orçamento inválido' } },
+        { status: 400 }
+      );
+    }
     const { obs_producao, responsavel_producao } = await req.json();
 
     // Check if user can convert to order (MODERATOR or ADMIN)

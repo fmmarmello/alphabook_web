@@ -19,17 +19,26 @@ export async function GET(req: NextRequest) {
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");
 
-    const where: Prisma.OrderWhereInput = {};
-    if (dateFrom || dateTo) {
-      where.date = {};
-      if (dateFrom) where.date.gte = new Date(dateFrom);
-      if (dateTo) where.date.lte = new Date(dateTo);
+    const where: Prisma.BudgetWhereInput = {
+      order: {
+        isNot: null,
+      },
+    };
+    const dateFilter: Prisma.DateTimeNullableFilter = {};
+    if (dateFrom) {
+      dateFilter.gte = new Date(dateFrom);
+    }
+    if (dateTo) {
+      dateFilter.lte = new Date(dateTo);
+    }
+    if (Object.keys(dateFilter).length) {
+      where.data_entrega = dateFilter;
     }
 
-    const grouped = await prisma.order.groupBy({
+    const grouped = await prisma.budget.groupBy({
       by: ["clientId"],
       where,
-      _sum: { valorTotal: true },
+      _sum: { preco_total: true },
       _count: { id: true },
     });
 
@@ -41,7 +50,7 @@ export async function GET(req: NextRequest) {
       clientId: g.clientId,
       clientName: nameMap.get(g.clientId) ?? "-",
       orders: g._count.id,
-      total: g._sum.valorTotal ?? 0,
+      total: g._sum.preco_total ?? 0,
     }));
 
     return NextResponse.json({

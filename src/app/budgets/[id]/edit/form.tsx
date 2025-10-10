@@ -53,6 +53,7 @@ export default function EditBudgetForm({ budget, specifications }: EditBudgetFor
   };
 
   const canConvert = budget.status === 'APPROVED' && !budget.order;
+  const existingOrder = budget.order;
 
   return (
     <div className="space-y-6">
@@ -80,17 +81,17 @@ export default function EditBudgetForm({ budget, specifications }: EditBudgetFor
       )}
 
       {/* Show if already converted */}
-      {budget.order && (
+      {existingOrder && (
         <div className="flex items-center justify-end p-4 bg-green-50 border border-green-200 rounded-lg">
           <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
           <span className="text-green-800">
-            Já convertido em ordem #{budget.order.numero_pedido}
+            Já convertido em ordem #{existingOrder.numero_pedido}
           </span>
           <Button
             variant="outline"
             size="sm"
             className="ml-4"
-            onClick={() => router.push(`/orders/${budget.order.id}/edit`)}
+            onClick={() => router.push(`/orders/${existingOrder.id}/edit`)}
           >
             Ver Ordem
           </Button>
@@ -98,11 +99,12 @@ export default function EditBudgetForm({ budget, specifications }: EditBudgetFor
       )}
 
       {/* Budget Form */}
-      <BudgetForm 
-        mode="edit" 
+      <BudgetForm
+        mode="edit"
         initialData={budget}
-        specifications={specifications}
+        specifications={specifications ?? undefined}
       />
     </div>
   );
 }
+

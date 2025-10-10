@@ -35,8 +35,12 @@ export async function GET(req: NextRequest) {
 
     const { dateFrom, dateTo, editorial, centerId } = validation.data;
 
-    const where: Prisma.OrderWhereInput = {};
-    const dateFilter: Prisma.DateTimeFilter<"Order"> = {} as Prisma.DateTimeFilter<"Order">;
+    const where: Prisma.BudgetWhereInput = {
+      order: {
+        isNot: null,
+      },
+    };
+    const dateFilter: Prisma.DateTimeFilter<'Budget'> = {};
     if (dateFrom) {
       dateFilter.gte = new Date(dateFrom);
     }
@@ -44,7 +48,7 @@ export async function GET(req: NextRequest) {
       dateFilter.lte = new Date(dateTo);
     }
     if (Object.keys(dateFilter).length) {
-      where.date = dateFilter;
+      where.data_entrega = dateFilter;
     }
     if (editorial && editorial !== 'all') {
       where.editorial = { contains: editorial };
@@ -53,23 +57,44 @@ export async function GET(req: NextRequest) {
       where.centerId = parseInt(centerId, 10);
     }
 
-    const orders = await prisma.order.findMany({
+    const budgets = await prisma.budget.findMany({
       where,
       select: {
         numero_pedido: true,
         tipo_produto: true,
         data_entrega: true,
-        title: true,
+        titulo: true,
         tiragem: true,
-        valorUnitario: true,
-        valorTotal: true,
+        preco_unitario: true,
+        preco_total: true,
+        order: {
+          select: {
+            numero_pedido: true,
+          },
+        },
       },
       orderBy: {
         data_entrega: 'desc',
       },
     });
 
-    const totalValorTotal = orders.reduce((acc, order) => acc + order.valorTotal, 0);
+    const orders = budgets.map((budget) => ({
+      numero_pedido:
+        budget.order?.numero_pedido ??
+        budget.numero_pedido ??
+        '',
+      tipo_produto: budget.tipo_produto ?? '',
+      data_entrega: budget.data_entrega?.toISOString() ?? null,
+      titulo: budget.titulo,
+      tiragem: budget.tiragem,
+      valorUnitario: budget.preco_unitario,
+      valorTotal: budget.preco_total,
+    }));
+
+    const totalValorTotal = orders.reduce(
+      (acc, order) => acc + order.valorTotal,
+      0
+    );
 
     return NextResponse.json({
       data: {

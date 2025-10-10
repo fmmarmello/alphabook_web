@@ -165,7 +165,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       }, { status: 404 });
     }
     
-    const inUse = await prisma.order.count({ where: { clientId: id } });
+    const inUse = await prisma.order.count({
+      where: { budget: { clientId: id } },
+    });
     if (inUse > 0) {
       return NextResponse.json({
         error: {
@@ -187,4 +189,3 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     return NextResponse.json(apiError, { status });
   }
 }
-

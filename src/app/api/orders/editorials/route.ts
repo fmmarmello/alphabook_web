@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     
     // ✅ SECURITY: All authenticated users can access editorials list
     
-    const editorials = await prisma.order.findMany({
+    const editorials = await prisma.budget.findMany({
       select: {
         editorial: true,
       },
@@ -20,10 +20,15 @@ export async function GET(req: NextRequest) {
         editorial: {
           not: null,
         },
+        order: {
+          isNot: null,
+        },
       },
     });
 
-    const editorialList = editorials.map((e) => e.editorial).filter(Boolean) as string[];
+    const editorialList = editorials
+      .map((e) => e.editorial)
+      .filter(Boolean) as string[];
 
     return NextResponse.json({
       data: editorialList,

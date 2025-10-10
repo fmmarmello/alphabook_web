@@ -28,15 +28,30 @@ const UpdateOrderSchema = z.object({
   responsavel_producao: z.string().optional().nullable(),
 });
 
+async function getOrderId(
+  context: { params: Promise<{ id: string }> }
+): Promise<number | null> {
+  const { id } = await context.params;
+  const parsed = Number.parseInt(id, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireApiAuth(req);
+    const orderId = await getOrderId(context);
+    if (!orderId) {
+      return NextResponse.json(
+        { error: { message: 'Identificador de ordem inválido' } },
+        { status: 400 }
+      );
+    }
     
     const order = await prisma.order.findUnique({
-      where: { id: Number.parseInt(params.id, 10) },
+      where: { id: orderId },
       include: {
         budget: {
           include: {
@@ -66,15 +81,22 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireApiAuth(req);
     const body = await req.json();
     const updateData = UpdateOrderSchema.parse(body);
+    const orderId = await getOrderId(context);
+    if (!orderId) {
+      return NextResponse.json(
+        { error: { message: 'Identificador de ordem inválido' } },
+        { status: 400 }
+      );
+    }
 
     const order = await prisma.order.update({
-      where: { id: Number.parseInt(params.id, 10) },
+      where: { id: orderId },
       data: updateData,
       include: {
         budget: {
@@ -98,7 +120,7 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireApiAuth(req);
@@ -111,8 +133,16 @@ export async function DELETE(
       );
     }
 
+    const orderId = await getOrderId(context);
+    if (!orderId) {
+      return NextResponse.json(
+        { error: { message: 'Identificador de ordem inválido' } },
+        { status: 400 }
+      );
+    }
+
     await prisma.order.delete({
-      where: { id: Number.parseInt(params.id, 10) },
+      where: { id: orderId },
     });
 
     return NextResponse.json({ success: true });

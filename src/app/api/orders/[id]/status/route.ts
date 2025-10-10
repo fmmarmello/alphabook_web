@@ -47,6 +47,14 @@ const STATUS_CHANGE_PERMISSIONS: Record<OrderStatus, Role[]> = {
 
 type OrderWithBudget = Prisma.OrderGetPayload<{ include: typeof ORDER_WITH_RELATIONS }>;
 
+async function resolveOrderId(
+  context: { params: Promise<{ id: string }> }
+): Promise<number | null> {
+  const { id } = await context.params;
+  const parsed = Number.parseInt(id, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
 function sanitizeOrderByRole(order: OrderWithBudget, role: Role) {
   if (role === Role.ADMIN) {
     return order;
@@ -108,13 +116,13 @@ function sanitizeOrderByRole(order: OrderWithBudget, role: Role) {
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireApiAuth(req);
 
-    const id = Number(params.id);
-    if (!Number.isInteger(id) || id <= 0) {
+    const orderId = await resolveOrderId(context);
+    if (!orderId) {
       return NextResponse.json(
         { error: { message: 'ID invalido', details: null } },
         { status: 400 }
@@ -137,7 +145,7 @@ export async function PATCH(
 
     const { status: newStatus, reason } = parsed.data;
     const currentOrder = await prisma.order.findUnique({
-      where: { id },
+      where: { id: orderId },
       include: ORDER_WITH_RELATIONS,
     });
 
@@ -206,7 +214,7 @@ export async function PATCH(
       : auditEntry;
 
     const updatedOrder = await prisma.order.update({
-      where: { id },
+      where: { id: orderId },
       data: {
         status: newStatus,
         obs_producao: mergedNotes,
@@ -237,13 +245,13 @@ export async function PATCH(
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireApiAuth(req);
 
-    const id = Number(params.id);
-    if (!Number.isInteger(id) || id <= 0) {
+    const orderId = await resolveOrderId(context);
+    if (!orderId) {
       return NextResponse.json(
         { error: { message: 'ID invalido', details: null } },
         { status: 400 }
@@ -251,7 +259,7 @@ export async function GET(
     }
 
     const currentOrder = await prisma.order.findUnique({
-      where: { id },
+      where: { id: orderId },
       select: { id: true, status: true },
     });
 
@@ -271,7 +279,7 @@ export async function GET(
 
     return NextResponse.json({
       data: {
-        orderId: id,
+        orderId,
         currentStatus,
         allowedTransitions,
         availableTransitions,

@@ -1,9 +1,10 @@
-import React from 'react'
-import { Table } from './table'
+import React from 'react';
+import { mount } from 'cypress/react';
+import { Table } from './table';
 
 describe('<Table />', () => {
   it('renders', () => {
     // see: https://on.cypress.io/mounting-react
-    cy.mount(<Table />)
-  })
-})
+    mount(<Table />);
+  });
+});

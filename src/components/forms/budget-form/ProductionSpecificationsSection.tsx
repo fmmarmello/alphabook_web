@@ -164,7 +164,8 @@ export const ProductionSpecificationsSection: React.FC<ProductionSpecificationsS
 
   // Prefer prop specifications if provided (SSR), else hook data
   const specs: Partial<Record<SpecificationCategory, string[]>> | undefined =
-    propSpecifications ?? specifications;
+    propSpecifications ??
+    (specifications as Partial<Record<SpecificationCategory, string[]>> | undefined);
 
   // Conditional logic: Capa selection
   const corCapaValue = watch("cor_capa");

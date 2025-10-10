@@ -38,12 +38,13 @@ function parseId(raw: string) {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireApiAuth(req);
 
-    const id = parseId(params.id);
+    const { id: rawId } = await context.params;
+    const id = parseId(rawId);
     if (!id) {
       return NextResponse.json(
         { error: { message: 'ID invalido', details: null } },
@@ -75,7 +76,7 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireApiAuth(req);
@@ -84,7 +85,8 @@ export async function PUT(
       throw new ApiAuthError('Insufficient permissions to update budgets', 403);
     }
 
-    const id = parseId(params.id);
+    const { id: rawId } = await context.params;
+    const id = parseId(rawId);
     if (!id) {
       return NextResponse.json(
         { error: { message: 'ID invalido', details: null } },
@@ -142,7 +144,7 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireApiAuth(req);
@@ -151,7 +153,8 @@ export async function DELETE(
       throw new ApiAuthError('Insufficient permissions to delete budgets', 403);
     }
 
-    const id = parseId(params.id);
+    const { id: rawId } = await context.params;
+    const id = parseId(rawId);
     if (!id) {
       return NextResponse.json(
         { error: { message: 'ID invalido', details: null } },

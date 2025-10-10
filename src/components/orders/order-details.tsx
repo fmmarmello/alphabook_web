@@ -1,7 +1,7 @@
 // src/components/orders/order-details.tsx
 import { StatusBadge } from "@/components/ui/status-badge";
 import Link from "next/link";
-import type { OrderStatus } from "@prisma/client";
+import type { OrderStatus } from "@/generated/prisma";
 
 interface BudgetSummary {
   id: number;

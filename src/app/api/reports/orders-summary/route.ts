@@ -19,16 +19,34 @@ export async function GET(req: NextRequest) {
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");
 
-    const where: Prisma.OrderWhereInput = {};
-    if (dateFrom || dateTo) {
-      where.date = {};
-      if (dateFrom) where.date.gte = new Date(dateFrom);
-      if (dateTo) where.date.lte = new Date(dateTo);
+    const where: Prisma.BudgetWhereInput = {
+      order: {
+        isNot: null,
+      },
+    };
+    const dateFilter: Prisma.DateTimeNullableFilter = {};
+    if (dateFrom) {
+      dateFilter.gte = new Date(dateFrom);
+    }
+    if (dateTo) {
+      dateFilter.lte = new Date(dateTo);
+    }
+    if (Object.keys(dateFilter).length) {
+      where.data_entrega = dateFilter;
     }
 
     const [agg, byCenter] = await Promise.all([
-      prisma.order.aggregate({ where, _count: { id: true }, _sum: { valorTotal: true } }),
-      prisma.order.groupBy({ by: ["centerId"], where, _count: { id: true }, _sum: { valorTotal: true } }),
+      prisma.budget.aggregate({
+        where,
+        _count: { id: true },
+        _sum: { preco_total: true },
+      }),
+      prisma.budget.groupBy({
+        by: ["centerId"],
+        where,
+        _count: { id: true },
+        _sum: { preco_total: true },
+      }),
     ]);
 
     const centerIds = byCenter.map((g) => g.centerId);
@@ -37,12 +55,12 @@ export async function GET(req: NextRequest) {
 
     const data = {
       totalOrders: agg._count.id ?? 0,
-      totalAmount: agg._sum.valorTotal ?? 0,
+      totalAmount: agg._sum.preco_total ?? 0,
       byCenter: byCenter.map((g) => ({
         centerId: g.centerId,
         centerName: centerMap.get(g.centerId) ?? "-",
         orders: g._count.id,
-        total: g._sum.valorTotal ?? 0,
+        total: g._sum.preco_total ?? 0,
       })),
     };
 
